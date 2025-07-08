@@ -28,6 +28,8 @@ public class LibraryDTO {
     @Size(max = 255)
     private String url;
 
+    private String location;
+
     private Boolean activated;
 
     private LocalDateTime createdAt;

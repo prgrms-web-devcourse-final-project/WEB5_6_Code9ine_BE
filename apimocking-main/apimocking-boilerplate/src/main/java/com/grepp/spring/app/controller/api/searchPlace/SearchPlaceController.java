@@ -1,0 +1,217 @@
+package com.grepp.spring.app.controller.api.searchPlace;
+
+import com.grepp.spring.infra.response.ApiResponse;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api")
+public class SearchPlaceController {
+
+    // 식당검색 (location = 검색창, 카테고리 = type에 담아서)
+    @GetMapping("/places/search")
+    public ApiResponse<List<Map<String, Object>>> searchMockPlaces(
+            @RequestParam String location,
+            @RequestParam(required = false) String type
+    ) {
+        List<Map<String, Object>> results = new ArrayList<>();
+
+        if (!"강남구".equals(location)) {
+            return ApiResponse.success(results);
+        }
+
+        if (type == null || type.isBlank()) {
+            results.addAll(mockStores());
+            results.addAll(mockFestivals());
+            results.addAll(mockLibraries());
+        } else {
+            List<String> requestedTypes = List.of(type.split(","));
+
+            results.addAll(mockStores().stream()
+                    .filter(store -> {
+                        Object t = store.get("type");
+                        return t != null && requestedTypes.contains(t.toString());
+                    })
+                    .toList());
+
+            if (requestedTypes.contains("축제")) {
+                results.addAll(mockFestivals());
+            }
+            if (requestedTypes.contains("도서관")) {
+                results.addAll(mockLibraries());
+            }
+        }
+
+        return ApiResponse.success(results);
+    }
+
+    private List<Map<String, Object>> mockStores() {
+        List<Map<String, Object>> stores = new ArrayList<>();
+
+        Map<String, Object> korean = new HashMap<>();
+        korean.put("storeId", "1");
+        korean.put("name", "강남 한식당");
+        korean.put("address", "서울 강남구 테헤란로 10");
+        korean.put("category", "한식");
+        korean.put("type", "한식"); // 핵심
+        korean.put("contact","02-1212-1212");
+        korean.put("firstmenu", "비빔밥");
+        korean.put("firstprice", 8000);
+        korean.put("latitude", 37.501);
+        korean.put("longitude", 127.039);
+        stores.add(korean);
+
+        Map<String, Object> chinese = new HashMap<>();
+        chinese.put("storeId", "2");
+        chinese.put("name", "강남 중식당");
+        chinese.put("address", "서울 강남구 역삼로 20");
+        chinese.put("category", "중식");
+        chinese.put("type", "중식");
+        chinese.put("contact","02-1212-1212");
+        chinese.put("firstmenu", "짜장면");
+        chinese.put("firstprice", 7000);
+        chinese.put("latitude", 37.495);
+        chinese.put("longitude", 127.030);
+        stores.add(chinese);
+
+        Map<String, Object> western = new HashMap<>();
+        western.put("storeId", "3");
+        western.put("name", "강남 양식당");
+        western.put("address", "서울 강남구 봉은사로 30");
+        western.put("category", "양식");
+        western.put("type", "양식");
+        western.put("contact","02-1212-1212");
+        western.put("firstmenu", "파스타");
+        western.put("firstprice", 12000);
+        western.put("latitude", 37.504);
+        western.put("longitude", 127.037);
+        stores.add(western);
+
+        return stores;
+    }
+
+    private List<Map<String, Object>> mockFestivals() {
+        Map<String, Object> festival = new HashMap<>();
+        festival.put("festivalId", "4");
+        festival.put("name", "강남 문화축제");
+        festival.put("address", "서울 강남구 삼성로 40");
+        festival.put("url", "https://example.com");
+        festival.put("category", null);
+        festival.put("type", "축제");
+        festival.put("latitude", 37.510);
+        festival.put("longitude", 127.056);
+        return List.of(festival);
+    }
+
+    private List<Map<String, Object>> mockLibraries() {
+        Map<String, Object> library = new HashMap<>();
+        library.put("libraryId", "5");
+        library.put("name", "강남 도서관");
+        library.put("address", "서울 강남구 논현로 50");
+        library.put("url", "https://example.com");
+        library.put("category", null);
+        library.put("type", "도서관");
+        library.put("latitude", 37.512);
+        library.put("longitude", 127.041);
+        return List.of(library);
+    }
+
+    @GetMapping("/places/detail")
+    public ApiResponse<Map<String, Object>> getPlaceDetail(
+            @RequestParam String type,
+            @RequestParam Long id
+    ) {
+        Map<String, Object> result = new HashMap<>();
+
+        // store 업종 목록
+        List<String> storeTypes = List.of("한식", "양식", "중식", "일식", "미용업", "세탁업", "숙박업");
+
+        if (storeTypes.contains(type)) {
+            // Mock store 데이터
+            result.put("storeId", id);
+            result.put("name", "서울식당");
+            result.put("address", "서울시 강남구 테헤란로 10");
+            result.put("category", "한식");
+            result.put("contact","02-1212-1212");
+            result.put("firstmenu", "비빔밥");
+            result.put("firstprice", 8000);
+            result.put("secondmenu", "김치찌개");
+            result.put("secondprice", 7000);
+            result.put("thirdmenu", "된장찌개");
+            result.put("thirdprice", 7500);
+            result.put("latitude", 37.501);
+            result.put("longitude", 127.039);
+        } else if (type.equals("축제")) {
+            result.put("festivalId", id);
+            result.put("name", "강남 문화축제");
+            result.put("category", "문화예술");
+            result.put("address", "서울시 강남구 삼성로 40");
+            result.put("target", "전체 시민");
+            result.put("url", "https://festival.example.com");
+            result.put("startAt", "2025-07-20");
+            result.put("endAt", "2025-07-23");
+            result.put("latitude", 37.51);
+            result.put("longitude", 127.056);
+        } else if (type.equals("도서관")) {
+            result.put("libraryId", id);
+            result.put("name", "강남 도서관");
+            result.put("address", "서울시 강남구 논현로 50");
+            result.put("url", "https://library.example.com");
+            result.put("latitude", 37.512);
+            result.put("longitude", 127.041);
+        } else {
+            throw new IllegalArgumentException("유효하지 않은 type 값입니다.");
+        }
+
+        return ApiResponse.success(result);
+    }
+
+    @GetMapping("/searches/top")
+    public ApiResponse<List<Map<String, Object>>> getTopSearchKeywords() {
+        List<Map<String, Object>> region = new ArrayList<>();
+
+        region.add(Map.of("region", "성동구"));
+        region.add(Map.of("region", "강남구"));
+        region.add(Map.of("region", "용산구"));
+        region.add(Map.of("region", "강동구"));
+        region.add(Map.of("region", "강북구"));
+
+        return ApiResponse.success(region);
+    }
+
+    @PatchMapping("/users/{userId}/places-bookmarks/toggle")
+    public ApiResponse<Map<String, Object>> toggleBookmarkMock(
+            @PathVariable Long userId,
+            @RequestBody Map<String, Long> request
+    ) {
+        Map<String, Object> response = new HashMap<>();
+
+        if (request.containsKey("storeId")) {
+            Long id = request.get("storeId");
+            response.put("activated", true);
+            response.put("message", "북마크가 추가되었습니다.");
+            return ApiResponse.success(response);
+        }
+
+        if (request.containsKey("festivalId")) {
+            Long id = request.get("festivalId");
+            response.put("activated", false);
+            response.put("message", "북마크가 제거되었습니다.");
+            return ApiResponse.success(response);
+        }
+
+        if (request.containsKey("libraryId")) {
+            Long id = request.get("libraryId");
+            response.put("activated", true);
+            response.put("message", "북마크가 추가되었습니다.");
+            return ApiResponse.success(response);
+        }
+
+        throw new IllegalArgumentException("storeId, festivalId, libraryId 중 하나는 반드시 포함되어야 합니다.");
+    }
+}
+

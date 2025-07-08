@@ -1,7 +1,6 @@
-package com.grepp.spring.app.controller.api.userMainController;
+package com.grepp.spring.app.controller.api.userMain;
 
 import com.grepp.spring.infra.response.ApiResponse;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,7 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
-public class userMainController {
+public class UserMainController {
 
     // 사용자 평균 절약 금액
     @GetMapping("/average-saving")

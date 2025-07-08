@@ -50,6 +50,9 @@ public class Library {
     private String url;
 
     @Column
+    private String location;
+
+    @Column
     private Boolean activated;
 
     @Column

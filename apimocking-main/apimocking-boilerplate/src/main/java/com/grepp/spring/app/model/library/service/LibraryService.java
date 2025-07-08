@@ -73,6 +73,7 @@ public class LibraryService {
         library.setLongitude(libraryDTO.getLongitude());
         library.setLatitude(libraryDTO.getLatitude());
         library.setUrl(libraryDTO.getUrl());
+        library.setLocation(libraryDTO.getLocation());
         library.setActivated(libraryDTO.getActivated());
         library.setCreatedAt(libraryDTO.getCreatedAt());
         library.setModifiedAt(libraryDTO.getModifiedAt());

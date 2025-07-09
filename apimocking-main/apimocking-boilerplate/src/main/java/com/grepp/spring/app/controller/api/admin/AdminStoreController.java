@@ -70,7 +70,7 @@ public class AdminStoreController {
     }
 
     @GetMapping("/search")
-    @Operation(summary = "관리자 카테고리별 장소 조회")
+    @Operation(summary = "관리자 카테고리별 장소 조회", description = "카테고리 : 한식, 중식, 일식, 양식, 미용업, 세탁업, 숙박업")
     public ResponseEntity<ApiResponse<List<AdminStoreResponse>>> searchByCategory(@RequestParam String category) {
         if (!List.of("한식", "중식", "일식", "양식", "미용업", "세탁업", "숙박업").contains(category)) {
             return ResponseEntity

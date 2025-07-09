@@ -1,5 +1,7 @@
 package com.grepp.spring.app.controller.api.budget;
 
+import com.grepp.spring.app.model.budget.model.BudgetCalenderResponseDto;
+import com.grepp.spring.app.model.budget.model.BudgetDaySummary;
 import com.grepp.spring.infra.response.ApiResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,78 +15,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/budget")
 public class BudgetController {
 
-    @GetMapping("/details")
-    public ApiResponse<Map<String, Object>> getSummary() {
-
-        // expenses 리스트
-        List<Map<String, Object>> expenses = new ArrayList<>();
-
-        Map<String, Object> expense1 = new HashMap<>();
-        expense1.put("id", 1);
-        expense1.put("category", "식비");
-        expense1.put("categoryIcon", "🍔");
-        expense1.put("content", "햄버거");
-        expense1.put("date", "2025-07-03");
-        expense1.put("price", 8700);
-        expense1.put("repeatCycle", "NONE");
-
-        Map<String, Object> expense2 = new HashMap<>();
-        expense2.put("id", 2);
-        expense2.put("category", "교통");
-        expense2.put("categoryIcon", "🚌");
-        expense2.put("content", "버스");
-        expense2.put("date", "2025-07-02");
-        expense2.put("price", 1250);
-        expense2.put("repeatCycle", "MONTHLY");
-
-        expenses.add(expense1);
-        expenses.add(expense2);
-
-        // data
-        Map<String, Object> data = new HashMap<>();
-        data.put("yearMonth", "2025-07");
-        data.put("totalIncome", 1200000);
-        data.put("totalExpense", 870000);
-        data.put("totalDifference", 330000);
-        data.put("expenses", expenses);
-
-        return ApiResponse.success(data);
-    }
 
     @GetMapping("/calendar")
-    public ApiResponse<Map<String, Object>> getMonthlySummary() {
-        // 날짜별 항목 리스트 생성
-        List<Map<String, Object>> days = new ArrayList<>();
+    public ApiResponse<BudgetCalenderResponseDto> getMonthlySummary() {
+        List<BudgetDaySummary> days = List.of(
+            new BudgetDaySummary("2025-07-01", 50000, 32000, 18000),
+            new BudgetDaySummary("2025-07-02", 0, 28000, -28000),
+            new BudgetDaySummary("2025-07-03", 10000, 10000, 0)
+        );
 
-        Map<String, Object> day1 = new HashMap<>();
-        day1.put("date", "2025-07-01");
-        day1.put("income", 50000);
-        day1.put("expense", 32000);
-        day1.put("difference", 18000);
-        days.add(day1);
+        BudgetCalenderResponseDto response = new BudgetCalenderResponseDto(
+            "2025-07",
+            1250000,
+            870000,
+            days
+        );
 
-        Map<String, Object> day2 = new HashMap<>();
-        day2.put("date", "2025-07-02");
-        day2.put("income", 0);
-        day2.put("expense", 28000);
-        day2.put("difference", -28000);
-        days.add(day2);
-
-        Map<String, Object> day3 = new HashMap<>();
-        day3.put("date", "2025-07-03");
-        day3.put("income", 10000);
-        day3.put("expense", 10000);
-        day3.put("difference", 0);
-        days.add(day3);
-
-        // data 객체 생성
-        Map<String, Object> data = new HashMap<>();
-        data.put("totalIncome", 1250000);
-        data.put("totalExpense", 870000);
-        data.put("month", "2025-07");
-        data.put("days", days);
-
-        return ApiResponse.success(data);
+        return ApiResponse.success(response);
     }
 
     @GetMapping("/analyze")

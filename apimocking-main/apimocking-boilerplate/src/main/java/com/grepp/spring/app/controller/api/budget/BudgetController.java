@@ -1,10 +1,12 @@
 package com.grepp.spring.app.controller.api.budget;
 
+import com.grepp.spring.app.model.budget.model.BudgetAnalyzeResponseDto;
 import com.grepp.spring.app.model.budget.model.BudgetCalenderResponseDto;
+import com.grepp.spring.app.model.budget.model.BudgetCategorySummary;
 import com.grepp.spring.app.model.budget.model.BudgetDaySummary;
+import com.grepp.spring.app.model.budget.model.BudgetGoal;
+import com.grepp.spring.app.model.budget.model.BudgetMonthlyExpense;
 import com.grepp.spring.infra.response.ApiResponse;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,43 +37,39 @@ public class BudgetController {
     }
 
     @GetMapping("/analyze")
-    public ApiResponse<Map<String, Object>>  getDashboard() {
+    public ApiResponse<BudgetAnalyzeResponseDto>  getDashboard() {
 
-        // goal 정보
-        Map<String, Object> goal = new HashMap<>();
-        goal.put("itemName", "아이패드 에어");
-        goal.put("itemImage", "https://example.com/ipad.png");
-        goal.put("itemPrice", 890000);
-
-        // monthlyExpenses 리스트
-        List<Map<String, Object>> monthlyExpenses = List.of(
-            Map.of("month", "2025-02", "amount", 1410000),
-            Map.of("month", "2025-03", "amount", 1340000),
-            Map.of("month", "2025-04", "amount", 1680000),
-            Map.of("month", "2025-05", "amount", 1220000),
-            Map.of("month", "2025-06", "amount", 1470000),
-            Map.of("month", "2025-07", "amount", 1250000)
+        BudgetGoal goal = new BudgetGoal(
+            "아이패드 에어", "https://example.com/ipad.png", 890000
         );
 
-        // categorySummary 리스트
-        List<Map<String, Object>> categorySummary = List.of(
-            Map.of("category", "식비", "categoryIcon", "🍔", "totalAmount", 530000),
-            Map.of("category", "교통", "categoryIcon", "🚌", "totalAmount", 120000),
-            Map.of("category", "문화생활", "categoryIcon", "🎬", "totalAmount", 180000)
+        List<BudgetMonthlyExpense> monthlyExpenses = List.of(
+            new BudgetMonthlyExpense("2025-02", 1410000),
+            new BudgetMonthlyExpense("2025-03", 1340000),
+            new BudgetMonthlyExpense("2025-04", 1680000),
+            new BudgetMonthlyExpense("2025-05", 1220000),
+            new BudgetMonthlyExpense("2025-06", 1470000),
+            new BudgetMonthlyExpense("2025-07", 1250000)
         );
 
-        // data 객체 생성
-        Map<String, Object> data = new HashMap<>();
-        data.put("yearMonth", "2025-07");
-        data.put("totalIncome", 2000000);
-        data.put("totalExpense", 1250000);
-        data.put("goal", goal);
-        data.put("currentMonthExpense", 1250000);
-        data.put("monthlyExpenses", monthlyExpenses);
-        data.put("categorySummary", categorySummary);
-        data.put("savedComparedToLastMonth", 220000);
-        data.put("totalsavedAmount", 1500000);
+        List<BudgetCategorySummary> categorySummary = List.of(
+            new BudgetCategorySummary("식비", "🍔", 530000),
+            new BudgetCategorySummary("교통", "🚌", 120000),
+            new BudgetCategorySummary("문화생활", "🎬", 180000)
+        );
 
-        return ApiResponse.success(data);
+        BudgetAnalyzeResponseDto response = new BudgetAnalyzeResponseDto(
+            "2025-07",
+            2000000,
+            1250000,
+            goal,
+            1250000,
+            monthlyExpenses,
+            categorySummary,
+            220000,
+            1500000
+        );
+
+        return ApiResponse.success(response);
     }
 }

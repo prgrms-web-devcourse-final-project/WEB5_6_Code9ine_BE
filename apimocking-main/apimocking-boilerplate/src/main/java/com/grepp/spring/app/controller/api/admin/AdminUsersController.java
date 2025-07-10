@@ -1,12 +1,15 @@
 package com.grepp.spring.app.controller.api.admin;
 
+import com.grepp.spring.app.model.admin.dto.AdminStoreResponse;
 import com.grepp.spring.app.model.admin.dto.AdminUserResponse;
+import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,16 +24,42 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminUsersController {
 
     List<AdminUserResponse> mockUsers = List.of(
-        new AdminUserResponse(0, "거지왕", "abc@abc.com", false),
-        new AdminUserResponse(1, "부자왕", "def@def.com", false)
-    );
+        new AdminUserResponse(0, "닉네임0", "abc@abc.com", false),
+        new AdminUserResponse(1, "닉네임1", "def@def.com", false),
+        new AdminUserResponse(2, "닉네임2", "ghi@ghi.com", false),
+        new AdminUserResponse(3, "닉네임3", "jkl@jkl.com", false),
+        new AdminUserResponse(4, "닉네임4", "mno@mno.com", false),
+        new AdminUserResponse(5, "닉네임5", "pqr@pqr.com", false),
+        new AdminUserResponse(6, "닉네임6", "stu@stu.com", false),
+        new AdminUserResponse(7, "닉네임7", "wxyz@wxyz.com", false),
+        new AdminUserResponse(8, "닉네임8", "aaa@aaa.com", false),
+        new AdminUserResponse(9, "닉네임9", "bbb@bbb.com", false),
+        new AdminUserResponse(10, "닉네임10", "ccc@ccc.com", false),
+        new AdminUserResponse(11, "닉네임11", "ddd@ddd.com", false)
+        );
 
     @GetMapping
     @Operation(summary = "관리자 모든 회원 조회")
-    public ResponseEntity<ApiResponse<List<AdminUserResponse>>> getAllUsers() {
+    public ResponseEntity<ApiResponse<List<AdminUserResponse>>> getAllUsers(
+        @ParameterObject PageParam pageParam
+    ) {
+        int page = pageParam.getPage();
+        int size = pageParam.getSize();
+
+        int fromIndex =  (page - 1) * size;
+        int toIndex = Math.min(fromIndex + size, mockUsers.size());
+
+        if (fromIndex >= mockUsers.size()) {
+            return ResponseEntity
+                .status(ResponseCode.BAD_REQUEST.status())
+                .body(ApiResponse.error(ResponseCode.BAD_REQUEST));
+        }
+
+        List<AdminUserResponse> paged = mockUsers.subList(fromIndex, toIndex);
+
         return ResponseEntity
             .status(ResponseCode.OK.status())
-            .body(ApiResponse.success(mockUsers));
+            .body(ApiResponse.success(paged));
     }
 
 

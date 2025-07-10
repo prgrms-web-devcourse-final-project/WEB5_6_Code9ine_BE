@@ -12,35 +12,30 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class BudgetDetail {
 
-    @Id
+    @Id @GeneratedValue
     @Column(nullable = false, updatable = false)
-    @SequenceGenerator(
-            name = "primary_sequence",
-            sequenceName = "primary_sequence",
-            allocationSize = 1,
-            initialValue = 10000
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "primary_sequence"
-    )
     private Long budgetDetailId;
-
 
     @Column(nullable = false, length = 100)
     private String content;
 
-    @Column(nullable = false, precision = 20, scale = 1)
-    private BigDecimal price;
+    @Column(nullable = false, precision = 20, scale = 0)
+    private BigDecimal amount;
 
     @Column(nullable = false)
     private String category;
@@ -51,8 +46,13 @@ public class BudgetDetail {
     @Column(nullable = false)
     private String type;
 
+    @Column(nullable = false)
+    private String repeatCycle;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "budgetId", nullable = false)
     private Budget budget;
+
+
 
 }

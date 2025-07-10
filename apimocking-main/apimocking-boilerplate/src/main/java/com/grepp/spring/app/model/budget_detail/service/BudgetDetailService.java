@@ -57,7 +57,7 @@ public class BudgetDetailService {
             final BudgetDetailDTO budgetDetailDTO) {
         budgetDetailDTO.setBudgetDetailId(budgetDetail.getBudgetDetailId());
         budgetDetailDTO.setContent(budgetDetail.getContent());
-        budgetDetailDTO.setPrice(budgetDetail.getPrice());
+        budgetDetailDTO.setPrice(budgetDetail.getAmount());
         budgetDetailDTO.setCategory(budgetDetail.getCategory());
         budgetDetailDTO.setDate(budgetDetail.getDate());
         budgetDetailDTO.setType(budgetDetail.getType());
@@ -68,7 +68,7 @@ public class BudgetDetailService {
     private BudgetDetail mapToEntity(final BudgetDetailDTO budgetDetailDTO,
             final BudgetDetail budgetDetail) {
         budgetDetail.setContent(budgetDetailDTO.getContent());
-        budgetDetail.setPrice(budgetDetailDTO.getPrice());
+        budgetDetail.setAmount(budgetDetailDTO.getPrice());
         budgetDetail.setCategory(budgetDetailDTO.getCategory());
         budgetDetail.setDate(budgetDetailDTO.getDate());
         budgetDetail.setType(budgetDetailDTO.getType());

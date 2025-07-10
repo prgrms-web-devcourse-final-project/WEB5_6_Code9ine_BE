@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.budget_detail.model;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,10 +12,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Item {
 
-    private int id;
+    private Long id;
     private String category;
     private String icon;
     private String content;
-    private int price;
+    private BigDecimal amount;
 
 }

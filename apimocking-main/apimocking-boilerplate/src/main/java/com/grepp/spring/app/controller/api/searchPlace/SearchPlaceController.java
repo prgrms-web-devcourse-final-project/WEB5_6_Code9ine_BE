@@ -115,6 +115,7 @@ public class SearchPlaceController {
         library.put("url", "https://example.com");
         library.put("category", null);
         library.put("type", "도서관");
+        library.put("contact", "02-1212-1212");
         library.put("latitude", 37.512);
         library.put("longitude", 127.041);
         return List.of(library);
@@ -161,6 +162,7 @@ public class SearchPlaceController {
             result.put("name", "강남 도서관");
             result.put("address", "서울시 강남구 논현로 50");
             result.put("url", "https://library.example.com");
+            result.put("contact","02-1212-1212");
             result.put("latitude", 37.512);
             result.put("longitude", 127.041);
         } else {

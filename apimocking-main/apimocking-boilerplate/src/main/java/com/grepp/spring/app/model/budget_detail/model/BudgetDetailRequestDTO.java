@@ -1,7 +1,6 @@
 package com.grepp.spring.app.model.budget_detail.model;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,10 +8,21 @@ import lombok.Setter;
 @Setter
 public class BudgetDetailRequestDTO {
 
-    private String type; // "수입" 또는 "지출"
-    private LocalDate date; // "yyyy-MM-dd"
+    @Schema(description = "수입 또는 지출", example = "지출")
+    private String type;
+
+    @Schema(description = "날짜", example = "2025-07-13")
+    private String date;
+
+    @Schema(description = "카테고리", example = "식비")
     private String category;
-    private BigDecimal amount;
+
+    @Schema(description = "금액", example = "2000")
+    private int price;
+
+    @Schema(description = "내용", example = "라면")
     private String content;
-    private String repeatCycle; // "NONE", "DAILY", "WEEKLY" 등
+
+    @Schema(description = "반복여부", example = "NONE")
+    private String repeatCycle;
 }

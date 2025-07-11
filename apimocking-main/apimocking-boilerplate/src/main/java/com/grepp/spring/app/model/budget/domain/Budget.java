@@ -35,13 +35,13 @@ public class Budget {
     private LocalDate date;
 
     @Column(precision = 20, scale = 0)
-    private BigDecimal totalIncome;
+    private int totalIncome;
 
     @Column(precision = 20, scale = 0)
-    private BigDecimal totalExpense;
+    private int totalExpense;
 
     @Column(precision = 20, scale = 0)
-    private BigDecimal targetExpense;
+    private int targetExpense;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)

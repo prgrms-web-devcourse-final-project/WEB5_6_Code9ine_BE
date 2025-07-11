@@ -3,10 +3,10 @@ package com.grepp.spring.app.model.budget_detail.service;
 import com.grepp.spring.app.model.budget.domain.Budget;
 import com.grepp.spring.app.model.budget.repos.BudgetRepository;
 import com.grepp.spring.app.model.budget_detail.domain.BudgetDetail;
-import com.grepp.spring.app.model.budget_detail.model.BudgetDetailExpenseResponseDTO;
+import com.grepp.spring.app.model.budget_detail.model.BudgetDetailDto;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailRequestDTO;
-import com.grepp.spring.app.model.budget_detail.model.Item;
-import com.grepp.spring.app.model.budget_detail.model.UpdatedExpenseResponseDto;
+import com.grepp.spring.app.model.budget_detail.model.BudgetDetailResponseDto;
+import com.grepp.spring.app.model.budget_detail.model.UpdatedBudgetDetailResponseDto;
 import com.grepp.spring.app.model.budget_detail.repos.BudgetDetailRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
@@ -25,40 +25,43 @@ public class BudgetDetailServiceNew {
     private final MemberRepository memberRepository;
 
     @Transactional(readOnly = true)
-    public BudgetDetailExpenseResponseDTO findExpensesByDate(String username, LocalDate date) {
+    public BudgetDetailResponseDto findBudgetDetailByDate(String username, String date) {
 
-        Member member = memberRepository.findById(Long.valueOf(username))
+        Member member = memberRepository.findById(1L)
             .orElseThrow(() -> new RuntimeException("해당 ID의 회원이 존재하지 않습니다."));
 
         // 해당 유저의 해당 날짜 Budget 찾기
-        Budget budget = budgetRepository.findByDateWithDetails(date, member)
+        Budget budget = budgetRepository.findByDateWithDetails(LocalDate.parse(date), member)
             .orElseThrow(() -> new RuntimeException("해당 날짜의 예산이 없습니다."));
 
         // Budget에 연결된 BudgetDetail 꺼내기
-        List<Item> items = budget.getBudgetDetails().stream()
-            .map(detail -> new Item(
+        List<BudgetDetailDto> details = budget.getBudgetDetails().stream()
+            .map(detail -> new BudgetDetailDto(
                 detail.getBudgetDetailId(),
                 detail.getCategory(),
+                detail.getType(),
                 getIconForCategory(detail.getCategory()),
                 detail.getContent(),
-                detail.getAmount()
+                detail.getDate(),
+                detail.getPrice(),
+                detail.getRepeatCycle()
             ))
             .toList();
 
-        return new BudgetDetailExpenseResponseDTO(items);
+        return new BudgetDetailResponseDto(details);
     }
 
     @Transactional
-    public void registerExpense(String username, BudgetDetailRequestDTO dto) {
+    public void registerBudgetDetail(String username, BudgetDetailRequestDTO dto) {
 
-        Member member = memberRepository.findById(Long.valueOf(username))
+        Member member = memberRepository.findById(1L)
             .orElseThrow(() -> new RuntimeException("해당 ID의 회원이 존재하지 않습니다."));
 
         // 1. 해당 날짜의 가계부(Budget) 조회
-        Budget budget = budgetRepository.findByDateAndMember(dto.getDate(), member)
+        Budget budget = budgetRepository.findByDateAndMember(LocalDate.parse(dto.getDate()), member)
             .orElseGet(() -> {
                 Budget newBudget = new Budget();
-                newBudget.setDate(dto.getDate());
+                newBudget.setDate(LocalDate.parse(dto.getDate()));
                 newBudget.setMember(member);
                 return budgetRepository.save(newBudget);
             });
@@ -67,8 +70,8 @@ public class BudgetDetailServiceNew {
         BudgetDetail detail = BudgetDetail.builder()
             .budget(budget)
             .category(dto.getCategory())
-            .date(dto.getDate())
-            .amount(dto.getAmount())
+            .date(LocalDate.parse(dto.getDate()))
+            .price(dto.getPrice())
             .content(dto.getContent())
             .type(dto.getType())
             .repeatCycle(dto.getRepeatCycle())
@@ -79,14 +82,14 @@ public class BudgetDetailServiceNew {
 
     // 지출수정
     @Transactional
-    public UpdatedExpenseResponseDto updateExpense(Long expenseId, BudgetDetailRequestDTO dto) {
+    public UpdatedBudgetDetailResponseDto updateBudgetDetail(Long detailId, BudgetDetailRequestDTO dto) {
 
         // 1. 수정할 BudgetDetail 엔티티 조회
-        BudgetDetail budgetDetail = budgetDetailRepository.findById(expenseId)
+        BudgetDetail budgetDetail = budgetDetailRepository.findById(detailId)
             .orElseThrow(() -> new RuntimeException("해당 지출 내역이 존재하지 않습니다."));
 
         Member member = budgetDetail.getBudget().getMember(); // 기존 멤버 가져오기
-        LocalDate newDate = dto.getDate();
+        LocalDate newDate = LocalDate.parse(dto.getDate());
 
         if (!budgetDetail.getBudget().getDate().equals(newDate)) {
             // 2. 기존 Budget에서 지출 제거
@@ -112,18 +115,18 @@ public class BudgetDetailServiceNew {
             }
         }
         budgetDetail.setType(dto.getType());
-        budgetDetail.setDate(dto.getDate());
+        budgetDetail.setDate(LocalDate.parse(dto.getDate()));
         budgetDetail.setCategory(dto.getCategory());
-        budgetDetail.setAmount(dto.getAmount());
+        budgetDetail.setPrice(dto.getPrice());
         budgetDetail.setContent(dto.getContent());
         budgetDetail.setRepeatCycle(dto.getRepeatCycle());
 
-        UpdatedExpenseResponseDto updatedExpenseResponseDto = new UpdatedExpenseResponseDto(
-            expenseId,
+        UpdatedBudgetDetailResponseDto updatedExpenseResponseDto = new UpdatedBudgetDetailResponseDto(
+            detailId,
             budgetDetail.getType(),
             budgetDetail.getDate(),
             budgetDetail.getCategory(),
-            budgetDetail.getAmount(),
+            budgetDetail.getPrice(),
             budgetDetail.getContent(),
             budgetDetail.getRepeatCycle()
         );

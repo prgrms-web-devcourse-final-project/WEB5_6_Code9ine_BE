@@ -13,7 +13,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class BudgetDetailDTO {
+public class TempBudgetDetailDTO {
 
     private Long budgetDetailId;
 
@@ -28,7 +28,7 @@ public class BudgetDetailDTO {
     @Digits(integer = 20, fraction = 1)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @Schema(type = "string", example = "75.8")
-    private BigDecimal price;
+    private int price;
 
     @NotNull
     @Size(max = 255)

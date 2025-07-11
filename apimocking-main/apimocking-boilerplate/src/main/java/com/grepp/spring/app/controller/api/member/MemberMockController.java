@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.context.annotation.Profile;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ import java.util.Map;
 // 출력: MemberLoginResponse(code, message, data)
 @RestController
 @RequestMapping(value = "/api/members", produces = MediaType.APPLICATION_JSON_VALUE)
+@Profile("mock")
 public class MemberMockController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<MemberLoginResponse>> login(@RequestBody MemberLoginRequest request) {

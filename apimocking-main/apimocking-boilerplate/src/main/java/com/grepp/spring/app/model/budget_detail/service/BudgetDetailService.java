@@ -3,9 +3,11 @@ package com.grepp.spring.app.model.budget_detail.service;
 import com.grepp.spring.app.model.budget.domain.Budget;
 import com.grepp.spring.app.model.budget.repos.BudgetRepository;
 import com.grepp.spring.app.model.budget_detail.domain.BudgetDetail;
-import com.grepp.spring.app.model.budget_detail.model.BudgetDetailDTO;
+import com.grepp.spring.app.model.budget_detail.model.TempBudgetDetailDTO;
 import com.grepp.spring.app.model.budget_detail.repos.BudgetDetailRepository;
 import com.grepp.spring.util.NotFoundException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -23,26 +25,26 @@ public class BudgetDetailService {
         this.budgetRepository = budgetRepository;
     }
 
-    public List<BudgetDetailDTO> findAll() {
+    public List<TempBudgetDetailDTO> findAll() {
         final List<BudgetDetail> budgetDetails = budgetDetailRepository.findAll(Sort.by("budgetDetailId"));
         return budgetDetails.stream()
-                .map(budgetDetail -> mapToDTO(budgetDetail, new BudgetDetailDTO()))
+                .map(budgetDetail -> mapToDTO(budgetDetail, new TempBudgetDetailDTO()))
                 .toList();
     }
 
-    public BudgetDetailDTO get(final Long budgetDetailId) {
+    public TempBudgetDetailDTO get(final Long budgetDetailId) {
         return budgetDetailRepository.findById(budgetDetailId)
-                .map(budgetDetail -> mapToDTO(budgetDetail, new BudgetDetailDTO()))
+                .map(budgetDetail -> mapToDTO(budgetDetail, new TempBudgetDetailDTO()))
                 .orElseThrow(NotFoundException::new);
     }
 
-    public Long create(final BudgetDetailDTO budgetDetailDTO) {
+    public Long create(final TempBudgetDetailDTO budgetDetailDTO) {
         final BudgetDetail budgetDetail = new BudgetDetail();
         mapToEntity(budgetDetailDTO, budgetDetail);
         return budgetDetailRepository.save(budgetDetail).getBudgetDetailId();
     }
 
-    public void update(final Long budgetDetailId, final BudgetDetailDTO budgetDetailDTO) {
+    public void update(final Long budgetDetailId, final TempBudgetDetailDTO budgetDetailDTO) {
         final BudgetDetail budgetDetail = budgetDetailRepository.findById(budgetDetailId)
                 .orElseThrow(NotFoundException::new);
         mapToEntity(budgetDetailDTO, budgetDetail);
@@ -53,11 +55,11 @@ public class BudgetDetailService {
         budgetDetailRepository.deleteById(budgetDetailId);
     }
 
-    private BudgetDetailDTO mapToDTO(final BudgetDetail budgetDetail,
-            final BudgetDetailDTO budgetDetailDTO) {
+    private TempBudgetDetailDTO mapToDTO(final BudgetDetail budgetDetail,
+            final TempBudgetDetailDTO budgetDetailDTO) {
         budgetDetailDTO.setBudgetDetailId(budgetDetail.getBudgetDetailId());
         budgetDetailDTO.setContent(budgetDetail.getContent());
-        budgetDetailDTO.setPrice(budgetDetail.getAmount());
+        budgetDetailDTO.setPrice(budgetDetail.getPrice());
         budgetDetailDTO.setCategory(budgetDetail.getCategory());
         budgetDetailDTO.setDate(budgetDetail.getDate());
         budgetDetailDTO.setType(budgetDetail.getType());
@@ -65,10 +67,10 @@ public class BudgetDetailService {
         return budgetDetailDTO;
     }
 
-    private BudgetDetail mapToEntity(final BudgetDetailDTO budgetDetailDTO,
+    private BudgetDetail mapToEntity(final TempBudgetDetailDTO budgetDetailDTO,
             final BudgetDetail budgetDetail) {
         budgetDetail.setContent(budgetDetailDTO.getContent());
-        budgetDetail.setAmount(budgetDetailDTO.getPrice());
+        budgetDetail.setPrice(budgetDetailDTO.getPrice());
         budgetDetail.setCategory(budgetDetailDTO.getCategory());
         budgetDetail.setDate(budgetDetailDTO.getDate());
         budgetDetail.setType(budgetDetailDTO.getType());

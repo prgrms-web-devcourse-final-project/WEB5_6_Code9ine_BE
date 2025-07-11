@@ -1,15 +1,11 @@
 package com.grepp.spring.app.controller.api.budgetdetail;
 
-import com.grepp.spring.app.model.budget.service.BudgetService;
-import com.grepp.spring.app.model.budget_detail.model.BudgetDetailExpenseResponseDTO;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailRequestDTO;
-import com.grepp.spring.app.model.budget_detail.model.Item;
-import com.grepp.spring.app.model.budget_detail.model.UpdatedExpenseResponseDto;
-import com.grepp.spring.app.model.budget_detail.service.BudgetDetailService;
+import com.grepp.spring.app.model.budget_detail.model.BudgetDetailResponseDto;
+import com.grepp.spring.app.model.budget_detail.model.UpdatedBudgetDetailResponseDto;
 import com.grepp.spring.app.model.budget_detail.service.BudgetDetailServiceNew;
 import com.grepp.spring.infra.response.ApiResponse;
-import java.time.LocalDate;
-import java.util.List;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,39 +26,49 @@ public class BudgetDetailController {
 
     private final BudgetDetailServiceNew budgetDetailServiceNew;
 
-    // 해당날짜 지출조회
-    @GetMapping("/expenses")
-    public ApiResponse<BudgetDetailExpenseResponseDTO> getExpenses(@AuthenticationPrincipal UserDetails userDetails, @RequestParam("date") LocalDate date) {
 
-        BudgetDetailExpenseResponseDTO response = budgetDetailServiceNew.findExpensesByDate(userDetails.getUsername(),date);
+//    @Operation(summary = "총 내역 조회")
+//    @GetMapping("/totaldetails")
+//    public ApiResponse<BudgetTotalDetailResponseDto> getBudgettotaldetails(@AuthenticationPrincipal UserDetails userDetails) {
+//
+//        BudgetTotalDetailResponseDto response = budgetDetailServiceNew.findExpensesByDate(userDetails.getUsername());
+//        return ApiResponse.success(response);
+//
+//    }
+
+    @Operation(summary = "날짜별 내역 조회")
+    @GetMapping("/detail")
+    public ApiResponse<BudgetDetailResponseDto> getBudgetDetail(@AuthenticationPrincipal UserDetails userDetails, @RequestParam("date") String date) {
+
+        BudgetDetailResponseDto response = budgetDetailServiceNew.findBudgetDetailByDate(userDetails.getUsername(), date);
         return ApiResponse.success(response);
-
     }
 
-    // 지출추가
-    @PostMapping("/expenses")
-    public ApiResponse<?> addExpense(@AuthenticationPrincipal UserDetails userDetails, @RequestBody BudgetDetailRequestDTO dto) {
 
-        budgetDetailServiceNew.registerExpense(userDetails.getUsername(),dto);
+    @Operation(summary = "날짜별 내역 추가")
+    @PostMapping("/detail")
+    public ApiResponse<?> addBudgetDetail(@AuthenticationPrincipal UserDetails userDetails, @RequestBody BudgetDetailRequestDTO dto) {
+
+        budgetDetailServiceNew.registerBudgetDetail(userDetails.getUsername(),dto);
         return new ApiResponse<>("2000", "지출추가되었습니다", null);
     }
 
-    // 지출수정
-    @PatchMapping("/expenses/{expense_id}")
-    public ApiResponse<?> updateExpense(@PathVariable("expense_id") Long id, @RequestBody BudgetDetailRequestDTO dto) {
+    @Operation(summary = "날짜별 내역 수정")
+    @PatchMapping("/detail/{detail_id}")
+    public ApiResponse<?> updateBudgetDetail(@PathVariable("detail_id") Long id, @RequestBody BudgetDetailRequestDTO dto) {
 
-        UpdatedExpenseResponseDto updatedExpenseResponseDto = budgetDetailServiceNew.updateExpense(id, dto);
+        UpdatedBudgetDetailResponseDto updatedExpenseResponseDto = budgetDetailServiceNew.updateBudgetDetail(id, dto);
         return new ApiResponse<>("2000", "지출이 수정되었습니다.", updatedExpenseResponseDto);
     }
 
-    // 지출삭제
-    @DeleteMapping("/expenses/{expense_id}")
-    public ApiResponse<?> deleteExpense(@PathVariable("expense_id") Long id) {
+    @Operation(summary = "날짜별 내역 삭제")
+    @DeleteMapping("/detail/{detail_id}")
+    public ApiResponse<?> deleteBudgetDetail(@PathVariable("detail_id") Long id) {
 
-        return new ApiResponse<>("2000", "지출삭제되었습니다", null);
+        return new ApiResponse<>("2000", "내역삭제되었습니다", null);
     }
 
-    // 지출없음 == 0원이지만 오늘 가계부 작성을 했다라는것을 표시하기위해
+    @Operation(summary = "날짜별 지출 없음 등록")
     @PostMapping("/noexpenses")
     public ApiResponse<?> noExpense() {
 

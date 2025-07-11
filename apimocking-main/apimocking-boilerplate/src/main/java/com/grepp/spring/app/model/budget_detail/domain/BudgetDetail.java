@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,7 +36,7 @@ public class BudgetDetail {
     private String content;
 
     @Column(nullable = false, precision = 20, scale = 0)
-    private BigDecimal amount;
+    private int price;
 
     @Column(nullable = false)
     private String category;

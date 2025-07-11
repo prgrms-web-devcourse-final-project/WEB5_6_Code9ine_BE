@@ -24,17 +24,17 @@ public class BudgetDTO {
     @Digits(integer = 20, fraction = 1)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @Schema(type = "string", example = "27.8")
-    private BigDecimal totalIncome;
+    private int totalIncome;
 
     @Digits(integer = 20, fraction = 1)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @Schema(type = "string", example = "44.8")
-    private BigDecimal totalExpense;
+    private int totalExpense;
 
     @Digits(integer = 20, fraction = 1)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @Schema(type = "string", example = "67.8")
-    private BigDecimal targetExpense;
+    private int targetExpense;
 
     @NotNull
     private Long member;

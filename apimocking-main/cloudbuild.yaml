@@ -2,10 +2,10 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # 1. Gradle 빌드 (JAR 생성)
-  - name: gradle
-    entrypoint: ./gradlew
-    args: ["bootJar"]
+  # 1. Maven 빌드 (JAR 생성)
+  - name: maven:3.9.6-eclipse-temurin-21
+    entrypoint: mvn
+    args: ["-f", "apimocking-main/apimocking-boilerplate/pom.xml", "clean", "package", "-DskipTests"]
 
   # 2. Docker 빌드
   - name: "gcr.io/cloud-builders/docker"

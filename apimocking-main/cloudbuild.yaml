@@ -14,7 +14,7 @@ steps:
         "-DskipTests"
       ]
 
-  # 2. Docker 빌드 (dir 옵션 추가!!)
+  # 2. Docker 빌드 (dir 옵션 추가)
   - name: "gcr.io/cloud-builders/docker"
     dir: "apimocking-main/apimocking-boilerplate"
     args:

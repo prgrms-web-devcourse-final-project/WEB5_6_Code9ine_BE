@@ -18,11 +18,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.context.annotation.Profile;
 
 
 @RestController
-@Profile("!mock")
 @RequestMapping(value = "/api/challenges", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ChallengeResource {
 

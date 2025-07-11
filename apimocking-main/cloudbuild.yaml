@@ -1,3 +1,6 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 steps:
   # 1. Gradle 빌드 (JAR 생성)
   - name: gradle

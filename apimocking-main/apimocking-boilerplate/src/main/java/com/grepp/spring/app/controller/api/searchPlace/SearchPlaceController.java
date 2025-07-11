@@ -13,7 +13,6 @@ import java.util.Map;
 @RequestMapping("/api")
 public class SearchPlaceController {
 
-    // 식당검색 (location = 검색창, 카테고리 = type에 담아서)
     @GetMapping("/places/search")
     public ApiResponse<List<Map<String, Object>>> searchMockPlaces(
             @RequestParam String location,
@@ -22,21 +21,36 @@ public class SearchPlaceController {
     ) {
         List<Map<String, Object>> results = new ArrayList<>();
 
-        // location이 강남구가 아니면 빈 결과
         if (!"강남구".equals(location)) {
             return ApiResponse.success(results);
         }
 
-        List<String> requestedTypes = (type == null || type.isBlank())
-                ? List.of("store", "festival", "library")
-                : List.of(type.split(","));
+        //type + category 조합 기준으로 store 자동 포함 처리
+        List<String> requestedTypes = new ArrayList<>();
+        if (type == null || type.isBlank()) {
+            if (category == null || category.isBlank()) {
+                requestedTypes = List.of("store", "festival", "library");
+            } else {
+                requestedTypes = List.of("store");
+            }
+        } else {
+            requestedTypes = new ArrayList<>(List.of(type.split(",")));
+            if ((category != null && !category.isBlank()) && !requestedTypes.contains("store")) {
+                requestedTypes.add("store"); //핵심: store 강제 포함
+            }
+        }
+
+        //store용 category
+        List<String> requestedCategories = (category == null || category.isBlank())
+                ? List.of()
+                : List.of(category.split(","));
 
         if (requestedTypes.contains("store")) {
             results.addAll(mockStores().stream()
                     .filter(store -> {
-                        if (category == null || category.isBlank()) return true;
+                        if (requestedCategories.isEmpty()) return true;
                         Object c = store.get("category");
-                        return c != null && category.equals(c.toString());
+                        return c != null && requestedCategories.contains(c.toString());
                     })
                     .toList());
         }

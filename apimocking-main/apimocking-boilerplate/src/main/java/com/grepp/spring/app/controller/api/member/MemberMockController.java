@@ -19,6 +19,8 @@ import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.ResponseCookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 // 멤버 로그인 Mock API 컨트롤러 (OAuth + JWT 토큰 사용)
 // 입력: MemberLoginRequest(email, password)
@@ -29,11 +31,21 @@ import java.util.Map;
 public class MemberMockController {
     
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<MemberLoginResponse>> login(@RequestBody MemberLoginRequest request) {
+    public ResponseEntity<ApiResponse<MemberLoginResponse>> login(@RequestBody MemberLoginRequest request, HttpServletResponse response) {
         // OAuth + JWT 토큰 기반 로그인 Mock 응답
         String mockAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJqdGkiOiJhY2Nlc3MtdG9rZW4taWQiLCJpYXQiOjE3MzE5MjAwMDAsImV4cCI6MTczMTkyMzYwMH0.mock-signature";
         String mockRefreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwianRpIjoicmVmcmVzaC10b2tlbi1pZCIsImlhdCI6MTczMTkyMDAwMCwiZXhwIjoxNzMxOTI4ODAwfQ.mock-refresh-signature";
-        
+
+        // Set-Cookie 헤더로 accessToken 내려주기
+        ResponseCookie cookie = ResponseCookie.from("accessToken", mockAccessToken)
+                .httpOnly(true)
+                .secure(false) // 개발환경은 false, 운영은 true
+                .path("/")
+                .maxAge(3600)
+                .sameSite("Lax")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+
         MemberLoginResponse.Data data = new MemberLoginResponse.Data(
                 mockAccessToken,
                 mockRefreshToken,
@@ -41,8 +53,8 @@ public class MemberMockController {
                 3600L,  // access token 만료시간 (1시간)
                 28800L  // refresh token 만료시간 (8시간)
         );
-        MemberLoginResponse response = new MemberLoginResponse(2000, "로그인에 성공하였습니다.", data);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        MemberLoginResponse loginResponse = new MemberLoginResponse(2000, "로그인에 성공하였습니다.", data);
+        return ResponseEntity.ok(ApiResponse.success(loginResponse));
     }
 
     @PostMapping("/signup")

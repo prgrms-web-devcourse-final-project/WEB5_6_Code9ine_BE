@@ -11,13 +11,13 @@ public record CommunityPostDetailResponse(
     @Schema(description = "게시글 카테고리", example = "나가게")
     String category,
 
-    @Schema(description = "게시글 제목", example = "게시물 제목")
+    @Schema(description = "게시글 제목", example = "오늘도 커피 대신 물!")
     String title,
 
     @Schema(description = "게시글 작성일시", example = "2025-07-03T14:20:00")
     String createdAt,
 
-    @Schema(description = "게시글 내용", example = "게시물 내용")
+    @Schema(description = "게시글 내용", example = "카페 대신 집에서 커피 내려 마셨어요. 하루 4천 원 절약!")
     String content,
 
     @Schema(description = "이미지 파일 목록", example = "[\"image1.jpg\", \"image2.jpg\"]")
@@ -38,16 +38,13 @@ public record CommunityPostDetailResponse(
     @Schema(description = "챌린지 달성 여부", example = "false")
     boolean challengeAchieved,
 
-    @Schema(description = "작성자 닉네임", example = "닉네임")
+    @Schema(description = "작성자 닉네임", example = "거지왕")
     String writerNickname,
 
-    @Schema(description = "작성자 칭호", example = "칭호")
+    @Schema(description = "작성자 칭호", example = "거지왕")
     String writerTitle,
 
-    @Schema(description = "작성자 휘장", example = "휘장")
-    String writerSymbol,
-
-    @Schema(description = "작성자 프로필 이미지", example = "profile.jpg")
+    @Schema(description = "작성자 프로필 이미지", example = "profile1.jpg")
     String writerProfileImage
 ) {
 

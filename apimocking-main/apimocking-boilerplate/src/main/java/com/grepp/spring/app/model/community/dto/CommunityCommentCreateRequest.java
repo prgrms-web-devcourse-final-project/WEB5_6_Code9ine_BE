@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 @Schema(description = "커뮤니티 댓글 작성 요청 DTO")
 public record CommunityCommentCreateRequest(
 
-    @Schema(description = "댓글 내용", example = "댓글 내용")
+    @Schema(description = "댓글 내용", example = "멋진 실천이에요!")
     @NotBlank(message = "댓글 내용은 필수입니다.")
     String content
 

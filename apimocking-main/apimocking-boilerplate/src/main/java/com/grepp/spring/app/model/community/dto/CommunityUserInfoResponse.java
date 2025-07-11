@@ -5,16 +5,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "커뮤니티 유저 정보 응답 DTO")
 public record CommunityUserInfoResponse(
 
-    @Schema(description = "유저 닉네임", example = "닉네임")
+    @Schema(description = "유저 닉네임", example = "거지왕")
     String userNickname,
 
     @Schema(description = "유저 프로필 이미지 URL", example = "image1.jpg")
-    String userProfileImg,
+    String userImgUrl,
 
-    @Schema(description = "유저 칭호", example = "칭호")
+    @Schema(description = "유저 타이틀", example = "개근왕")
     String userTitle,
 
-    @Schema(description = "유저 휘장", example = "휘장")
+    @Schema(description = "유저 심볼", example = "누더기")
     String userSymbol
 
 ) {

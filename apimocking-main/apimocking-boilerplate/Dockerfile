@@ -1,5 +1,5 @@
 FROM openjdk:21-ea-oraclelinux8
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} app.jar
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=prod"]
 EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar", "--server.port=${PORT}", "--spring.profiles.active=prod"]

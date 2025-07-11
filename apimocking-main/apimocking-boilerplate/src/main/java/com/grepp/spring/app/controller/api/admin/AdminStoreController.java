@@ -69,12 +69,12 @@ public class AdminStoreController {
 
         new AdminStoreResponse(
             3,
-            "하이얀미용실",
-            "서울특별시 서울 양천구 은행정로5길 48-3",
-            "미용업",
-            List.of(
-                new AdminStoreMenuResponse("커트", 6000),
-                new AdminStoreMenuResponse("염색", 15000)
+                "하이얀미용실",
+                "서울특별시 서울 양천구 은행정로5길 48-3",
+                "미용업",
+        List.of(
+            new AdminStoreMenuResponse("커트", 6000),
+            new AdminStoreMenuResponse("염색", 15000)
             )
         ),
 
@@ -238,16 +238,16 @@ public class AdminStoreController {
             .body(ApiResponse.success(paged));
     }
 
-//    @PostMapping
-//    @Operation(summary = "관리자 장소 등록")
-//    public ResponseEntity<ApiResponse<Map<String, String>>> createStore(@RequestBody @Valid AdminStoreCreateRequest request) {
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "장소 등록이 완료되었습니다");
-//
-//        return ResponseEntity
-//            .status(ResponseCode.CREATED.status())
-//            .body(ApiResponse.successToCreate(response));
-//    }
+    @PostMapping
+    @Operation(summary = "관리자 장소 등록")
+    public ResponseEntity<ApiResponse<Map<String, String>>> createStore(@RequestBody @Valid AdminStoreCreateRequest request) {
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "장소 등록이 완료되었습니다");
+
+        return ResponseEntity
+            .status(ResponseCode.CREATED.status())
+            .body(ApiResponse.successToCreate(response));
+    }
 
     @PatchMapping("/{store-id}")
     @Operation(summary = "관리자 장소 수정")

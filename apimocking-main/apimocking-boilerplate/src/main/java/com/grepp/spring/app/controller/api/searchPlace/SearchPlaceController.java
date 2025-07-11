@@ -1,5 +1,6 @@
 package com.grepp.spring.app.controller.api.searchPlace;
 
+import com.grepp.spring.app.model.store.dto.BookmarkToggleRequest;
 import com.grepp.spring.infra.response.ApiResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -115,6 +116,7 @@ public class SearchPlaceController {
         library.put("url", "https://example.com");
         library.put("category", null);
         library.put("type", "도서관");
+        library.put("contact", "02-1212-1212");
         library.put("latitude", 37.512);
         library.put("longitude", 127.041);
         return List.of(library);
@@ -161,6 +163,7 @@ public class SearchPlaceController {
             result.put("name", "강남 도서관");
             result.put("address", "서울시 강남구 논현로 50");
             result.put("url", "https://library.example.com");
+            result.put("contact","02-1212-1212");
             result.put("latitude", 37.512);
             result.put("longitude", 127.041);
         } else {
@@ -176,8 +179,8 @@ public class SearchPlaceController {
 
         region.add(Map.of("region", "성동구"));
         region.add(Map.of("region", "강남구"));
-        region.add(Map.of("region", "용산구"));
-        region.add(Map.of("region", "강동구"));
+        region.add(Map.of("region", "마포구"));
+        region.add(Map.of("region", "서초구"));
         region.add(Map.of("region", "강북구"));
 
         return ApiResponse.success(region);
@@ -186,26 +189,23 @@ public class SearchPlaceController {
     @PatchMapping("/users/{userId}/places-bookmarks/toggle")
     public ApiResponse<Map<String, Object>> toggleBookmarkMock(
             @PathVariable Long userId,
-            @RequestBody Map<String, Long> request
+            @RequestBody BookmarkToggleRequest request
     ) {
         Map<String, Object> response = new HashMap<>();
 
-        if (request.containsKey("storeId")) {
-            Long id = request.get("storeId");
+        if (request.getStoreId() != null) {
             response.put("activated", true);
             response.put("message", "북마크가 추가되었습니다.");
             return ApiResponse.success(response);
         }
 
-        if (request.containsKey("festivalId")) {
-            Long id = request.get("festivalId");
+        if (request.getFestivalId() != null) {
             response.put("activated", false);
             response.put("message", "북마크가 제거되었습니다.");
             return ApiResponse.success(response);
         }
 
-        if (request.containsKey("libraryId")) {
-            Long id = request.get("libraryId");
+        if (request.getLibraryId() != null) {
             response.put("activated", true);
             response.put("message", "북마크가 추가되었습니다.");
             return ApiResponse.success(response);

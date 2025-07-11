@@ -9,12 +9,15 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Item {
+public class BudgetDetailDto {
 
-    private int id;
+    private Long id;
     private String category;
-    private String icon;
+    private String type;
+    private String categoryIcon;
     private String content;
+    private String date;
     private int price;
+    private String repeatCycle;
 
 }

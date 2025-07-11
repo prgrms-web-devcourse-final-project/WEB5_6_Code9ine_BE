@@ -8,10 +8,14 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class BudgetDetailExpenseResponseDTO {
+@NoArgsConstructor
+public class BudgetTotalDetailResponseDto {
 
-    private List<Item> items;
+    private String yearMonth;
+    private int totalIncome;
+    private int totalExpense;
+    private int totalDifference;
+    private List<BudgetDetailDto> details;
 
 }

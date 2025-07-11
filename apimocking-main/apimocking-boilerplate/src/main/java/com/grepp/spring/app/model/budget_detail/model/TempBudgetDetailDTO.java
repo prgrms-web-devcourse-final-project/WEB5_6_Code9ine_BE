@@ -13,7 +13,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class BudgetDetailDTO {
+public class TempBudgetDetailDTO {
 
     private Long budgetDetailId;
 

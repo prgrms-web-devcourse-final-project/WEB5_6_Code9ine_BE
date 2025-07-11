@@ -1,0 +1,41 @@
+steps:
+  # 1. Gradle 빌드 (JAR 생성)
+  - name: gradle
+    entrypoint: ./gradlew
+    args: ["bootJar"]
+
+  # 2. Docker 빌드
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - build
+      - "-t"
+      - "asia-northeast3-docker.pkg.dev/$PROJECT_ID/mock-server-repo/mock-server:$COMMIT_SHA"
+      - "."
+
+  # 3. Docker Push
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - push
+      - "asia-northeast3-docker.pkg.dev/$PROJECT_ID/mock-server-repo/mock-server:$COMMIT_SHA"
+
+  # 4. Cloud Run 배포
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      [
+        "run",
+        "deploy",
+        "mock-server",
+        "--image",
+        "asia-northeast3-docker.pkg.dev/$PROJECT_ID/mock-server-repo/mock-server:$COMMIT_SHA",
+        "--region",
+        "asia-northeast3",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--port",
+        "8080"
+      ]
+
+images:
+  - asia-northeast3-docker.pkg.dev/$PROJECT_ID/mock-server-repo/mock-server:$COMMIT_SHA

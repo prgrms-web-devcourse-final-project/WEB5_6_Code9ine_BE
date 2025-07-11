@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 public class BudgetDetailRequestDTO {
 
-    @Schema(description = "수입 또는 지출", example = "수입")
+    @Schema(description = "수입 또는 지출", example = "지출")
     private String type;
 
     @Schema(description = "날짜", example = "2025-07-13")

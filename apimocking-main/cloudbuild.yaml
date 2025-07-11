@@ -5,10 +5,18 @@ steps:
   # 1. Maven 빌드 (JAR 생성)
   - name: maven:3.9.6-eclipse-temurin-21
     entrypoint: mvn
-    args: ["-f", "apimocking-main/apimocking-boilerplate/pom.xml", "clean", "package", "-DskipTests"]
+    args:
+      [
+        "-f",
+        "apimocking-main/apimocking-boilerplate/pom.xml",
+        "clean",
+        "package",
+        "-DskipTests"
+      ]
 
-  # 2. Docker 빌드
+  # 2. Docker 빌드 (dir 옵션 추가!!)
   - name: "gcr.io/cloud-builders/docker"
+    dir: "apimocking-main/apimocking-boilerplate"
     args:
       - build
       - "-t"

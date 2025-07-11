@@ -45,7 +45,7 @@ steps:
         "managed",
         "--allow-unauthenticated",
         "--port",
-        "8080"
+        "8080",
         "--set-env-vars",
         "SPRING_PROFILES_ACTIVE=prod"
       ]

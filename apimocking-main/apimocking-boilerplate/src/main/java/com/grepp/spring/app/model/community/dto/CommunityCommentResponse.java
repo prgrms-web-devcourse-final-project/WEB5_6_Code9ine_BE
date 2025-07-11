@@ -7,14 +7,20 @@ public record CommunityCommentResponse(
     @Schema(description = "댓글 고유식별번호", example = "0")
     int commentId,
 
-    @Schema(description = "댓글 내용", example = "절약 멋져요!")
+    @Schema(description = "댓글 내용", example = "댓글 내용")
     String content,
 
-    @Schema(description = "작성자 닉네임", example = "절약왕")
-    String userNickname,
+    @Schema(description = "작성자 닉네임", example = "닉네임")
+    String writerNickname,
 
-    @Schema(description = "작성자 프로필 이미지", example = "profile1.jpg")
-    String userProfileImage,
+    @Schema(description = "작성자 프로필 이미지", example = "profile.jpg")
+    String writerProfileImage,
+
+    @Schema(description = "작성자 칭호", example = "칭호")
+    String writerTitle,
+
+    @Schema(description = "작성자 휘장", example = "휘장")
+    String writerSymbol,
 
     @Schema(description = "댓글 작성일시", example = "2025-07-03T15:00:00")
     String createdAt,

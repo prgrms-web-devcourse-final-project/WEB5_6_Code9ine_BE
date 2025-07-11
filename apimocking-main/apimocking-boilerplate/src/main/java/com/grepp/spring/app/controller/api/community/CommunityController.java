@@ -7,6 +7,7 @@ import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostUpdateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityUserInfoResponse;
+import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +15,7 @@ import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,46 +31,111 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/api/community", produces = MediaType.APPLICATION_JSON_VALUE)
 public class CommunityController {
 
-    List<CommunityPostDetailResponse> posts = List.of(
-        new CommunityPostDetailResponse(0, "챌린지", "오늘도 0원 쓰기!", "2025-07-03T14:20:00",
-            "물만 마시고 살았어요!", List.of("water.jpg"), 4, 55, true,
-            true, false, "닉네임1", "소비 단식러","user1.jpg"),
-        new CommunityPostDetailResponse(1, "나가게", "점심 착한식당 인증!", "2025-07-02T12:10:00",
-            "회사 근처 착한 식당 방문했습니다.", List.of("lunch.jpg"), 2, 30, false,
-            false, true, "닉네임2", "예측왕","user2.jpg"),
-        new CommunityPostDetailResponse(2, "자유 게시판", "지출 내역 기록 시작!", "2025-07-01T09:05:00",
-            "가계부 기록 시작했어요. 절약 의식 높아지는 중!", List.of(), 5, 40, true,
-            false, false, "닉네임3", "기록장인","user3.jpg"),
-        new CommunityPostDetailResponse(3, "챌린지", "홈카페 3일차", "2025-06-30T18:30:00",
-            "집에서 커피 내려 먹었어요", List.of("coffee.jpg"), 3, 22, false,
-            true, true, "닉네임4", "홈카페 마스터","user4.jpg"),
-        new CommunityPostDetailResponse(4, "나가게", "이 집 잘하네", "2025-06-29T10:20:00",
-            "집 앞 착한 식당에서 삼겹살 먹고 왔습니다!", List.of("gogi.jpg"), 6, 45, true,
-            true, true, "닉네임5", "소통왕", "user5.jpg")
+    List<CommunityPostDetailResponse> mockPosts = List.of(
+        new CommunityPostDetailResponse(0, "챌린지", "게시물 제목0", "2025-07-10T11:32:00",
+            "게시글 내용0", List.of("image0.jpg", "image1.jpg"), 3, 17, true,
+            false, true, "작성자 닉네임0", "칭호0", "휘장0", "profile0.jpg"),
+
+        new CommunityPostDetailResponse(1, "나가게", "게시물 제목1", "2025-07-09T14:55:00",
+            "게시글 내용1", List.of("image2.jpg"), 1, 8, false,
+            true, false, "작성자 닉네임1", "칭호1", "휘장1", "profile1.jpg"),
+
+        new CommunityPostDetailResponse(2, "자유 게시판", "게시물 제목2", "2025-07-10T08:12:00",
+            "게시글 내용2", List.of("image3.jpg", "image4.jpg", "image5.jpg"), 7, 23, true,
+            true, true, "작성자 닉네임2", "칭호2", "휘장2", "profile2.jpg"),
+
+        new CommunityPostDetailResponse(3, "챌린지", "게시물 제목3", "2025-07-09T19:27:00",
+            "게시글 내용3", List.of(), 0, 5, false,
+            false, false, "작성자 닉네임3", "칭호3", "휘장3", "profile3.jpg"),
+
+        new CommunityPostDetailResponse(4, "나가게", "게시물 제목4", "2025-07-10T13:45:00",
+            "게시글 내용4", List.of("image6.jpg"), 2, 10, true,
+            false, true, "작성자 닉네임4", "칭호4", "휘장4", "profile4.jpg"),
+
+        new CommunityPostDetailResponse(5, "자유 게시판", "게시물 제목5", "2025-07-09T07:55:00",
+            "게시글 내용5", List.of("image7.jpg", "image8.jpg"), 5, 32, false,
+            true, false, "작성자 닉네임5", "칭호5", "휘장5", "profile5.jpg"),
+
+        new CommunityPostDetailResponse(6, "챌린지", "게시물 제목6", "2025-07-10T10:22:00",
+            "게시글 내용6", List.of("image9.jpg"), 4, 11, true,
+            true, true, "작성자 닉네임6", "칭호6", "휘장6", "profile6.jpg"),
+
+        new CommunityPostDetailResponse(7, "나가게", "게시물 제목7", "2025-07-09T16:40:00",
+            "게시글 내용7", List.of("image10.jpg", "image11.jpg", "image12.jpg"), 6, 27, true,
+            false, true, "작성자 닉네임7", "칭호7", "휘장7", "profile7.jpg"),
+
+        new CommunityPostDetailResponse(8, "자유 게시판", "게시물 제목8", "2025-07-10T09:10:00",
+            "게시글 내용8", List.of(), 0, 0, false,
+            false, false, "작성자 닉네임8", "칭호8", "휘장8", "profile8.jpg"),
+
+        new CommunityPostDetailResponse(9, "챌린지", "게시물 제목9", "2025-07-10T12:05:00",
+            "게시글 내용9", List.of("image13.jpg"), 2, 18, true,
+            true, true, "작성자 닉네임9", "칭호9", "휘장9", "profile9.jpg"),
+
+        new CommunityPostDetailResponse(10, "나가게", "게시물 제목10", "2025-07-09T20:20:00",
+            "게시글 내용10", List.of("image14.jpg", "image15.jpg"), 3, 12, false,
+            false, true, "작성자 닉네임10", "칭호10", "휘장10", "profile10.jpg"),
+
+        new CommunityPostDetailResponse(11, "자유 게시판", "게시물 제목11", "2025-07-10T15:30:00",
+            "게시글 내용11", List.of("image16.jpg"), 1, 4, true,
+            false, false, "작성자 닉네임11", "칭호11", "휘장11", "profile11.jpg")
     );
 
     CommunityUserInfoResponse myInfo = new CommunityUserInfoResponse(
-        "닉네임1",
-        "image1.jpg",
-        "소비 단식러",
-        "누더기"
+        "닉네임12",
+        "profile12.jpg",
+        "칭호12",
+        "휘장12"
     );
 
     List<String> categories = List.of("나가게", "챌린지", "자유 게시판");
 
     List<CommunityCommentResponse> comments = List.of(
-        new CommunityCommentResponse(0, "절약 멋져요!", "닉네임6", "profile1.jpg", "2025-07-03T15:00:00",
-            "2025-07-03T15:30:00"),
-        new CommunityCommentResponse(1, "저도 시작해볼게요!", "닉네임7", "profile2.jpg", "2025-07-03T16:00:00",
-            "2025-07-03T16:00:00")
+        new CommunityCommentResponse(0, "댓글 내용0", "댓글 작성자0", "profile0.jpg", "칭호0", "휘장0",
+            "2025-07-10T09:10:00", "2025-07-10T09:20:00"),
+        new CommunityCommentResponse(1, "댓글 내용1", "댓글 작성자1", "profile1.jpg", "칭호1", "휘장1",
+            "2025-07-10T10:15:00", "2025-07-10T10:45:00"),
+        new CommunityCommentResponse(2, "댓글 내용2", "댓글 작성자2", "profile2.jpg", "칭호2", "휘장2",
+            "2025-07-10T08:00:00", "2025-07-10T08:05:00"),
+        new CommunityCommentResponse(3, "댓글 내용3", "댓글 작성자3", "profile3.jpg", "칭호3", "휘장3",
+            "2025-07-10T11:00:00", "2025-07-10T11:30:00"),
+        new CommunityCommentResponse(4, "댓글 내용4", "댓글 작성자4", "profile4.jpg", "칭호4", "휘장4",
+            "2025-07-10T13:05:00", "2025-07-10T13:25:00"),
+        new CommunityCommentResponse(5, "댓글 내용5", "댓글 작성자5", "profile5.jpg", "칭호5", "휘장5",
+            "2025-07-10T07:40:00", "2025-07-10T07:45:00"),
+        new CommunityCommentResponse(6, "댓글 내용6", "댓글 작성자6", "profile6.jpg", "칭호6", "휘장6",
+            "2025-07-10T14:10:00", "2025-07-10T14:40:00"),
+        new CommunityCommentResponse(7, "댓글 내용7", "댓글 작성자7", "profile7.jpg", "칭호7", "휘장7",
+            "2025-07-10T15:00:00", "2025-07-10T15:30:00"),
+        new CommunityCommentResponse(8, "댓글 내용8", "댓글 작성자8", "profile8.jpg", "칭호8", "휘장8",
+            "2025-07-10T09:20:00", "2025-07-10T09:50:00"),
+        new CommunityCommentResponse(9, "댓글 내용9", "댓글 작성자9", "profile9.jpg", "칭호9", "휘장9",
+            "2025-07-10T12:00:00", "2025-07-10T12:15:00"),
+        new CommunityCommentResponse(10, "댓글 내용10", "댓글 작성자10", "profile10.jpg", "칭호10", "휘장10",
+            "2025-07-10T12:10:00", "2025-07-10T12:45:00")
     );
 
     List<CommunityTopPostResponse> topPosts = List.of(
-        new CommunityTopPostResponse(0, "닉네임8","영수증인증이다",  "영수증 찐 기록러","2025-07-03T14:20:00"),
-        new CommunityTopPostResponse(1, "닉네임9","걷기 운동 중",  "튼튼한 다리 소유자", "2025-07-02T12:10:00"),
-        new CommunityTopPostResponse(2, "닉네임10","냉장고 털고 있어요",  "냉털 요리왕", "2025-07-01T09:05:00"),
-        new CommunityTopPostResponse(3, "닉네임11","만원으로 하루 살아봤어요",  "만원의 행복", "2025-06-30T18:30:00"),
-        new CommunityTopPostResponse(4, "닉네임12","월급 인증이요",  "내 돈 관리자", "2025-06-29T10:20:00")
+        new CommunityTopPostResponse(5, "작성자 닉네임5", "칭호5", "휘장5", "profile5.jpg", "게시물 제목5",
+            "2025-07-09T07:55:00"),
+        new CommunityTopPostResponse(7, "작성자 닉네임7", "칭호7", "휘장7", "profile7.jpg", "게시물 제목7",
+            "2025-07-09T16:40:00"),
+        new CommunityTopPostResponse(2, "작성자 닉네임2", "칭호2", "휘장2", "profile2.jpg", "게시물 제목2",
+            "2025-07-10T08:12:00"),
+        new CommunityTopPostResponse(9, "작성자 닉네임9", "칭호9", "휘장9", "profile9.jpg", "게시물 제목9",
+            "2025-07-10T12:05:00"),
+        new CommunityTopPostResponse(0, "작성자 닉네임0", "칭호0", "휘장0", "profile0.jpg", "게시물 제목0",
+            "2025-07-10T11:32:00"),
+        new CommunityTopPostResponse(10, "작성자 닉네임10", "칭호10", "휘장10", "profile10.jpg", "게시물 제목10",
+            "2025-07-09T20:20:00"),
+        new CommunityTopPostResponse(4, "작성자 닉네임4", "칭호4", "휘장4", "profile4.jpg", "게시물 제목4",
+            "2025-07-10T13:45:00"),
+        new CommunityTopPostResponse(6, "작성자 닉네임6", "칭호6", "휘장6", "profile6.jpg", "게시물 제목6",
+            "2025-07-10T10:22:00"),
+        new CommunityTopPostResponse(11, "작성자 닉네임11", "칭호11", "휘장11", "profile11.jpg", "게시물 제목11",
+            "2025-07-10T15:30:00"),
+        new CommunityTopPostResponse(1, "작성자 닉네임1", "칭호1", "휘장1", "profile1.jpg", "게시물 제목1",
+            "2025-07-09T14:55:00")
     );
 
     @GetMapping("/me")
@@ -82,7 +149,9 @@ public class CommunityController {
     @GetMapping("/posts")
     @Operation(summary = "커뮤니티 게시글 카테고리별 조회", description = "카테고리 : 나가게, 챌린지, 자유 게시판")
     public ResponseEntity<ApiResponse<List<CommunityPostDetailResponse>>> getPostsByCategory(
-        @RequestParam String category) {
+        @RequestParam String category,
+        @ParameterObject PageParam pageParam
+    ) {
 
         if (!categories.contains(category)) {
             return ResponseEntity
@@ -90,13 +159,27 @@ public class CommunityController {
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST));
         }
 
-        List<CommunityPostDetailResponse> result = posts.stream()
+        List<CommunityPostDetailResponse> result = mockPosts.stream()
             .filter(p -> p.category().equals(category))
             .toList();
 
+        int page = pageParam.getPage();
+        int size = pageParam.getSize();
+
+        int fromIndex = (page - 1) * size;
+        int toIndex = Math.min(fromIndex + size, result.size());
+
+        if (fromIndex >= result.size()) {
+            return ResponseEntity
+                .status(ResponseCode.BAD_REQUEST.status())
+                .body(ApiResponse.error(ResponseCode.BAD_REQUEST));
+        }
+
+        List<CommunityPostDetailResponse> paged = result.subList(fromIndex, toIndex);
+
         return ResponseEntity
             .status(ResponseCode.OK.status())
-            .body(ApiResponse.success(result));
+            .body(ApiResponse.success(paged));
     }
 
     @PostMapping("/posts")
@@ -251,5 +334,4 @@ public class CommunityController {
             .status(ResponseCode.OK.status())
             .body(ApiResponse.success(topPosts));
     }
-
 }

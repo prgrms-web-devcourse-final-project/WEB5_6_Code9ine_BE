@@ -15,7 +15,7 @@ public class NotificationMockController {
     @GetMapping
     public ResponseEntity<NotificationListResponse> getNotifications() {
         NotificationListResponse.Data data = new NotificationListResponse.Data(List.of(
-                Map.of("notificationId", 1, "message", "이번 달 외식비 지출이 많아요!", "read", false)
+                Map.of("notificationId", 1, "message", "이번 달 외식비 지출이 많아요!!", "read", false)
         ));
         return ResponseEntity.ok(new NotificationListResponse(2000, "알림 목록을 조회했습니다.", data));
     }

@@ -14,10 +14,6 @@ public record ApiResponse<T>(
     public static <T> ApiResponse<T> success(T data) {
         return new ApiResponse<>(ResponseCode.OK.code(), ResponseCode.OK.message(), data);
     }
-
-    public static <T> ApiResponse<T> successToCreate(T data) {
-        return new ApiResponse<>(ResponseCode.CREATED.code(), ResponseCode.CREATED.message(), data);
-    }
     
     public static <T> ApiResponse<T> noContent() {
         return new ApiResponse<>(ResponseCode.OK.code(), ResponseCode.OK.message(), null);

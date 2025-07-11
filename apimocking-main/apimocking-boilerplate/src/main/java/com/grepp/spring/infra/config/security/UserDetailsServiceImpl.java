@@ -22,14 +22,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        Member member = memberRepository.findByEmail(username)
+        Member member = memberRepository.findById(Long.valueOf(username))
                             .orElseThrow(() -> new UsernameNotFoundException(username));
         List<SimpleGrantedAuthority> authorities = findUserAuthorities(username);
         return Principal.createPrincipal(member, authorities);
     }
 
     public List<SimpleGrantedAuthority> findUserAuthorities(String username){
-        Member member = memberRepository.findByEmail(username)
+        Member member = memberRepository.findById(Long.valueOf(username))
                             .orElseThrow(() -> new UsernameNotFoundException(username));
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();

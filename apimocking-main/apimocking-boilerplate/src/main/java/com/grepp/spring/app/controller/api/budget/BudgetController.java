@@ -7,25 +7,28 @@ import com.grepp.spring.app.model.budget.model.BudgetDaySummary;
 import com.grepp.spring.app.model.budget.model.BudgetGoal;
 import com.grepp.spring.app.model.budget.model.BudgetMonthlyExpense;
 import com.grepp.spring.infra.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/budget")
 public class BudgetController {
 
+    @Operation(summary = "달력 페이지 조회")
     @GetMapping("/calendar")
-    public ApiResponse<BudgetCalenderResponseDto> getMonthlySummary() {
+    public ApiResponse<BudgetCalenderResponseDto> getMonthlySummary(@RequestParam("yearmonth") String yearmonth) {
         List<BudgetDaySummary> days = List.of(
-            new BudgetDaySummary("2025-07-01", 50000, 32000, 18000),
-            new BudgetDaySummary("2025-07-02", 0, 28000, -28000),
-            new BudgetDaySummary("2025-07-03", 10000, 10000, 0)
+            new BudgetDaySummary(yearmonth+"-01", 50000, 32000, 18000),
+            new BudgetDaySummary(yearmonth+"-02", 0, 28000, -28000),
+            new BudgetDaySummary(yearmonth+"-03", 10000, 10000, 0)
         );
 
         BudgetCalenderResponseDto response = new BudgetCalenderResponseDto(
-            "2025-07",
+            yearmonth,
             1250000,
             870000,
             days
@@ -34,6 +37,7 @@ public class BudgetController {
         return ApiResponse.success(response);
     }
 
+    @Operation(summary = "가계부 분석 페이지")
     @GetMapping("/analyze")
     public ApiResponse<BudgetAnalyzeResponseDto>  getDashboard() {
 

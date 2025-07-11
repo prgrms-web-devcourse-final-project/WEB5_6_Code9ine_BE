@@ -1,6 +1,7 @@
 package com.grepp.spring.app.controller.api.ocr;
 
 import com.grepp.spring.infra.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/budget")
 public class OcrController {
 
+    @Operation(summary = "영수증 분석")
     @PostMapping("/receipt")
     public ApiResponse<Map<String, Object>> analyzeReceipt()
     {

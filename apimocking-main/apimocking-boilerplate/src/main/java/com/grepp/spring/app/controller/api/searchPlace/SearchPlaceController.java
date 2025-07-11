@@ -17,34 +17,36 @@ public class SearchPlaceController {
     @GetMapping("/places/search")
     public ApiResponse<List<Map<String, Object>>> searchMockPlaces(
             @RequestParam String location,
-            @RequestParam(required = false) String type
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String category
     ) {
         List<Map<String, Object>> results = new ArrayList<>();
 
+        // location이 강남구가 아니면 빈 결과
         if (!"강남구".equals(location)) {
             return ApiResponse.success(results);
         }
 
-        if (type == null || type.isBlank()) {
-            results.addAll(mockStores());
-            results.addAll(mockFestivals());
-            results.addAll(mockLibraries());
-        } else {
-            List<String> requestedTypes = List.of(type.split(","));
+        List<String> requestedTypes = (type == null || type.isBlank())
+                ? List.of("store", "festival", "library")
+                : List.of(type.split(","));
 
+        if (requestedTypes.contains("store")) {
             results.addAll(mockStores().stream()
                     .filter(store -> {
-                        Object t = store.get("type");
-                        return t != null && requestedTypes.contains(t.toString());
+                        if (category == null || category.isBlank()) return true;
+                        Object c = store.get("category");
+                        return c != null && category.equals(c.toString());
                     })
                     .toList());
+        }
 
-            if (requestedTypes.contains("축제")) {
-                results.addAll(mockFestivals());
-            }
-            if (requestedTypes.contains("도서관")) {
-                results.addAll(mockLibraries());
-            }
+        if (requestedTypes.contains("festival")) {
+            results.addAll(mockFestivals());
+        }
+
+        if (requestedTypes.contains("library")) {
+            results.addAll(mockLibraries());
         }
 
         return ApiResponse.success(results);
@@ -58,7 +60,7 @@ public class SearchPlaceController {
         korean.put("name", "강남 한식당");
         korean.put("address", "서울 강남구 테헤란로 10");
         korean.put("category", "한식");
-        korean.put("type", "한식"); // 핵심
+        korean.put("type", "store"); // 핵심
         korean.put("contact","02-1212-1212");
         korean.put("firstmenu", "비빔밥");
         korean.put("firstprice", 8000);
@@ -71,7 +73,7 @@ public class SearchPlaceController {
         chinese.put("name", "강남 중식당");
         chinese.put("address", "서울 강남구 역삼로 20");
         chinese.put("category", "중식");
-        chinese.put("type", "중식");
+        chinese.put("type", "store");
         chinese.put("contact","02-1212-1212");
         chinese.put("firstmenu", "짜장면");
         chinese.put("firstprice", 7000);
@@ -84,7 +86,7 @@ public class SearchPlaceController {
         western.put("name", "강남 양식당");
         western.put("address", "서울 강남구 봉은사로 30");
         western.put("category", "양식");
-        western.put("type", "양식");
+        western.put("type", "store");
         western.put("contact","02-1212-1212");
         western.put("firstmenu", "파스타");
         western.put("firstprice", 12000);
@@ -102,7 +104,7 @@ public class SearchPlaceController {
         festival.put("address", "서울 강남구 삼성로 40");
         festival.put("url", "https://example.com");
         festival.put("category", null);
-        festival.put("type", "축제");
+        festival.put("type", "festival");
         festival.put("latitude", 37.510);
         festival.put("longitude", 127.056);
         return List.of(festival);
@@ -115,7 +117,7 @@ public class SearchPlaceController {
         library.put("address", "서울 강남구 논현로 50");
         library.put("url", "https://example.com");
         library.put("category", null);
-        library.put("type", "도서관");
+        library.put("type", "library");
         library.put("contact", "02-1212-1212");
         library.put("latitude", 37.512);
         library.put("longitude", 127.041);
@@ -129,45 +131,44 @@ public class SearchPlaceController {
     ) {
         Map<String, Object> result = new HashMap<>();
 
-        // store 업종 목록
-        List<String> storeTypes = List.of("한식", "양식", "중식", "일식", "미용업", "세탁업", "숙박업");
-
-        if (storeTypes.contains(type)) {
-            // Mock store 데이터
-            result.put("storeId", id);
-            result.put("name", "서울식당");
-            result.put("address", "서울시 강남구 테헤란로 10");
-            result.put("category", "한식");
-            result.put("contact","02-1212-1212");
-            result.put("firstmenu", "비빔밥");
-            result.put("firstprice", 8000);
-            result.put("secondmenu", "김치찌개");
-            result.put("secondprice", 7000);
-            result.put("thirdmenu", "된장찌개");
-            result.put("thirdprice", 7500);
-            result.put("latitude", 37.501);
-            result.put("longitude", 127.039);
-        } else if (type.equals("축제")) {
-            result.put("festivalId", id);
-            result.put("name", "강남 문화축제");
-            result.put("category", "문화예술");
-            result.put("address", "서울시 강남구 삼성로 40");
-            result.put("target", "전체 시민");
-            result.put("url", "https://festival.example.com");
-            result.put("startAt", "2025-07-20");
-            result.put("endAt", "2025-07-23");
-            result.put("latitude", 37.51);
-            result.put("longitude", 127.056);
-        } else if (type.equals("도서관")) {
-            result.put("libraryId", id);
-            result.put("name", "강남 도서관");
-            result.put("address", "서울시 강남구 논현로 50");
-            result.put("url", "https://library.example.com");
-            result.put("contact","02-1212-1212");
-            result.put("latitude", 37.512);
-            result.put("longitude", 127.041);
-        } else {
-            throw new IllegalArgumentException("유효하지 않은 type 값입니다.");
+        switch (type) {
+            case "store" -> {
+                result.put("storeId", id);
+                result.put("name", "서울식당");
+                result.put("address", "서울시 강남구 테헤란로 10");
+                result.put("category", "한식"); // 업종 (category)
+                result.put("contact", "02-1212-1212");
+                result.put("firstmenu", "비빔밥");
+                result.put("firstprice", 8000);
+                result.put("secondmenu", "김치찌개");
+                result.put("secondprice", 7000);
+                result.put("thirdmenu", "된장찌개");
+                result.put("thirdprice", 7500);
+                result.put("latitude", 37.501);
+                result.put("longitude", 127.039);
+            }
+            case "festival" -> {
+                result.put("festivalId", id);
+                result.put("name", "강남 문화축제");
+                result.put("category", "문화예술");
+                result.put("address", "서울시 강남구 삼성로 40");
+                result.put("target", "전체 시민");
+                result.put("url", "https://festival.example.com");
+                result.put("startAt", "2025-07-20");
+                result.put("endAt", "2025-07-23");
+                result.put("latitude", 37.51);
+                result.put("longitude", 127.056);
+            }
+            case "library" -> {
+                result.put("libraryId", id);
+                result.put("name", "강남 도서관");
+                result.put("address", "서울시 강남구 논현로 50");
+                result.put("url", "https://library.example.com");
+                result.put("contact", "02-1212-1212");
+                result.put("latitude", 37.512);
+                result.put("longitude", 127.041);
+            }
+            default -> throw new IllegalArgumentException("유효하지 않은 type 값입니다.");
         }
 
         return ApiResponse.success(result);

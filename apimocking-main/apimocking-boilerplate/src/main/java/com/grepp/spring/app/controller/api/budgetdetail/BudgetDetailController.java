@@ -51,17 +51,8 @@ public class BudgetDetailController {
     @PatchMapping("/expenses/{expense_id}")
     public ApiResponse<?> updateExpense(@PathVariable("expense_id") Long id, @RequestBody BudgetDetailRequestDTO dto) {
 
-        UpdatedExpenseResponseDto updated = new UpdatedExpenseResponseDto(
-            id,
-            dto.getType(),
-            dto.getDate(),
-            dto.getCategory(),
-            dto.getAmount(),
-            dto.getContent(),
-            dto.getRepeatCycle()
-        );
-
-        return new ApiResponse<>("2000", "지출이 수정되었습니다.", updated);
+        UpdatedExpenseResponseDto updatedExpenseResponseDto = budgetDetailServiceNew.updateExpense(id, dto);
+        return new ApiResponse<>("2000", "지출이 수정되었습니다.", updatedExpenseResponseDto);
     }
 
     // 지출삭제

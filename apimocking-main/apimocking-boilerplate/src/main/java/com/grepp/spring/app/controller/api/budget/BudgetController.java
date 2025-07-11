@@ -8,7 +8,6 @@ import com.grepp.spring.app.model.budget.model.BudgetGoal;
 import com.grepp.spring.app.model.budget.model.BudgetMonthlyExpense;
 import com.grepp.spring.infra.response.ApiResponse;
 import java.util.List;
-import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/budget")
 public class BudgetController {
-
 
     @GetMapping("/calendar")
     public ApiResponse<BudgetCalenderResponseDto> getMonthlySummary() {

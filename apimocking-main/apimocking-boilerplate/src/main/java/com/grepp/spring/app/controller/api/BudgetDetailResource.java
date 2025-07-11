@@ -1,6 +1,6 @@
 package com.grepp.spring.app.controller.api;
 
-import com.grepp.spring.app.model.budget_detail.model.BudgetDetailDTO;
+import com.grepp.spring.app.model.budget_detail.model.TempBudgetDetailDTO;
 import com.grepp.spring.app.model.budget_detail.service.BudgetDetailService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -29,12 +29,12 @@ public class BudgetDetailResource {
     }
 
     @GetMapping
-    public ResponseEntity<List<BudgetDetailDTO>> getAllBudgetDetails() {
+    public ResponseEntity<List<TempBudgetDetailDTO>> getAllBudgetDetails() {
         return ResponseEntity.ok(budgetDetailService.findAll());
     }
 
     @GetMapping("/{budgetDetailId}")
-    public ResponseEntity<BudgetDetailDTO> getBudgetDetail(
+    public ResponseEntity<TempBudgetDetailDTO> getBudgetDetail(
             @PathVariable(name = "budgetDetailId") final Long budgetDetailId) {
         return ResponseEntity.ok(budgetDetailService.get(budgetDetailId));
     }
@@ -42,7 +42,7 @@ public class BudgetDetailResource {
     @PostMapping
     @ApiResponse(responseCode = "201")
     public ResponseEntity<Long> createBudgetDetail(
-            @RequestBody @Valid final BudgetDetailDTO budgetDetailDTO) {
+            @RequestBody @Valid final TempBudgetDetailDTO budgetDetailDTO) {
         final Long createdBudgetDetailId = budgetDetailService.create(budgetDetailDTO);
         return new ResponseEntity<>(createdBudgetDetailId, HttpStatus.CREATED);
     }
@@ -50,7 +50,7 @@ public class BudgetDetailResource {
     @PutMapping("/{budgetDetailId}")
     public ResponseEntity<Long> updateBudgetDetail(
             @PathVariable(name = "budgetDetailId") final Long budgetDetailId,
-            @RequestBody @Valid final BudgetDetailDTO budgetDetailDTO) {
+            @RequestBody @Valid final TempBudgetDetailDTO budgetDetailDTO) {
         budgetDetailService.update(budgetDetailId, budgetDetailDTO);
         return ResponseEntity.ok(budgetDetailId);
     }

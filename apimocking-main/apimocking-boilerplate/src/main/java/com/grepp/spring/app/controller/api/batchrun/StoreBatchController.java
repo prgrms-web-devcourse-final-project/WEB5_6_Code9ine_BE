@@ -1,5 +1,6 @@
 package com.grepp.spring.app.controller.api.batchrun;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionException;
@@ -19,6 +20,7 @@ public class StoreBatchController {
     private final Job storeJob;
 
     @GetMapping("/store")
+    @Operation(summary = "식당 DB 받아오기")
     public String runStoreBatch() throws JobExecutionException {
         JobParameters jobParameters = new JobParametersBuilder()
                 .addLong("time",System.currentTimeMillis())
@@ -27,6 +29,4 @@ public class StoreBatchController {
         jobLauncher.run(storeJob, jobParameters);
         return "success";
     }
-
-
 }

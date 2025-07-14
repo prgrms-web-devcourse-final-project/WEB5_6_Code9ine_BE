@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/budget")
-public class BudgetController {
+public class BudgetMockController {
 
     @Operation(summary = "달력 페이지 조회")
     @GetMapping("/calendar")

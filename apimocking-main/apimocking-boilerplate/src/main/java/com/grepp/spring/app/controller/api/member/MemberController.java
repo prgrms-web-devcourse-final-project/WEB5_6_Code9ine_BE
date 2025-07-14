@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.grepp.spring.app.model.auth.AuthService;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @RestController
 @RequestMapping("/api/members")
@@ -79,6 +80,7 @@ public class MemberController {
     // 로그인
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest request) {
+        System.out.println("로그인 시도: email=" + request.getEmail() + ", password=" + request.getPassword());
         // AuthService의 signin을 사용하여 JWT 토큰 발급
         com.grepp.spring.app.controller.api.mock.auth.payload.LoginRequest authRequest = new com.grepp.spring.app.controller.api.mock.auth.payload.LoginRequest();
         authRequest.setUsername(request.getEmail());
@@ -127,7 +129,9 @@ public class MemberController {
     }
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class LoginRequest {
+        @Schema(description = "이메일", example = "test3@test.com")
         private String email;
+        @Schema(description = "비밀번호", example = "string")
         private String password;
     }
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor

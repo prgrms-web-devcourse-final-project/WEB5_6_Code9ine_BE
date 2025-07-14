@@ -1,6 +1,7 @@
 package com.grepp.spring.app.controller.api.mock.userMain;
 
 import com.grepp.spring.infra.response.ApiResponse;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +11,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
-public class UserMainController {
+@Profile("mock")
+public class UserMainMockController {
 
     // 사용자 평균 절약 금액
     @GetMapping("/average-saving")

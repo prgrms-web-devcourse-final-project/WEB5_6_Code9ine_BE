@@ -36,16 +36,7 @@ public class BudgetDetailService {
 
         // Budget에 연결된 BudgetDetail 꺼내기
         List<BudgetDetailDto> details = budget.getBudgetDetails().stream()
-            .map(detail -> new BudgetDetailDto(
-                detail.getBudgetDetailId(),
-                detail.getCategory(),
-                detail.getType(),
-                getIconForCategory(detail.getCategory()),
-                detail.getContent(),
-                detail.getDate(),
-                detail.getPrice(),
-                detail.getRepeatCycle()
-            ))
+            .map(BudgetDetailDto::from)
             .toList();
 
         return new BudgetDetailResponseDto(details);
@@ -135,13 +126,6 @@ public class BudgetDetailService {
     }
 
     // 카테고리에 따른 아이콘 매핑 예시
-    private String getIconForCategory(String category) {
-        return switch (category) {
-            case "식비" -> "🍱";
-            case "카페" -> "☕";
-            case "교통" -> "🚇";
-            default -> "💸";
-        };
-    }
+
 
 }

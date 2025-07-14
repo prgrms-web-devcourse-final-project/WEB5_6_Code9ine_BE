@@ -3,12 +3,10 @@ package com.grepp.spring.app.controller.api.budgetdetail;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailRequestDTO;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailResponseDto;
 import com.grepp.spring.app.model.budget_detail.model.UpdatedBudgetDetailResponseDto;
-import com.grepp.spring.app.model.budget_detail.service.BudgetDetailServiceNew;
+import com.grepp.spring.app.model.budget_detail.service.BudgetDetailService;
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -24,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/budget")
 public class BudgetDetailController {
 
-    private final BudgetDetailServiceNew budgetDetailServiceNew;
+    private final BudgetDetailService budgetDetailServiceNew;
 
 
 //    @Operation(summary = "총 내역 조회")

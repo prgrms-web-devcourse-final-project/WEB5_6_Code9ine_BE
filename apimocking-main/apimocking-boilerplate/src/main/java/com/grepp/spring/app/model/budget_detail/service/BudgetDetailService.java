@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class BudgetDetailServiceNew {
+public class BudgetDetailService {
 
     private final BudgetRepository budgetRepository;
     private final BudgetDetailRepository budgetDetailRepository;

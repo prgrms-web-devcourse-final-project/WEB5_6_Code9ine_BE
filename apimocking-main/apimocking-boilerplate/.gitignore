@@ -48,6 +48,7 @@ Thumbs.db
 application.properties
 application-local.properties
 application-prod.properties
+application-mock.properties
 
 # Environment files
 .env

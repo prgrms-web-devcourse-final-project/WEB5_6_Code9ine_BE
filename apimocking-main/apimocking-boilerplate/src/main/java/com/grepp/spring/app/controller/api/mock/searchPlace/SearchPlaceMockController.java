@@ -2,6 +2,7 @@ package com.grepp.spring.app.controller.api.mock.searchPlace;
 
 import com.grepp.spring.app.model.store.dto.BookmarkToggleRequest;
 import com.grepp.spring.infra.response.ApiResponse;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -11,7 +12,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-public class SearchPlaceController {
+@Profile("mock")
+public class SearchPlaceMockController {
 
     @GetMapping("/places/search")
     public ApiResponse<List<Map<String, Object>>> searchMockPlaces(

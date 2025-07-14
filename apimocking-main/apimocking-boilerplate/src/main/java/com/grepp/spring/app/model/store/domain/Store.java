@@ -1,13 +1,8 @@
 package com.grepp.spring.app.model.store.domain;
 
 import com.grepp.spring.app.model.place_bookmark.domain.PlaceBookmark;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -18,20 +13,12 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@Table(name = "store")
 public class Store {
 
     @Id
     @Column(nullable = false, updatable = false)
-    @SequenceGenerator(
-            name = "primary_sequence",
-            sequenceName = "primary_sequence",
-            allocationSize = 1,
-            initialValue = 10000
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "primary_sequence"
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long storeId;
 
     @Column(nullable = false)

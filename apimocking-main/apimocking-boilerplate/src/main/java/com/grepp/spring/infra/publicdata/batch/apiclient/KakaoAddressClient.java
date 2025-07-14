@@ -6,6 +6,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,6 +17,8 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Profile("!mock")
+
 public class KakaoAddressClient {
 
     // 카카오 api 키

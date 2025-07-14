@@ -20,6 +20,7 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -31,6 +32,7 @@ import java.util.Set;
 @EnableBatchProcessing
 @RequiredArgsConstructor
 @Slf4j
+@Profile("!mock")
 public class StoreBatchConfig {
 
 

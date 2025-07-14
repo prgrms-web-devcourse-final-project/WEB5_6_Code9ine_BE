@@ -25,9 +25,9 @@ public class BudgetDetailService {
     private final MemberRepository memberRepository;
 
     @Transactional(readOnly = true)
-    public BudgetDetailResponseDto findBudgetDetailByDate(String date) {
+    public BudgetDetailResponseDto findBudgetDetailByDate(String username, String date) {
 
-        Member member = memberRepository.findById(1L)
+        Member member = memberRepository.findByEmail(username)
             .orElseThrow(() -> new RuntimeException("해당 ID의 회원이 존재하지 않습니다."));
 
         // 해당 유저의 해당 날짜 Budget 찾기
@@ -52,9 +52,9 @@ public class BudgetDetailService {
     }
 
     @Transactional
-    public void registerBudgetDetail(BudgetDetailRequestDTO dto) {
+    public void registerBudgetDetail(String username,BudgetDetailRequestDTO dto) {
 
-        Member member = memberRepository.findById(1L)
+        Member member = memberRepository.findByEmail(username)
             .orElseThrow(() -> new RuntimeException("해당 ID의 회원이 존재하지 않습니다."));
 
         // 1. 해당 날짜의 가계부(Budget) 조회

@@ -7,6 +7,8 @@ import com.grepp.spring.app.model.budget_detail.service.BudgetDetailService;
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -36,18 +38,18 @@ public class BudgetDetailController {
 
     @Operation(summary = "날짜별 내역 조회")
     @GetMapping("/detail")
-    public ApiResponse<BudgetDetailResponseDto> getBudgetDetail(@RequestParam("date") String date) {
+    public ApiResponse<BudgetDetailResponseDto> getBudgetDetail(@AuthenticationPrincipal UserDetails userDetails, @RequestParam("date") String date) {
 
-        BudgetDetailResponseDto response = budgetDetailServiceNew.findBudgetDetailByDate(date);
+        BudgetDetailResponseDto response = budgetDetailServiceNew.findBudgetDetailByDate(userDetails.getUsername(),date);
         return ApiResponse.success(response);
     }
 
 
     @Operation(summary = "날짜별 내역 추가")
     @PostMapping("/detail")
-    public ApiResponse<?> addBudgetDetail(@RequestBody BudgetDetailRequestDTO dto) {
+    public ApiResponse<?> addBudgetDetail(@AuthenticationPrincipal UserDetails userDetails, @RequestBody BudgetDetailRequestDTO dto) {
 
-        budgetDetailServiceNew.registerBudgetDetail(dto);
+        budgetDetailServiceNew.registerBudgetDetail(userDetails.getUsername(),dto);
         return new ApiResponse<>("2000", "지출추가되었습니다", null);
     }
 

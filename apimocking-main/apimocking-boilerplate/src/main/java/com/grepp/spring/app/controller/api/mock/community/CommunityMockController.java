@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.community;
+package com.grepp.spring.app.controller.api.mock.community;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

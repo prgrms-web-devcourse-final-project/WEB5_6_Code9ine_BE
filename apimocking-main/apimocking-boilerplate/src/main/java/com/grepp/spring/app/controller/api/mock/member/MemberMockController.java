@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.member;
+package com.grepp.spring.app.controller.api.mock.member;
 
 import com.grepp.spring.infra.response.ApiResponse;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.admin;
+package com.grepp.spring.app.controller.api.mock.admin;
 
 import com.grepp.spring.app.model.admin.dto.AdminStoreResponse;
 import com.grepp.spring.app.model.admin.dto.AdminUserResponse;

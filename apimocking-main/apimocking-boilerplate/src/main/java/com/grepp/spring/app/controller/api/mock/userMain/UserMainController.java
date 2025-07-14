@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.userMain;
+package com.grepp.spring.app.controller.api.mock.userMain;
 
 import com.grepp.spring.infra.response.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;

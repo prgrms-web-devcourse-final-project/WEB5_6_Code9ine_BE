@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.community;
+package com.grepp.spring.app.controller.api.mock.community;
 
 import com.grepp.spring.app.model.community.dto.CommunityCommentCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityCommentResponse;

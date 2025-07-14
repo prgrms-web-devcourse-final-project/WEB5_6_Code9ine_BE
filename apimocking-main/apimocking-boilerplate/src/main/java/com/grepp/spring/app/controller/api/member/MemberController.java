@@ -17,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.grepp.spring.app.model.auth.AuthService;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseCookie;
 
 @RestController
 @RequestMapping("/api/members")
@@ -79,14 +81,33 @@ public class MemberController {
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest request, HttpServletResponse response) {
         System.out.println("로그인 시도: email=" + request.getEmail() + ", password=" + request.getPassword());
-        // AuthService의 signin을 사용하여 JWT 토큰 발급
         com.grepp.spring.app.controller.api.mock.auth.payload.LoginRequest authRequest = new com.grepp.spring.app.controller.api.mock.auth.payload.LoginRequest();
         authRequest.setUsername(request.getEmail());
         authRequest.setPassword(request.getPassword());
         try {
             TokenDto tokenDto = authService.signin(authRequest);
+
+            // accessToken 쿠키 생성
+            ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenDto.getAccessToken())
+                .httpOnly(true)
+                .secure(false) // 운영 환경에서는 true
+                .path("/")
+                .maxAge(tokenDto.getExpiresIn() / 1000)
+                .sameSite("Lax")
+                .build();
+            // refreshToken 쿠키 생성
+            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken())
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(tokenDto.getRefreshExpiresIn() / 1000)
+                .sameSite("Lax")
+                .build();
+            response.addHeader("Set-Cookie", accessTokenCookie.toString());
+            response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+
             LoginResponse.Data data = new LoginResponse.Data(
                 tokenDto.getAccessToken(),
                 tokenDto.getRefreshToken(),

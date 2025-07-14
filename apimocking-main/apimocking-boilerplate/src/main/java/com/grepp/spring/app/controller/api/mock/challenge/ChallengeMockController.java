@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.challenge;
+package com.grepp.spring.app.controller.api.mock.challenge;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

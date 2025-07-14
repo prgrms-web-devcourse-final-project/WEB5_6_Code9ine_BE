@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.notification;
+package com.grepp.spring.app.controller.api.mock.notification;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

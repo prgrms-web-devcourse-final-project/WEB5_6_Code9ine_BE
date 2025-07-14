@@ -19,7 +19,7 @@ public class Principal extends User {
     
     public static Principal createPrincipal(Member member,
         List<SimpleGrantedAuthority> authorities){
-        return new Principal(member.getMemberId().toString(), member.getPassword(), authorities);
+        return new Principal(member.getEmail(), member.getPassword(), authorities);
     }
     
     public Optional<String> getAccessToken() {

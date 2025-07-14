@@ -16,7 +16,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KakaoAdressClient {
+public class KakaoAddressClient {
 
     // 카카오 api 키
     @Value("${kakao.rest-api-key}")

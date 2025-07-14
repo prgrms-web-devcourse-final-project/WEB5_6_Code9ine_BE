@@ -2,7 +2,7 @@ package com.grepp.spring.infra.publicdata.batch.Service;
 
 import com.grepp.spring.app.model.store.domain.Store;
 import com.grepp.spring.app.model.store.repos.StoreRepository;
-import com.grepp.spring.infra.publicdata.batch.apiclient.KakaoAdressClient;
+import com.grepp.spring.infra.publicdata.batch.apiclient.KakaoAddressClient;
 import com.grepp.spring.infra.publicdata.batch.dto.CoordDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import java.util.Optional;
 public class GeocodingService {
 
     private final StoreRepository storeRepository;
-    private final KakaoAdressClient kakaoAdressClient;
+    private final KakaoAddressClient kakaoAddressClient;
 
     // 한 페이지 제한 행 수
     private static final int BATCH_SIZE = 100;
@@ -74,7 +74,7 @@ public class GeocodingService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean updateStoreCoord(Store store) {
-        Optional<CoordDto> coordOpt = kakaoAdressClient.getCoordinates(store.getAddress());
+        Optional<CoordDto> coordOpt = kakaoAddressClient.getCoordinates(store.getAddress());
 
         if (coordOpt.isPresent()) {
             CoordDto coord = coordOpt.get();

@@ -156,7 +156,7 @@ public class MemberMockController {
         // 마이페이지 조회 Mock 응답
         MemberMypageRequest.MyPostDto post = new MemberMypageRequest.MyPostDto(1L, "첫 번째 글");
         MemberMypageResponse.Data data = new MemberMypageResponse.Data(
-                "test@test.com", "테스트유저", "https://image.url", 1000000, 5, 1200, 2000, 60, List.of(post)
+                1, "test@test.com", "테스트유저", "https://image.url", 1000000, 5, 1200, 2000, 60, List.of(post)
         );
         MemberMypageResponse response = new MemberMypageResponse(2000, "마이페이지 조회 성공", data);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -166,7 +166,7 @@ public class MemberMockController {
     public ResponseEntity<ApiResponse<MemberMypageResponse>> updateMypage(@RequestBody MemberMypageRequest request) {
         // 마이페이지 수정 Mock 응답
         MemberMypageResponse.Data data = new MemberMypageResponse.Data(
-                "test@test.com", request.getName(), request.getProfileImage(), request.getGoalAmount(),
+                1,"test@test.com", request.getName(), request.getProfileImage(), request.getGoalAmount(),
                 request.getLevel(), request.getCurrentExp(), request.getNextLevelExp(), request.getExpProgress(), request.getMyPosts()
         );
         MemberMypageResponse response = new MemberMypageResponse(2000, "마이페이지 수정 성공", data);
@@ -393,6 +393,7 @@ public class MemberMockController {
         @NoArgsConstructor
         @AllArgsConstructor
         public static class Data {
+            private int userId;
             private String email;
             private String name;
             private String profileImage;

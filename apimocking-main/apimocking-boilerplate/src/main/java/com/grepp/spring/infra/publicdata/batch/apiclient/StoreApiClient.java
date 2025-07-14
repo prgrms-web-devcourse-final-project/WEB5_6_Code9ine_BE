@@ -6,6 +6,7 @@ import com.grepp.spring.infra.publicdata.batch.dto.StoreDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Profile("!mock")
 public class StoreApiClient {
 
     private final ObjectMapper objectMapper;

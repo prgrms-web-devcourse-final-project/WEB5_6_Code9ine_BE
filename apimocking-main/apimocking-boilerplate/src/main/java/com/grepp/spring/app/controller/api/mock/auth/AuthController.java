@@ -1,7 +1,7 @@
-package com.grepp.spring.app.controller.api.auth;
+package com.grepp.spring.app.controller.api.mock.auth;
 
-import com.grepp.spring.app.controller.api.auth.payload.LoginRequest;
-import com.grepp.spring.app.controller.api.auth.payload.TokenResponse;
+import com.grepp.spring.app.controller.api.mock.auth.payload.LoginRequest;
+import com.grepp.spring.app.controller.api.mock.auth.payload.TokenResponse;
 import com.grepp.spring.app.model.auth.AuthService;
 import com.grepp.spring.app.model.auth.code.AuthToken;
 import com.grepp.spring.app.model.auth.dto.TokenDto;

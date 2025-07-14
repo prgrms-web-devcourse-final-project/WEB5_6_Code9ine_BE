@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.chatbot;
+package com.grepp.spring.app.controller.api.mock.chatbot;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

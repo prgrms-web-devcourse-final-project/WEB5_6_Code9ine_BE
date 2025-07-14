@@ -79,7 +79,7 @@ public class MemberService {
         memberRepository.deleteById(memberId);
     }
 
-    private MemberDTO mapToDTO(final Member member, final MemberDTO memberDTO) {
+    public MemberDTO mapToDTO(final Member member, final MemberDTO memberDTO) {
         memberDTO.setMemberId(member.getMemberId());
         memberDTO.setEmail(member.getEmail());
         memberDTO.setPassword(member.getPassword());

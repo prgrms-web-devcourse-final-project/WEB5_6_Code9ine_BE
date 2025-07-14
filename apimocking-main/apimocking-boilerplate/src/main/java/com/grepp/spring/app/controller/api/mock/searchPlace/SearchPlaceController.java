@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.searchPlace;
+package com.grepp.spring.app.controller.api.mock.searchPlace;
 
 import com.grepp.spring.app.model.store.dto.BookmarkToggleRequest;
 import com.grepp.spring.infra.response.ApiResponse;

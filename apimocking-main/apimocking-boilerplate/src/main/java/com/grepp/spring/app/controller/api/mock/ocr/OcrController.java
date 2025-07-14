@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.ocr;
+package com.grepp.spring.app.controller.api.mock.ocr;
 
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;

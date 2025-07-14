@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.budgetdetail;
+package com.grepp.spring.app.controller.api.mock.budgetdetail;
 
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailDto;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailRequestDTO;

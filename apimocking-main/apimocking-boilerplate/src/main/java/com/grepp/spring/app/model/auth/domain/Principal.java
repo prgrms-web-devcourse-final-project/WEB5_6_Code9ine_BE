@@ -11,15 +11,17 @@ import org.springframework.security.core.userdetails.User;
 public class Principal extends User {
     
     private String accessToken;
+    private Long memberId; // userId → memberId로 변경
     
-    public Principal(String memberId, String password,
-        Collection<? extends GrantedAuthority> authorities) {
-        super(memberId, password, authorities);
+    public Principal(String email, String password,
+        Collection<? extends GrantedAuthority> authorities, Long memberId) {
+        super(email, password, authorities);
+        this.memberId = memberId;
     }
     
     public static Principal createPrincipal(Member member,
         List<SimpleGrantedAuthority> authorities){
-        return new Principal(member.getEmail(), member.getPassword(), authorities);
+        return new Principal(member.getEmail(), member.getPassword(), authorities, member.getMemberId());
     }
     
     public Optional<String> getAccessToken() {
@@ -28,5 +30,9 @@ public class Principal extends User {
     
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+    }
+    
+    public Long getMemberId() { // getUserId → getMemberId로 변경
+        return memberId;
     }
 }

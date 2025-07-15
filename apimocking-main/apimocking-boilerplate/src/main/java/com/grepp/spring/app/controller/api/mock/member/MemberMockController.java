@@ -157,10 +157,15 @@ public class MemberMockController {
         MemberMypageRequest.MyPostDto post = new MemberMypageRequest.MyPostDto(1L, "첫 번째 글");
         MemberMypageResponse.BookmarkedPostDto bookmarkedPost = new MemberMypageResponse.BookmarkedPostDto(2L, "나만의 가성비 장소");
         MemberMypageResponse.BookmarkedPlaceDto bookmarkedPlace = new MemberMypageResponse.BookmarkedPlaceDto(1L, "착한식당");
+        MemberMypageResponse.AchievedTitleDto equippedTitle = new MemberMypageResponse.AchievedTitleDto(2L, "절약왕", "한 달 동안 지출을 10만원 이하로!", 1, true);
+        MemberMypageResponse.AchievedTitleDto title1 = new MemberMypageResponse.AchievedTitleDto(1L, "개근왕", "30일 연속 출석", 30, true);
+        MemberMypageResponse.AchievedTitleDto title2 = equippedTitle;
+        MemberMypageResponse.AchievedTitleDto title3 = new MemberMypageResponse.AchievedTitleDto(3L, "인싸왕", "친구 5명 초대", 5, true);
         MemberMypageResponse.Data data = new MemberMypageResponse.Data(
                 1, "test@test.com", "테스트유저", "https://image.url", 5, 1200, 2000, 60, List.of(post),
                 "자동차", new java.math.BigDecimal("10000"),
-                List.of(bookmarkedPost), List.of(bookmarkedPlace)
+                List.of(bookmarkedPost), List.of(bookmarkedPlace),
+                equippedTitle, List.of(title1, title2, title3)
         );
         MemberMypageResponse response = new MemberMypageResponse(2000, "마이페이지 조회 성공", data);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -169,11 +174,16 @@ public class MemberMockController {
     @PatchMapping("/mypage")
     public ResponseEntity<ApiResponse<MemberMypageResponse>> updateMypage(@RequestBody MemberMypageRequest request) {
         // 마이페이지 수정 Mock 응답
+        MemberMypageResponse.AchievedTitleDto equippedTitle = new MemberMypageResponse.AchievedTitleDto(2L, "절약왕", "한 달 동안 지출을 10만원 이하로!", 1, true);
+        MemberMypageResponse.AchievedTitleDto title1 = new MemberMypageResponse.AchievedTitleDto(1L, "개근왕", "30일 연속 출석", 30, true);
+        MemberMypageResponse.AchievedTitleDto title2 = equippedTitle;
+        MemberMypageResponse.AchievedTitleDto title3 = new MemberMypageResponse.AchievedTitleDto(3L, "인싸왕", "친구 5명 초대", 5, true);
         MemberMypageResponse.Data data = new MemberMypageResponse.Data(
-                1,"test@test.com", request.getName(), request.getProfileImage(),
+                1, "test@test.com", request.getName(), request.getProfileImage(),
                 request.getLevel(), request.getCurrentExp(), request.getNextLevelExp(), request.getExpProgress(), request.getMyPosts(),
                 request.getGoalStuff(), request.getRemainPrice(),
-                request.getBookmarkedPosts(), request.getBookmarkedPlaces()
+                request.getBookmarkedPosts(), request.getBookmarkedPlaces(),
+                equippedTitle, List.of(title1, title2, title3)
         );
         MemberMypageResponse response = new MemberMypageResponse(2000, "마이페이지 수정 성공", data);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -431,6 +441,8 @@ public class MemberMockController {
             private java.math.BigDecimal remainPrice; // ex) 10000
             private List<BookmarkedPostDto> bookmarkedPosts;
             private List<BookmarkedPlaceDto> bookmarkedPlaces;
+            private AchievedTitleDto equippedTitle; // 장착 칭호
+            private List<AchievedTitleDto> achievedTitles; // 달성 칭호 목록
         }
         @Getter
         @Setter
@@ -447,6 +459,17 @@ public class MemberMockController {
         public static class BookmarkedPlaceDto {
             private Long placeId;
             private String name;
+        }
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class AchievedTitleDto {
+            private Long titleId;
+            private String name;
+            private String description;
+            private Integer minCount;
+            private Boolean achieved;
         }
     }
 

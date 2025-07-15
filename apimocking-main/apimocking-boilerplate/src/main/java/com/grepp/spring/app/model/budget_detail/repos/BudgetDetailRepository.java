@@ -9,4 +9,5 @@ public interface BudgetDetailRepository extends JpaRepository<BudgetDetail, Long
 
     BudgetDetail findFirstByBudget(Budget budget);
 
+    boolean existsByBudget(Budget budget);
 }

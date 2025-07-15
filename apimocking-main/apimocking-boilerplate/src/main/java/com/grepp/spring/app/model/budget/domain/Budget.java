@@ -11,11 +11,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.SequenceGenerator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,31 +24,20 @@ import lombok.Setter;
 @Setter
 public class Budget {
 
-    @Id
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, updatable = false)
-    @SequenceGenerator(
-            name = "primary_sequence",
-            sequenceName = "primary_sequence",
-            allocationSize = 1,
-            initialValue = 10000
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "primary_sequence"
-    )
     private Long budgetId;
-
 
     @Column
     private LocalDate date;
 
-    @Column(precision = 20, scale = 1)
+    @Column(precision = 20, scale = 0)
     private BigDecimal totalIncome;
 
-    @Column(precision = 20, scale = 1)
+    @Column(precision = 20, scale = 0)
     private BigDecimal totalExpense;
 
-    @Column(precision = 20, scale = 1)
+    @Column(precision = 20, scale = 0)
     private BigDecimal targetExpense;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -57,6 +45,6 @@ public class Budget {
     private Member member;
 
     @OneToMany(mappedBy = "budget")
-    private Set<BudgetDetail> budgetDetails = new HashSet<>();
+    private List<BudgetDetail> budgetDetails = new ArrayList<>();
 
 }

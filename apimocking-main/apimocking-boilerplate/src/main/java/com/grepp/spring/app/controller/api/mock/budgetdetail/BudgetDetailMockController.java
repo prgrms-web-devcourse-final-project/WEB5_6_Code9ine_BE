@@ -4,10 +4,13 @@ import com.grepp.spring.app.model.budget_detail.model.BudgetDetailDto;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailRequestDTO;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailResponseDto;
 import com.grepp.spring.app.model.budget_detail.model.BudgetTotalDetailResponseDto;
-import com.grepp.spring.app.model.budget_detail.model.UpdatedExpenseResponseDto;
+import com.grepp.spring.app.model.budget_detail.model.UpdatedBudgetDetailResponseDto;
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -18,22 +21,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Profile("mock")
 @RestController
 @RequestMapping("/api/budget")
-public class BudgetDetailController {
+public class BudgetDetailMockController {
 
     @Operation(summary = "총 내역 조회")
     @GetMapping("/totaldetails")
     public ApiResponse<BudgetTotalDetailResponseDto> getBudgettotaldetails() {
         // 더미 데이터 생성
         List<BudgetDetailDto> details = List.of(
-            new BudgetDetailDto(101L, "식비", "지출", "🍔", "햄버거", "2025-07-03", 8700, "NONE"),
-            new BudgetDetailDto(102L, "교통", "지출", "🚌", "버스", "2025-07-02", 1250, "NONE"),
-            new BudgetDetailDto(103L, "여가", "지출", "🚌", "운동", "2025-07-02", 15000, "NONE")
+            new BudgetDetailDto(101L, "식비", "지출","햄버거", LocalDate.parse("2025-07-03"), BigDecimal.valueOf(8700), "NONE"),
+            new BudgetDetailDto(102L, "교통", "지출", "버스", LocalDate.parse("2025-07-02"), BigDecimal.valueOf(1250), "NONE"),
+            new BudgetDetailDto(103L, "여가", "지출", "운동", LocalDate.parse("2025-07-02"), BigDecimal.valueOf(15000), "NONE")
         );
 
         BudgetTotalDetailResponseDto budgetDetailResponseDto = new BudgetTotalDetailResponseDto(
-            "2025-07", 1200000, 870000, 330000, details
+            "2025-07", BigDecimal.valueOf(1200000), BigDecimal.valueOf(870000), BigDecimal.valueOf(330000), details
         );
 
         return new ApiResponse<>("2000", "총내역 조회되었습니다", budgetDetailResponseDto);
@@ -44,9 +48,9 @@ public class BudgetDetailController {
     public ApiResponse<BudgetDetailResponseDto> getExpenses(@RequestParam("date") String date) {
 
         List<BudgetDetailDto> details = List.of(
-            new BudgetDetailDto(12L,"식비","지출", "🍱", "점심 도시락",date, 8000,"NONE"),
-            new BudgetDetailDto(13L,"카페","지출", "☕", "아메리카노",date, 4500,"NONE"),
-            new BudgetDetailDto(14L, "교통","지출" ,"🚇", "지하철", date, 3300,"NONE")
+            new BudgetDetailDto(12L,"식비","지출", "점심 도시락", LocalDate.parse(date), BigDecimal.valueOf(8000),"NONE"),
+            new BudgetDetailDto(13L,"카페","지출", "아메리카노", LocalDate.parse(date), BigDecimal.valueOf(4500),"NONE"),
+            new BudgetDetailDto(14L, "교통","지출", "지하철", LocalDate.parse(date), BigDecimal.valueOf(3300),"NONE")
         );
 
         BudgetDetailResponseDto response = new BudgetDetailResponseDto(details);
@@ -66,10 +70,10 @@ public class BudgetDetailController {
     @PatchMapping("/detail/{detail_id}")
     public ApiResponse<?> updateExpense(@PathVariable("detail_id") Long id, @RequestBody BudgetDetailRequestDTO dto) {
 
-        UpdatedExpenseResponseDto updated = new UpdatedExpenseResponseDto(
+        UpdatedBudgetDetailResponseDto updated = new UpdatedBudgetDetailResponseDto(
             id,
             dto.getType(),
-            dto.getDate(),
+            LocalDate.parse(dto.getDate()),
             dto.getCategory(),
             dto.getPrice(),
             dto.getContent(),

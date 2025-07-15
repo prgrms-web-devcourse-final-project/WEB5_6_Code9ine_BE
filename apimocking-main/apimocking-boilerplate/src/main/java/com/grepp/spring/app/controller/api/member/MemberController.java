@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.grepp.spring.app.model.auth.AuthService;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
+import com.grepp.spring.app.model.auth.service.EmailVerificationService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseCookie;
@@ -27,12 +28,14 @@ public class MemberController {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
+    private final EmailVerificationService emailVerificationService;
 
-    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService) {
+    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService) {
         this.memberService = memberService;
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
+        this.emailVerificationService = emailVerificationService;
     }
 
     // 회원가입
@@ -51,6 +54,13 @@ public class MemberController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "비밀번호가 일치하지 않습니다.", null));
         }
+        
+        // 이메일 인증 확인
+        if (!emailVerificationService.isEmailVerified(request.getEmail())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이메일 인증이 필요합니다.", null));
+        }
+        
         // 회원 생성
         Member member = new Member();
         member.setEmail(request.getEmail());

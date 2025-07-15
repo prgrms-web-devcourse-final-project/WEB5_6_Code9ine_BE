@@ -7,13 +7,17 @@ import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.community_post.domain.CommunityPost;
 import com.grepp.spring.app.model.notification.domain.Notification;
 import com.grepp.spring.app.model.place_bookmark.domain.PlaceBookmark;
+import com.grepp.spring.app.model.achieved_title.domain.AchievedTitle;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -81,6 +85,10 @@ public class Member {
 
     @Column
     private String goalStuff;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "equipped_title_id")
+    private AchievedTitle equippedTitle; // 장착(대표) 칭호
 
     @OneToMany(mappedBy = "member")
     private Set<CommunityPost> posts = new HashSet<>();

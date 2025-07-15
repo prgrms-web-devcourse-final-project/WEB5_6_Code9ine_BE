@@ -58,9 +58,9 @@ public class BudgetMockController {
         );
 
         List<BudgetCategorySummary> categorySummary = List.of(
-            new BudgetCategorySummary("식비", "🍔", BigDecimal.valueOf(530000)),
-            new BudgetCategorySummary("교통", "🚌", BigDecimal.valueOf(120000)),
-            new BudgetCategorySummary("문화생활", "🎬", BigDecimal.valueOf(180000))
+            new BudgetCategorySummary("식비", BigDecimal.valueOf(530000)),
+            new BudgetCategorySummary("교통", BigDecimal.valueOf(120000)),
+            new BudgetCategorySummary("문화생활", BigDecimal.valueOf(180000))
         );
 
         BudgetAnalyzeResponseDto response = new BudgetAnalyzeResponseDto(

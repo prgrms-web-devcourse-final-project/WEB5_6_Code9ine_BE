@@ -17,7 +17,6 @@ public class BudgetDetailDto {
     private Long id;
     private String category;
     private String type;
-    private String categoryIcon;
     private String content;
     private LocalDate date;
     private BigDecimal price;
@@ -28,7 +27,6 @@ public class BudgetDetailDto {
             detail.getBudgetDetailId(),
             detail.getCategory(),
             detail.getType(),
-            getIconForCategory(detail.getCategory()),
             detail.getContent(),
             detail.getDate(),
             detail.getPrice(),
@@ -36,12 +34,4 @@ public class BudgetDetailDto {
         );
     }
 
-    private static String getIconForCategory(String category) {
-        return switch (category) {
-            case "식비" -> "🍱";
-            case "카페" -> "☕";
-            case "교통" -> "🚇";
-            default -> "💸";
-        };
-    }
 }

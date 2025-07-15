@@ -13,6 +13,5 @@ import lombok.Setter;
 public class BudgetCategorySummary {
 
     private String category;
-    private String categoryIcon;
     private BigDecimal totalAmount;
 }

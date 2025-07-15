@@ -1,5 +1,7 @@
 package com.grepp.spring.app.model.budget_detail.model;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,13 +11,13 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdatedExpenseResponseDto {
+public class UpdatedBudgetDetailResponseDto {
 
     private Long id;
     private String type;
-    private String date;
+    private LocalDate date;
     private String category;
-    private int amount;
+    private BigDecimal price;
     private String content;
     private String repeatCycle;
 

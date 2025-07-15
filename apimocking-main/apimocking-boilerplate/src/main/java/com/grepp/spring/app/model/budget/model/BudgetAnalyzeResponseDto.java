@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.budget.model;
 
+import java.math.BigDecimal;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,13 +14,13 @@ import lombok.Setter;
 public class BudgetAnalyzeResponseDto {
 
     private String yearMonth;
-    private int totalIncome;
-    private int totalExpense;
+    private BigDecimal totalIncome;
+    private BigDecimal totalExpense;
     private BudgetGoal goal;
-    private int currentMonthExpense;
+    private BigDecimal currentMonthExpense;
     private List<BudgetMonthlyExpense> monthlyExpenses;
     private List<BudgetCategorySummary> categorySummary;
-    private int savedComparedToLastMonth;
-    private int totalsavedAmount;
+    private BigDecimal savedComparedToLastMonth;
+    private BigDecimal totalsavedAmount;
 
 }

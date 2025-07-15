@@ -65,6 +65,7 @@ public class BudgetDetailController {
     @DeleteMapping("/detail/{detail_id}")
     public ApiResponse<?> deleteBudgetDetail(@PathVariable("detail_id") Long id) {
 
+        budgetDetailService.deleteBudgetDetail(id);
         return new ApiResponse<>("2000", "내역삭제되었습니다", null);
     }
 

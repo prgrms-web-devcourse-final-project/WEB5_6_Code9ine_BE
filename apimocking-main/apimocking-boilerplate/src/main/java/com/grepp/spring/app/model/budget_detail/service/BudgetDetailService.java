@@ -83,6 +83,7 @@ public class BudgetDetailService {
         LocalDate newDate = LocalDate.parse(dto.getDate());
 
         if (!budgetDetail.getBudget().getDate().equals(newDate)) {
+
             // 2. 기존 Budget에서 지출 제거
             Budget oldBudget = budgetDetail.getBudget();
             oldBudget.getBudgetDetails().remove(budgetDetail);
@@ -120,7 +121,21 @@ public class BudgetDetailService {
         return updatedExpenseResponseDto;
     }
 
+    @Transactional
+    public void deleteBudgetDetail(Long detailId) {
+        BudgetDetail detail = budgetDetailRepository.findById(detailId)
+            .orElseThrow(() -> new RuntimeException("해당 지출 내역이 존재하지 않습니다."));
 
+        Budget budget = detail.getBudget();
+
+        budgetDetailRepository.delete(detail);
+
+        boolean hasOtherDetails = budgetDetailRepository.existsByBudget(budget);
+
+        if (!hasOtherDetails) {
+            budgetRepository.delete(budget);
+        }
+    }
 
 
 }

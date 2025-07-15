@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.achieved_title.domain;
 
 import com.grepp.spring.app.model.challenge.domain.Challenge;
+import com.grepp.spring.app.model.member.domain.Member;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -46,5 +47,9 @@ public class AchievedTitle {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "challengeId", nullable = false)
     private Challenge challenge;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member; // 칭호를 달성한 회원
 
 }

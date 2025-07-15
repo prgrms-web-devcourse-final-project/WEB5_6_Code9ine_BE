@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,7 +35,7 @@ public class BudgetDetail {
     private String content;
 
     @Column(nullable = false, precision = 20, scale = 0)
-    private int price;
+    private BigDecimal price;
 
     @Column(nullable = false)
     private String category;

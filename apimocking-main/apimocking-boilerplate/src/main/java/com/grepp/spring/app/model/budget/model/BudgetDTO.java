@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.budget.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.google.type.Decimal;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
@@ -24,17 +25,17 @@ public class BudgetDTO {
     @Digits(integer = 20, fraction = 1)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @Schema(type = "string", example = "27.8")
-    private int totalIncome;
+    private BigDecimal totalIncome;
 
     @Digits(integer = 20, fraction = 1)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @Schema(type = "string", example = "44.8")
-    private int totalExpense;
+    private BigDecimal totalExpense;
 
     @Digits(integer = 20, fraction = 1)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @Schema(type = "string", example = "67.8")
-    private int targetExpense;
+    private BigDecimal targetExpense;
 
     @NotNull
     private Long member;

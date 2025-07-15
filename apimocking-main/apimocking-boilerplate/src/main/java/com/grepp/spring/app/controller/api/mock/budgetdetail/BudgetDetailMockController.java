@@ -7,6 +7,7 @@ import com.grepp.spring.app.model.budget_detail.model.BudgetTotalDetailResponseD
 import com.grepp.spring.app.model.budget_detail.model.UpdatedBudgetDetailResponseDto;
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.context.annotation.Profile;
@@ -30,13 +31,13 @@ public class BudgetDetailMockController {
     public ApiResponse<BudgetTotalDetailResponseDto> getBudgettotaldetails() {
         // 더미 데이터 생성
         List<BudgetDetailDto> details = List.of(
-            new BudgetDetailDto(101L, "식비", "지출", "🍔", "햄버거", LocalDate.parse("2025-07-03"), 8700, "NONE"),
-            new BudgetDetailDto(102L, "교통", "지출", "🚌", "버스", LocalDate.parse("2025-07-02"), 1250, "NONE"),
-            new BudgetDetailDto(103L, "여가", "지출", "🚌", "운동", LocalDate.parse("2025-07-02"), 15000, "NONE")
+            new BudgetDetailDto(101L, "식비", "지출", "🍔", "햄버거", LocalDate.parse("2025-07-03"), BigDecimal.valueOf(8700), "NONE"),
+            new BudgetDetailDto(102L, "교통", "지출", "🚌", "버스", LocalDate.parse("2025-07-02"), BigDecimal.valueOf(1250), "NONE"),
+            new BudgetDetailDto(103L, "여가", "지출", "🚌", "운동", LocalDate.parse("2025-07-02"), BigDecimal.valueOf(15000), "NONE")
         );
 
         BudgetTotalDetailResponseDto budgetDetailResponseDto = new BudgetTotalDetailResponseDto(
-            "2025-07", 1200000, 870000, 330000, details
+            "2025-07", BigDecimal.valueOf(1200000), BigDecimal.valueOf(870000), BigDecimal.valueOf(330000), details
         );
 
         return new ApiResponse<>("2000", "총내역 조회되었습니다", budgetDetailResponseDto);
@@ -47,9 +48,9 @@ public class BudgetDetailMockController {
     public ApiResponse<BudgetDetailResponseDto> getExpenses(@RequestParam("date") String date) {
 
         List<BudgetDetailDto> details = List.of(
-            new BudgetDetailDto(12L,"식비","지출", "🍱", "점심 도시락", LocalDate.parse(date), 8000,"NONE"),
-            new BudgetDetailDto(13L,"카페","지출", "☕", "아메리카노", LocalDate.parse(date), 4500,"NONE"),
-            new BudgetDetailDto(14L, "교통","지출" ,"🚇", "지하철", LocalDate.parse(date), 3300,"NONE")
+            new BudgetDetailDto(12L,"식비","지출", "🍱", "점심 도시락", LocalDate.parse(date), BigDecimal.valueOf(8000),"NONE"),
+            new BudgetDetailDto(13L,"카페","지출", "☕", "아메리카노", LocalDate.parse(date), BigDecimal.valueOf(4500),"NONE"),
+            new BudgetDetailDto(14L, "교통","지출" ,"🚇", "지하철", LocalDate.parse(date), BigDecimal.valueOf(3300),"NONE")
         );
 
         BudgetDetailResponseDto response = new BudgetDetailResponseDto(details);

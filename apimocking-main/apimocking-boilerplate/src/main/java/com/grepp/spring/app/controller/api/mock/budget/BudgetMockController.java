@@ -8,6 +8,7 @@ import com.grepp.spring.app.model.budget.model.BudgetGoal;
 import com.grepp.spring.app.model.budget.model.BudgetMonthlyExpense;
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,15 +25,15 @@ public class BudgetMockController {
     @GetMapping("/calendar")
     public ApiResponse<BudgetCalenderResponseDto> getMonthlySummary(@RequestParam("yearmonth") String yearmonth) {
         List<BudgetDaySummary> days = List.of(
-            new BudgetDaySummary(yearmonth+"-01", 50000, 32000, 18000),
-            new BudgetDaySummary(yearmonth+"-02", 0, 28000, -28000),
-            new BudgetDaySummary(yearmonth+"-03", 10000, 10000, 0)
+            new BudgetDaySummary(yearmonth+"-01", BigDecimal.valueOf(50000), BigDecimal.valueOf(32000), BigDecimal.valueOf(18000)),
+            new BudgetDaySummary(yearmonth+"-02", BigDecimal.valueOf(0), BigDecimal.valueOf(28000), BigDecimal.valueOf(-28000)),
+            new BudgetDaySummary(yearmonth+"-03", BigDecimal.valueOf(10000), BigDecimal.valueOf(10000), BigDecimal.valueOf(0))
         );
 
         BudgetCalenderResponseDto response = new BudgetCalenderResponseDto(
             yearmonth,
-            1250000,
-            870000,
+            BigDecimal.valueOf(1250000),
+            BigDecimal.valueOf(870000),
             days
         );
 
@@ -44,34 +45,34 @@ public class BudgetMockController {
     public ApiResponse<BudgetAnalyzeResponseDto>  getDashboard() {
 
         BudgetGoal goal = new BudgetGoal(
-            "아이패드 에어", "https://example.com/ipad.png", 890000
+            "아이패드 에어", "https://example.com/ipad.png", BigDecimal.valueOf(890000)
         );
 
         List<BudgetMonthlyExpense> monthlyExpenses = List.of(
-            new BudgetMonthlyExpense("2025-02", 1410000),
-            new BudgetMonthlyExpense("2025-03", 1340000),
-            new BudgetMonthlyExpense("2025-04", 1680000),
-            new BudgetMonthlyExpense("2025-05", 1220000),
-            new BudgetMonthlyExpense("2025-06", 1470000),
-            new BudgetMonthlyExpense("2025-07", 1250000)
+            new BudgetMonthlyExpense("2025-02", BigDecimal.valueOf(1410000)),
+            new BudgetMonthlyExpense("2025-03", BigDecimal.valueOf(1340000)),
+            new BudgetMonthlyExpense("2025-04", BigDecimal.valueOf(1680000)),
+            new BudgetMonthlyExpense("2025-05", BigDecimal.valueOf(1220000)),
+            new BudgetMonthlyExpense("2025-06", BigDecimal.valueOf(1470000)),
+            new BudgetMonthlyExpense("2025-07", BigDecimal.valueOf(1250000))
         );
 
         List<BudgetCategorySummary> categorySummary = List.of(
-            new BudgetCategorySummary("식비", "🍔", 530000),
-            new BudgetCategorySummary("교통", "🚌", 120000),
-            new BudgetCategorySummary("문화생활", "🎬", 180000)
+            new BudgetCategorySummary("식비", "🍔", BigDecimal.valueOf(530000)),
+            new BudgetCategorySummary("교통", "🚌", BigDecimal.valueOf(120000)),
+            new BudgetCategorySummary("문화생활", "🎬", BigDecimal.valueOf(180000))
         );
 
         BudgetAnalyzeResponseDto response = new BudgetAnalyzeResponseDto(
             "2025-07",
-            2000000,
-            1250000,
+            BigDecimal.valueOf(2000000),
+            BigDecimal.valueOf(1250000),
             goal,
-            1250000,
+            BigDecimal.valueOf(1250000),
             monthlyExpenses,
             categorySummary,
-            220000,
-            1500000
+            BigDecimal.valueOf(220000),
+            BigDecimal.valueOf(1500000)
         );
 
         return ApiResponse.success(response);

@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.budget_detail.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,7 +19,7 @@ public class BudgetDetailRequestDTO {
     private String category;
 
     @Schema(description = "금액", example = "2000")
-    private int price;
+    private BigDecimal price;
 
     @Schema(description = "내용", example = "라면")
     private String content;

@@ -11,13 +11,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.SequenceGenerator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,13 +32,13 @@ public class Budget {
     private LocalDate date;
 
     @Column(precision = 20, scale = 0)
-    private int totalIncome;
+    private BigDecimal totalIncome;
 
     @Column(precision = 20, scale = 0)
-    private int totalExpense;
+    private BigDecimal totalExpense;
 
     @Column(precision = 20, scale = 0)
-    private int targetExpense;
+    private BigDecimal targetExpense;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)

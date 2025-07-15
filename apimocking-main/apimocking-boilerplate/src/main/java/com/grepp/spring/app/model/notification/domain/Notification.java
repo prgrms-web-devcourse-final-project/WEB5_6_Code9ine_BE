@@ -41,6 +41,12 @@ public class Notification {
     @Column(nullable = false)
     private Boolean isRead;
 
+    @Column(nullable = false)
+    private int senderId; // 보낸이
+
+    @Column(length = 255)
+    private String type; // 알림타입
+
     @Column
     private LocalDateTime createdAt;
 

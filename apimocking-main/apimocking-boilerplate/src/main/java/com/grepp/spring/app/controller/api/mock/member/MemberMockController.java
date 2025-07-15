@@ -155,8 +155,12 @@ public class MemberMockController {
     public ResponseEntity<ApiResponse<MemberMypageResponse>> getMypage() {
         // 마이페이지 조회 Mock 응답
         MemberMypageRequest.MyPostDto post = new MemberMypageRequest.MyPostDto(1L, "첫 번째 글");
+        MemberMypageResponse.BookmarkedPostDto bookmarkedPost = new MemberMypageResponse.BookmarkedPostDto(2L, "나만의 가성비 장소");
+        MemberMypageResponse.BookmarkedPlaceDto bookmarkedPlace = new MemberMypageResponse.BookmarkedPlaceDto(1L, "착한식당");
         MemberMypageResponse.Data data = new MemberMypageResponse.Data(
-                "test@test.com", "테스트유저", "https://image.url", 1000000, 5, 1200, 2000, 60, List.of(post)
+                1, "test@test.com", "테스트유저", "https://image.url", 5, 1200, 2000, 60, List.of(post),
+                "자동차", new java.math.BigDecimal("10000"),
+                List.of(bookmarkedPost), List.of(bookmarkedPlace)
         );
         MemberMypageResponse response = new MemberMypageResponse(2000, "마이페이지 조회 성공", data);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -166,8 +170,10 @@ public class MemberMockController {
     public ResponseEntity<ApiResponse<MemberMypageResponse>> updateMypage(@RequestBody MemberMypageRequest request) {
         // 마이페이지 수정 Mock 응답
         MemberMypageResponse.Data data = new MemberMypageResponse.Data(
-                "test@test.com", request.getName(), request.getProfileImage(), request.getGoalAmount(),
-                request.getLevel(), request.getCurrentExp(), request.getNextLevelExp(), request.getExpProgress(), request.getMyPosts()
+                1,"test@test.com", request.getName(), request.getProfileImage(),
+                request.getLevel(), request.getCurrentExp(), request.getNextLevelExp(), request.getExpProgress(), request.getMyPosts(),
+                request.getGoalStuff(), request.getRemainPrice(),
+                request.getBookmarkedPosts(), request.getBookmarkedPlaces()
         );
         MemberMypageResponse response = new MemberMypageResponse(2000, "마이페이지 수정 성공", data);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -362,12 +368,15 @@ public class MemberMockController {
     public static class MemberMypageRequest {
         private String name;
         private String profileImage;
-        private int goalAmount;
         private int level;
         private int currentExp;
         private int nextLevelExp;
         private int expProgress;
         private List<MyPostDto> myPosts;
+        private String goalStuff; // ex) "자동차"
+        private java.math.BigDecimal remainPrice; // ex) 10000
+        private List<MemberMypageResponse.BookmarkedPostDto> bookmarkedPosts;
+        private List<MemberMypageResponse.BookmarkedPlaceDto> bookmarkedPlaces;
         
         @Getter
         @Setter
@@ -376,6 +385,22 @@ public class MemberMockController {
         public static class MyPostDto {
             private Long postId;
             private String title;
+        }
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class BookmarkedPostDto {
+            private Long postId;
+            private String title;
+        }
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class BookmarkedPlaceDto {
+            private Long placeId;
+            private String name;
         }
     }
 
@@ -393,15 +418,35 @@ public class MemberMockController {
         @NoArgsConstructor
         @AllArgsConstructor
         public static class Data {
+            private int userId;
             private String email;
             private String name;
             private String profileImage;
-            private int goalAmount;
             private int level;
             private int currentExp;
             private int nextLevelExp;
             private int expProgress;
             private List<MemberMypageRequest.MyPostDto> myPosts;
+            private String goalStuff; // ex) "자동차"
+            private java.math.BigDecimal remainPrice; // ex) 10000
+            private List<BookmarkedPostDto> bookmarkedPosts;
+            private List<BookmarkedPlaceDto> bookmarkedPlaces;
+        }
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class BookmarkedPostDto {
+            private Long postId;
+            private String title;
+        }
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class BookmarkedPlaceDto {
+            private Long placeId;
+            private String name;
         }
     }
 

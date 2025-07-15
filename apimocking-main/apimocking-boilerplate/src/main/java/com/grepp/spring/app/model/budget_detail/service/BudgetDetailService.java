@@ -105,12 +105,7 @@ public class BudgetDetailService {
                 budgetRepository.delete(oldBudget);
             }
         }
-        budgetDetail.setType(dto.getType());
-        budgetDetail.setDate(LocalDate.parse(dto.getDate()));
-        budgetDetail.setCategory(dto.getCategory());
-        budgetDetail.setPrice(dto.getPrice());
-        budgetDetail.setContent(dto.getContent());
-        budgetDetail.setRepeatCycle(dto.getRepeatCycle());
+        budgetDetail.updateFromDto(dto);
 
         UpdatedBudgetDetailResponseDto updatedExpenseResponseDto = new UpdatedBudgetDetailResponseDto(
             detailId,
@@ -125,7 +120,7 @@ public class BudgetDetailService {
         return updatedExpenseResponseDto;
     }
 
-    // 카테고리에 따른 아이콘 매핑 예시
+
 
 
 }

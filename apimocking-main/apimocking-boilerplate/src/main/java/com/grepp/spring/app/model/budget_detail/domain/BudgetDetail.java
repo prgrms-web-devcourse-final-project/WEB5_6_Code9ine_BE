@@ -1,18 +1,15 @@
 package com.grepp.spring.app.model.budget_detail.domain;
 
 import com.grepp.spring.app.model.budget.domain.Budget;
+import com.grepp.spring.app.model.budget_detail.model.BudgetDetailRequestDTO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.SequenceGenerator;
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -54,6 +51,13 @@ public class BudgetDetail {
     @JoinColumn(name = "budgetId", nullable = false)
     private Budget budget;
 
-
+    public void updateFromDto(BudgetDetailRequestDTO dto) {
+        this.type = dto.getType();
+        this.date = LocalDate.parse(dto.getDate());
+        this.category = dto.getCategory();
+        this.price = dto.getPrice();
+        this.content = dto.getContent();
+        this.repeatCycle = dto.getRepeatCycle();
+    }
 
 }

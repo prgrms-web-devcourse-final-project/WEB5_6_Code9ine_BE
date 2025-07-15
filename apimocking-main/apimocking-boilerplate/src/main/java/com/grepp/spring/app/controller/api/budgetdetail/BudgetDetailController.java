@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/budget")
 public class BudgetDetailController {
 
-    private final BudgetDetailService budgetDetailServiceNew;
+    private final BudgetDetailService budgetDetailService;
 
 
 //    @Operation(summary = "총 내역 조회")
@@ -40,7 +40,7 @@ public class BudgetDetailController {
     @GetMapping("/detail")
     public ApiResponse<BudgetDetailResponseDto> getBudgetDetail(@AuthenticationPrincipal UserDetails userDetails, @RequestParam("date") String date) {
 
-        BudgetDetailResponseDto response = budgetDetailServiceNew.findBudgetDetailByDate(userDetails.getUsername(),date);
+        BudgetDetailResponseDto response = budgetDetailService.findBudgetDetailByDate(userDetails.getUsername(),date);
         return ApiResponse.success(response);
     }
 
@@ -49,7 +49,7 @@ public class BudgetDetailController {
     @PostMapping("/detail")
     public ApiResponse<?> addBudgetDetail(@AuthenticationPrincipal UserDetails userDetails, @RequestBody BudgetDetailRequestDTO dto) {
 
-        budgetDetailServiceNew.registerBudgetDetail(userDetails.getUsername(),dto);
+        budgetDetailService.registerBudgetDetail(userDetails.getUsername(),dto);
         return new ApiResponse<>("2000", "지출추가되었습니다", null);
     }
 
@@ -57,7 +57,7 @@ public class BudgetDetailController {
     @PatchMapping("/detail/{detail_id}")
     public ApiResponse<?> updateBudgetDetail(@PathVariable("detail_id") Long id, @RequestBody BudgetDetailRequestDTO dto) {
 
-        UpdatedBudgetDetailResponseDto updatedExpenseResponseDto = budgetDetailServiceNew.updateBudgetDetail(id, dto);
+        UpdatedBudgetDetailResponseDto updatedExpenseResponseDto = budgetDetailService.updateBudgetDetail(id, dto);
         return new ApiResponse<>("2000", "지출이 수정되었습니다.", updatedExpenseResponseDto);
     }
 

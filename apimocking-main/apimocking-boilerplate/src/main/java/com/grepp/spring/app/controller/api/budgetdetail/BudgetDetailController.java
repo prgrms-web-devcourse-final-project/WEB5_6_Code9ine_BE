@@ -50,7 +50,7 @@ public class BudgetDetailController {
     public ApiResponse<?> addBudgetDetail(@AuthenticationPrincipal UserDetails userDetails, @RequestBody BudgetDetailRequestDTO dto) {
 
         budgetDetailService.registerBudgetDetail(userDetails.getUsername(),dto);
-        return new ApiResponse<>("2000", "지출추가되었습니다", null);
+        return new ApiResponse<>("2000", "내역추가되었습니다", null);
     }
 
     @Operation(summary = "날짜별 내역 수정")
@@ -58,7 +58,7 @@ public class BudgetDetailController {
     public ApiResponse<?> updateBudgetDetail(@PathVariable("detail_id") Long id, @RequestBody BudgetDetailRequestDTO dto) {
 
         UpdatedBudgetDetailResponseDto updatedExpenseResponseDto = budgetDetailService.updateBudgetDetail(id, dto);
-        return new ApiResponse<>("2000", "지출이 수정되었습니다.", updatedExpenseResponseDto);
+        return new ApiResponse<>("2000", "내역이 수정되었습니다.", updatedExpenseResponseDto);
     }
 
     @Operation(summary = "날짜별 내역 삭제")

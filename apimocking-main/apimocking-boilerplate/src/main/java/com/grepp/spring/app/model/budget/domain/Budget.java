@@ -27,7 +27,7 @@ import lombok.Setter;
 @Setter
 public class Budget {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, updatable = false)
     private Long budgetId;
 

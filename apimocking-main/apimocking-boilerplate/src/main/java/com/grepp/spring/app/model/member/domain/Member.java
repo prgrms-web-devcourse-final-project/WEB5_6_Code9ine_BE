@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.member.domain;
 
+import com.google.type.Decimal;
 import com.grepp.spring.app.model.attendance.domain.Attendance;
 import com.grepp.spring.app.model.budget.domain.Budget;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
@@ -74,6 +75,12 @@ public class Member {
 
     @Column
     private Integer totalExp;
+
+    @Column
+    private Decimal goalAmount;
+
+    @Column
+    private String goalStuff;
 
     @OneToMany(mappedBy = "member")
     private Set<CommunityPost> posts = new HashSet<>();

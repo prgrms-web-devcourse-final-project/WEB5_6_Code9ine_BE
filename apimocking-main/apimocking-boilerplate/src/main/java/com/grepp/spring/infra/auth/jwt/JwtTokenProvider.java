@@ -84,7 +84,9 @@ public class JwtTokenProvider {
         Collection<? extends GrantedAuthority> authorities =
             userDetailsService.findUserAuthorities(claims.getSubject());
         
-        Principal principal = new Principal(claims.getSubject(), "", authorities);
+        // UserDetailsServiceImpl에서 memberId를 가져와서 Principal 생성
+        Long memberId = userDetailsService.findMemberIdByEmail(claims.getSubject());
+        Principal principal = new Principal(claims.getSubject(), "", authorities, memberId);
         principal.setAccessToken(accessToken);
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }

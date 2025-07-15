@@ -36,4 +36,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         authorities.add(new SimpleGrantedAuthority(member.getRole()));
         return authorities;
     }
+    
+    public Long findMemberIdByEmail(String email) {
+        Member member = memberRepository.findByEmail(email)
+                            .orElseThrow(() -> new UsernameNotFoundException(email));
+        return member.getMemberId();
+    }
 }

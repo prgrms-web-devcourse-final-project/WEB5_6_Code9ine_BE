@@ -49,8 +49,11 @@ public class Library {
     @Column
     private LocalDateTime createdAt;
 
-    @Column
+    @Column(name = "modified_At")
     private LocalDateTime modifiedAt;
+
+    @Column
+    private String contact;
 
     @OneToMany(mappedBy = "library")
     private Set<PlaceBookmark> placeBookmarks = new HashSet<>();

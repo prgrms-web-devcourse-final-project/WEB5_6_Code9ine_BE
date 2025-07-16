@@ -58,4 +58,27 @@ public class EmailService {
             throw new RuntimeException("이메일 발송에 실패했습니다.", e);
         }
     }
+    
+    public void sendTempPasswordEmail(String to, String tempPassword) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject("[가계부 앱] 임시 비밀번호 발급");
+            message.setText(String.format(
+                "안녕하세요!\n\n" +
+                "요청하신 임시 비밀번호가 발급되었습니다.\n\n" +
+                "임시 비밀번호: %s\n\n" +
+                "보안을 위해 로그인 후 반드시 비밀번호를 변경해주세요.\n" +
+                "본인이 요청하지 않은 경우 즉시 비밀번호를 변경하시기 바랍니다.\n\n" +
+                "감사합니다.",
+                tempPassword
+            ));
+            
+            mailSender.send(message);
+            log.info("임시 비밀번호 이메일 발송 완료: {}", to);
+        } catch (Exception e) {
+            log.error("임시 비밀번호 이메일 발송 실패: {}", to, e);
+            throw new RuntimeException("이메일 발송에 실패했습니다.", e);
+        }
+    }
 } 

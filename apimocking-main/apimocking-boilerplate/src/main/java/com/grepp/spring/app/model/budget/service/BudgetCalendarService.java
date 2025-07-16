@@ -5,8 +5,8 @@ import com.grepp.spring.app.model.budget.model.BudgetDaySummary;
 import com.grepp.spring.app.model.budget_detail.repos.BudgetDetailRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +26,7 @@ public class BudgetCalendarService {
         LocalDate today = LocalDate.now();
 
         Map<String, BigDecimal> totals = getMonthlySummaryUpToToday(memberId);
-        List<BudgetDaySummary> days = getDailySummaries(memberId);
+        List<BudgetDaySummary> days = getDailySummaries(memberId,yearmonth);
 
         return BudgetCalendarResponseDto.builder()
             .month(today.format(DateTimeFormatter.ofPattern("yyyy-MM")))
@@ -64,11 +64,11 @@ public class BudgetCalendarService {
         );
     }
 
-    public List<BudgetDaySummary> getDailySummaries(Long memberId)
+    public List<BudgetDaySummary> getDailySummaries(Long memberId,String yearmonth)
     {
-        LocalDate today = LocalDate.now();
-        LocalDate start = today.withDayOfMonth(1);
-        LocalDate end= today.withDayOfMonth(today.lengthOfMonth());
+        YearMonth ym = YearMonth.parse(yearmonth); // "2025-07"
+        LocalDate start = ym.atDay(1);
+        LocalDate end= start.withDayOfMonth(start.lengthOfMonth());
         List<Object[]> rows = budgetDetailRepository.findDailySummary(memberId, start, end);
 
         // 날짜별로 합계 저장

@@ -18,6 +18,12 @@ import com.grepp.spring.app.model.auth.AuthService;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
 import com.grepp.spring.app.model.auth.service.EmailVerificationService;
 import com.grepp.spring.app.model.auth.service.EmailService;
+import com.grepp.spring.app.model.auth.token.UserBlackListRepository;
+import com.grepp.spring.app.model.auth.token.RefreshTokenService;
+import com.grepp.spring.app.model.auth.token.entity.UserBlackList;
+import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
+import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
+import com.grepp.spring.app.model.auth.code.AuthToken;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseCookie;
@@ -29,7 +35,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/members")
 public class MemberController {
     private final MemberService memberService;
     private final MemberRepository memberRepository;
@@ -37,14 +43,20 @@ public class MemberController {
     private final AuthService authService;
     private final EmailVerificationService emailVerificationService;
     private final EmailService emailService;
+    private final UserBlackListRepository userBlackListRepository;
+    private final RefreshTokenService refreshTokenService;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService) {
+    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider) {
         this.memberService = memberService;
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
         this.emailVerificationService = emailVerificationService;
         this.emailService = emailService;
+        this.userBlackListRepository = userBlackListRepository;
+        this.refreshTokenService = refreshTokenService;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     // 회원가입
@@ -226,6 +238,35 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // 로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<LogoutResponse>> logout(HttpServletResponse response) {
+        // JWT에서 현재 사용자 이메일 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 사용자를 블랙리스트에 추가
+        userBlackListRepository.save(new UserBlackList(currentEmail));
+        
+        // SecurityContext 클리어
+        SecurityContextHolder.clearContext();
+        
+        // 쿠키 만료 처리
+        ResponseCookie expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
+        ResponseCookie expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
+        
+        response.addHeader("Set-Cookie", expiredAccessToken.toString());
+        response.addHeader("Set-Cookie", expiredRefreshToken.toString());
+        
+        LogoutResponse logoutResponse = new LogoutResponse();
+        return ResponseEntity.ok(ApiResponse.success(logoutResponse));
+    }
+
     // ===== 유틸리티 메서드 =====
     
     // 이메일 마스킹 처리
@@ -380,6 +421,12 @@ public class MemberController {
 
     @Getter @Setter @NoArgsConstructor
     public static class PasswordChangeResponse {
+        // 응답 데이터 없음 (성공 메시지만 반환)
+    }
+
+    // 로그아웃 관련 DTO
+    @Getter @Setter @NoArgsConstructor
+    public static class LogoutResponse {
         // 응답 데이터 없음 (성공 메시지만 반환)
     }
 } 

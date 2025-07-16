@@ -30,4 +30,19 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     ORDER BY m.level DESC
 """)
     List<TopSaversResponse> getTopSavers(Pageable pageable);
+
+    // --- 소셜 로그인 관련 메서드 추가 ---
+    
+    // provider와 providerId로 소셜 계정 조회
+    java.util.Optional<Member> findByProviderAndProviderId(String provider, String providerId);
+    
+    // provider와 providerId로 소셜 계정 존재 여부 확인
+    boolean existsByProviderAndProviderId(String provider, String providerId);
+    
+    // 소셜 이메일로 계정 조회
+    java.util.Optional<Member> findBySocialEmail(String socialEmail);
+    
+    // 소셜 이메일로 계정 존재 여부 확인
+    boolean existsBySocialEmail(String socialEmail);
+    // ---------------------------------
 }

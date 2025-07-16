@@ -50,4 +50,10 @@ public class MemberDTO {
 
     private Integer totalExp;
 
+    // --- 소셜 로그인 관련 필드 추가 ---
+    private String provider;
+    private String providerId;
+    private String socialEmail;
+    // ---------------------------------
+
 }

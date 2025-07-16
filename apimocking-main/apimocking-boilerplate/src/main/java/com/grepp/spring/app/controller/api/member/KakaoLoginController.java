@@ -33,11 +33,11 @@ public class KakaoLoginController {
     // 카카오 로그인 요청
     @PostMapping("/login/kakao")
     public ResponseEntity<ApiResponse<Map<String, Object>>> kakaoLogin(
-            @RequestBody Map<String, String> request,
+            @RequestBody KakaoLoginRequest request,
             HttpServletResponse response) {
         
         try {
-            String authorizationCode = request.get("code");
+            String authorizationCode = request.getCode();
             if (authorizationCode == null || authorizationCode.isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(ApiResponse.error(ResponseCode.BAD_REQUEST));
@@ -99,6 +99,19 @@ public class KakaoLoginController {
             log.error("카카오 로그인 처리 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    // 카카오 로그인 요청 DTO
+    public static class KakaoLoginRequest {
+        private String code;
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
         }
     }
 } 

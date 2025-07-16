@@ -217,4 +217,9 @@ public class MemberService {
         return null;
     }
 
+    // id 조회 후 member 객체 반환, 없으면 예외 처리
+    public Member getMemberById(Long memberId) {
+        return memberRepository.findById(memberId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+    }
 }

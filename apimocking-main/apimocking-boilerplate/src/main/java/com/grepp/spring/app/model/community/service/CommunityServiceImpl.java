@@ -2,24 +2,24 @@ package com.grepp.spring.app.model.community.service;
 
 import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
+import com.grepp.spring.app.model.community.domain.CommunityPost;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
+import com.grepp.spring.app.model.community.dto.CommunityUserInfoResponse;
 import com.grepp.spring.app.model.community.repos.CommunityBookmarkRepository;
 import com.grepp.spring.app.model.community.repos.CommunityCommentRepository;
 import com.grepp.spring.app.model.community.repos.CommunityLikeRepository;
 import com.grepp.spring.app.model.community.repos.CommunityRepository;
-import com.grepp.spring.app.model.community.domain.CommunityPost;
 import com.grepp.spring.app.model.member.domain.Member;
+import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.app.model.post_image.domain.PostImage;
 import com.grepp.spring.app.model.post_image.repos.PostImageRepository;
 import com.grepp.spring.infra.payload.PageParam;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale.Category;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,12 +29,29 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class CommunityServiceImpl implements CommunityService {
 
+    private final MemberService memberService;
     private final CommunityRepository communityRepository;
     private final CommunityCommentRepository commentRepository;
     private final CommunityLikeRepository likeRepository;
     private final CommunityBookmarkRepository bookmarkRepository;
     private final PostImageRepository postImageRepository;
 
+    // 커뮤니티 로그인 유저 정보
+    @Override
+    public CommunityUserInfoResponse getMyInfo(Long memberId) {
+        Member member = memberService.getMemberById(memberId);
+
+        return new CommunityUserInfoResponse(
+            member.getMemberId(),
+            member.getNickname(),
+            member.getProfileImage(),
+            member.getEquippedTitle().getName(),
+            // TODO : member 엔티티 수정되면 다시 수정해야함
+            member.getLevel() != null ? member.getLevel() : 0
+        );
+    }
+
+    // 커뮤니티 게시글 생성
     @Override
     public void createPost(CommunityPostCreateRequest request, Member member) {
         CommunityPost post = CommunityPost.builder()
@@ -61,6 +78,7 @@ public class CommunityServiceImpl implements CommunityService {
         }
     }
 
+    // 커뮤니티 게시글 카테고리별 조회
     @Override
     public List<CommunityPostDetailResponse> getPostsByCategory(String category, PageParam pageParam, Long memberId) {
         CommunityCategory categoryEnum = CommunityCategory.valueOf(category);

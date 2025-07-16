@@ -4,9 +4,10 @@ import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
+import com.grepp.spring.app.model.community.dto.CommunityUserInfoResponse;
 import com.grepp.spring.app.model.community.service.CommunityService;
 import com.grepp.spring.app.model.member.domain.Member;
-import com.grepp.spring.app.model.member.repos.MemberRepository;
+import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
@@ -38,15 +39,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class CommunityController {
 
     private final CommunityService communityService;
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
-//    @GetMapping("/me")
-//    @Operation(summary = "커뮤니티 로그인 유저 정보 조회")
-//    public ResponseEntity<ApiResponse<CommunityUserInfoResponse>> getMyInfo() {
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(myInfo));
-//    }
+    @GetMapping("/me")
+    @Operation(summary = "커뮤니티 로그인 유저 정보 조회")
+    public ResponseEntity<ApiResponse<CommunityUserInfoResponse>> getMyInfo(
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        CommunityUserInfoResponse response = communityService.getMyInfo(memberId);
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(response));
+    }
 
     @GetMapping("/posts")
     @Operation(summary = "커뮤니티 게시글 카테고리별 조회", description = "카테고리 : MY_STORE, CHALLENGE, FREE")
@@ -80,9 +86,7 @@ public class CommunityController {
         Long memberId = principal.getMemberId();
         log.info("게시물 생성 - member ID : {}", memberId);
 
-        // TODO 추후 member 서비스가 구현되면 수정
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        Member member = memberService.getMemberById(memberId);
 
         communityService.createPost(request, member);
         log.info("게시물 생성 - request : {}", request);

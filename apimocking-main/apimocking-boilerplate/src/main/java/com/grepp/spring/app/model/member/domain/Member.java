@@ -47,7 +47,7 @@ public class Member {
     @Column(nullable = false, unique = true, length = 50)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = true) // 소셜 로그인 사용자를 위해 nullable = true로 변경
     private String password;
 
     @Column(nullable = false, length = 50)
@@ -107,5 +107,16 @@ public class Member {
 
     @OneToMany(mappedBy = "member")
     private Set<PlaceBookmark> placeBookmarks = new HashSet<>();
+
+    // --- 소셜 로그인 관련 필드 추가 ---
+    @Column(nullable = false)
+    private String provider = "local"; // "kakao", "google", "local" 등, 기본값은 'local'
+
+    @Column
+    private String providerId; // 소셜 서비스에서 제공하는 고유 ID
+
+    @Column
+    private String socialEmail; // 소셜 계정의 이메일 (기존 email과 다를 수 있음)
+    // ---------------------------------
 
 }

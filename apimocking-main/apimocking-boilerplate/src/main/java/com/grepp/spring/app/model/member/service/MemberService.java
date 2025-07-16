@@ -6,8 +6,6 @@ import com.grepp.spring.app.model.budget.domain.Budget;
 import com.grepp.spring.app.model.budget.repos.BudgetRepository;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
-import com.grepp.spring.app.model.community_post.domain.CommunityPost;
-import com.grepp.spring.app.model.community_post.repos.CommunityPostRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.model.MemberDTO;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
@@ -26,7 +24,6 @@ import org.springframework.stereotype.Service;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final CommunityPostRepository communityPostRepository;
     private final NotificationRepository notificationRepository;
     private final ChallengeCountRepository challengeCountRepository;
     private final AttendanceRepository attendanceRepository;
@@ -34,14 +31,12 @@ public class MemberService {
     private final PlaceBookmarkRepository placeBookmarkRepository;
 
     public MemberService(final MemberRepository memberRepository,
-            final CommunityPostRepository communityPostRepository,
             final NotificationRepository notificationRepository,
             final ChallengeCountRepository challengeCountRepository,
             final AttendanceRepository attendanceRepository,
             final BudgetRepository budgetRepository,
             final PlaceBookmarkRepository placeBookmarkRepository) {
         this.memberRepository = memberRepository;
-        this.communityPostRepository = communityPostRepository;
         this.notificationRepository = notificationRepository;
         this.challengeCountRepository = challengeCountRepository;
         this.attendanceRepository = attendanceRepository;
@@ -189,12 +184,6 @@ public class MemberService {
         final ReferencedWarning referencedWarning = new ReferencedWarning();
         final Member member = memberRepository.findById(memberId)
                 .orElseThrow(NotFoundException::new);
-        final CommunityPost memberCommunityPost = communityPostRepository.findFirstByMember(member);
-        if (memberCommunityPost != null) {
-            referencedWarning.setKey("member.communityPost.member.referenced");
-            referencedWarning.addParam(memberCommunityPost.getPostId());
-            return referencedWarning;
-        }
         final Notification memberNotification = notificationRepository.findFirstByMember(member);
         if (memberNotification != null) {
             referencedWarning.setKey("member.notification.member.referenced");

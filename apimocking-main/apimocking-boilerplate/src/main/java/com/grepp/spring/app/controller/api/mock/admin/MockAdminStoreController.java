@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,8 +26,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Profile("mock")
 @RequestMapping(value = "/api/admin-stores", produces = MediaType.APPLICATION_JSON_VALUE)
-public class AdminStoreController {
+public class MockAdminStoreController {
 
     List<String> categories = List.of(
         "한식", "중식", "일식", "양식", "미용업", "세탁업", "숙박업"

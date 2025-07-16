@@ -1,6 +1,5 @@
 package com.grepp.spring.app.controller.api.mock.admin;
 
-import com.grepp.spring.app.model.admin.dto.AdminStoreResponse;
 import com.grepp.spring.app.model.admin.dto.AdminUserResponse;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.infra.response.ApiResponse;
@@ -10,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,8 +20,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Profile("mock")
 @RequestMapping(value = "/api/admin-users", produces = MediaType.APPLICATION_JSON_VALUE)
-public class AdminUsersController {
+public class MockAdminUsersController {
 
     List<AdminUserResponse> mockUsers = List.of(
         new AdminUserResponse(0, "닉네임0", "abc@abc.com", false),

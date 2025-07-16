@@ -11,6 +11,7 @@ import java.util.List;
 import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import org.springframework.security.core.Authentication;
 import com.grepp.spring.app.model.auth.domain.Principal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -93,46 +94,32 @@ public class NotificationController {
     // 커뮤니티 좋아요 알림 조회
     @GetMapping("/like")
     @Operation(summary = "커뮤니티 좋아요 알림 조회", description = "좋아요 알림 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<LikeNotificationResponse>>> getLikeNotifications(@Parameter(hidden = true) @RequestHeader("Authorization") String token) {
-        String memberId = extractMemberIdFromToken(token);
-        List<LikeNotificationResponse> data = notificationService.getLikeNotifications(memberId);
+    public ResponseEntity<ApiResponse<List<LikeNotificationResponse>>> getLikeNotifications(@AuthenticationPrincipal Principal principal) {
+        List<LikeNotificationResponse> data = notificationService.getLikeNotifications(principal.getMemberId());
         return ResponseEntity.ok(new ApiResponse<>("2000", "성공적으로 처리되었습니다.", data));
     }
 
     // 커뮤니티 댓글 알림 조회
     @GetMapping("/comment")
     @Operation(summary = "커뮤니티 댓글 알림 조회", description = "댓글 알림 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<CommentNotificationResponse>>> getCommentNotifications(@Parameter(hidden = true) @RequestHeader("Authorization") String token) {
-        String memberId = extractMemberIdFromToken(token);
-        List<CommentNotificationResponse> data = notificationService.getCommentNotifications(memberId);
+    public ResponseEntity<ApiResponse<List<CommentNotificationResponse>>> getCommentNotifications(@AuthenticationPrincipal Principal principal) {
+        List<CommentNotificationResponse> data = notificationService.getCommentNotifications(principal.getMemberId());
         return ResponseEntity.ok(new ApiResponse<>("2000", "성공적으로 처리되었습니다.", data));
     }
 
     // 칭호 획득 알림 조회
     @GetMapping("/title")
     @Operation(summary = "칭호 획득 알림 조회", description = "칭호 알림 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<TitleNotificationResponse>>> getTitleNotifications(@Parameter(hidden = true) @RequestHeader("Authorization") String token) {
-        String memberId = extractMemberIdFromToken(token);
-        List<TitleNotificationResponse> data = notificationService.getTitleNotifications(memberId);
+    public ResponseEntity<ApiResponse<List<TitleNotificationResponse>>> getTitleNotifications(@AuthenticationPrincipal Principal principal) {
+        List<TitleNotificationResponse> data = notificationService.getTitleNotifications(principal.getMemberId());
         return ResponseEntity.ok(new ApiResponse<>("2000", "성공적으로 처리되었습니다.", data));
     }
 
     // 알림 읽음 처리
     @PatchMapping("/{notificationId}/read")
     @Operation(summary = "알림 읽음 처리", description = "알림을 읽음 처리합니다.")
-    public ResponseEntity<ApiResponse<Void>> markNotificationAsRead(@PathVariable Long notificationId, @Parameter(hidden = true) @RequestHeader("Authorization") String token) {
-        String memberId = extractMemberIdFromToken(token);
-        notificationService.markNotificationAsRead(notificationId, Long.parseLong(memberId));
+    public ResponseEntity<ApiResponse<Void>> markNotificationAsRead(@PathVariable Long notificationId, @AuthenticationPrincipal Principal principal) {
+        notificationService.markNotificationAsRead(notificationId, principal.getMemberId());
         return ResponseEntity.ok(new ApiResponse<>("2000", "성공적으로 처리되었습니다.", null));
-    }
-
-    // 토큰에서 memberId 추출
-    private String extractMemberIdFromToken(String token) {
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        Authentication authentication = jwtTokenProvider.getAuthentication(token);
-        Principal principal = (Principal) authentication.getPrincipal();
-        return principal.getMemberId().toString();
     }
 } 

@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import com.grepp.spring.app.controller.api.notification.NotificationController.LikeNotificationResponse;
+import com.grepp.spring.app.controller.api.notification.NotificationController.CommentNotificationResponse;
+import com.grepp.spring.app.controller.api.notification.NotificationController.TitleNotificationResponse;
 
 
 @Service
@@ -80,12 +83,11 @@ public class NotificationService {
     }
 
     // 좋아요 알림 조회
-    public List<com.grepp.spring.app.controller.api.notification.NotificationController.LikeNotificationResponse> getLikeNotifications(String memberId) {
-        Long memberIdLong = Long.parseLong(memberId);
-        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberIdLong, "LIKE");
+    public List<LikeNotificationResponse> getLikeNotifications(Long memberId) {
+        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberId, "LIKE");
         
         return notifications.stream()
-                .map(notification -> new com.grepp.spring.app.controller.api.notification.NotificationController.LikeNotificationResponse(
+                .map(notification -> new LikeNotificationResponse(
                         notification.getNotificationId(),
                         notification.getMessage(),
                         notification.getIsRead(),
@@ -96,12 +98,11 @@ public class NotificationService {
     }
 
     // 댓글 알림 조회
-    public List<com.grepp.spring.app.controller.api.notification.NotificationController.CommentNotificationResponse> getCommentNotifications(String memberId) {
-        Long memberIdLong = Long.parseLong(memberId);
-        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberIdLong, "COMMENT");
+    public List<CommentNotificationResponse> getCommentNotifications(Long memberId) {
+        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberId, "COMMENT");
         
         return notifications.stream()
-                .map(notification -> new com.grepp.spring.app.controller.api.notification.NotificationController.CommentNotificationResponse(
+                .map(notification -> new CommentNotificationResponse(
                         notification.getNotificationId(),
                         notification.getMessage(),
                         notification.getIsRead(),
@@ -112,12 +113,11 @@ public class NotificationService {
     }
 
     // 칭호 획득 알림 조회
-    public List<com.grepp.spring.app.controller.api.notification.NotificationController.TitleNotificationResponse> getTitleNotifications(String memberId) {
-        Long memberIdLong = Long.parseLong(memberId);
-        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberIdLong, "TITLE");
+    public List<TitleNotificationResponse> getTitleNotifications(Long memberId) {
+        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberId, "TITLE");
         
         return notifications.stream()
-                .map(notification -> new com.grepp.spring.app.controller.api.notification.NotificationController.TitleNotificationResponse(
+                .map(notification -> new TitleNotificationResponse(
                         notification.getNotificationId(),
                         notification.getMessage(),
                         notification.getIsRead(),

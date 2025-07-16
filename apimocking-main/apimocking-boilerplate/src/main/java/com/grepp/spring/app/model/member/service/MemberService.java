@@ -93,6 +93,10 @@ public class MemberService {
         memberDTO.setProfileImage(member.getProfileImage());
         memberDTO.setLevel(member.getLevel());
         memberDTO.setTotalExp(member.getTotalExp());
+        // 소셜 로그인 관련 필드 매핑
+        memberDTO.setProvider(member.getProvider());
+        memberDTO.setProviderId(member.getProviderId());
+        memberDTO.setSocialEmail(member.getSocialEmail());
         return memberDTO;
     }
 
@@ -109,12 +113,77 @@ public class MemberService {
         member.setProfileImage(memberDTO.getProfileImage());
         member.setLevel(memberDTO.getLevel());
         member.setTotalExp(memberDTO.getTotalExp());
+        // 소셜 로그인 관련 필드 매핑
+        member.setProvider(memberDTO.getProvider());
+        member.setProviderId(memberDTO.getProviderId());
+        member.setSocialEmail(memberDTO.getSocialEmail());
         return member;
     }
 
     public boolean emailExists(final String email) {
         return memberRepository.existsByEmailIgnoreCase(email);
     }
+
+    // --- 소셜 로그인 관련 메서드 추가 ---
+    
+    // provider와 providerId로 소셜 계정 조회
+    public java.util.Optional<Member> findByProviderAndProviderId(String provider, String providerId) {
+        return memberRepository.findByProviderAndProviderId(provider, providerId);
+    }
+    
+    // provider와 providerId로 소셜 계정 존재 여부 확인
+    public boolean existsByProviderAndProviderId(String provider, String providerId) {
+        return memberRepository.existsByProviderAndProviderId(provider, providerId);
+    }
+    
+    // 소셜 이메일로 계정 조회
+    public java.util.Optional<Member> findBySocialEmail(String socialEmail) {
+        return memberRepository.findBySocialEmail(socialEmail);
+    }
+    
+    // 소셜 이메일로 계정 존재 여부 확인
+    public boolean existsBySocialEmail(String socialEmail) {
+        return memberRepository.existsBySocialEmail(socialEmail);
+    }
+    
+    // 카카오 로그인 처리 메서드
+    public Long processKakaoLogin(String email, String nickname, Long kakaoId) {
+        // 카카오 ID로 기존 회원 조회
+        java.util.Optional<Member> existingMember = memberRepository.findByProviderAndProviderId("kakao", kakaoId.toString());
+        
+        if (existingMember.isPresent()) {
+            // 기존 카카오 회원이면 로그인 처리
+            return existingMember.get().getMemberId();
+        }
+        
+        // 이메일로 기존 회원 조회 (일반 회원가입한 경우)
+        java.util.Optional<Member> memberByEmail = memberRepository.findByEmailIgnoreCase(email);
+        if (memberByEmail.isPresent()) {
+            // 기존 이메일 회원이면 소셜 정보 추가
+            Member member = memberByEmail.get();
+            member.setProvider("kakao");
+            member.setProviderId(kakaoId.toString());
+            member.setSocialEmail(email);
+            memberRepository.save(member);
+            return member.getMemberId();
+        }
+        
+        // 새로운 카카오 회원 생성
+        Member newMember = new Member();
+        newMember.setEmail(email);
+        newMember.setNickname(nickname);
+        newMember.setName(nickname); // 카카오 닉네임을 이름으로 사용
+        newMember.setProvider("kakao");
+        newMember.setProviderId(kakaoId.toString());
+        newMember.setSocialEmail(email);
+        newMember.setRole("ROLE_USER");
+        newMember.setActivated(true);
+        newMember.setLevel(1);
+        newMember.setTotalExp(0);
+        
+        return memberRepository.save(newMember).getMemberId();
+    }
+    // ---------------------------------
 
     public ReferencedWarning getReferencedWarning(final Long memberId) {
         final ReferencedWarning referencedWarning = new ReferencedWarning();

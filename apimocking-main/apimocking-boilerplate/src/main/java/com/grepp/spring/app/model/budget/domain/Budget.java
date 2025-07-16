@@ -47,4 +47,28 @@ public class Budget {
     @OneToMany(mappedBy = "budget")
     private List<BudgetDetail> budgetDetails = new ArrayList<>();
 
+    public static Budget create(LocalDate date, Member member) {
+        Budget budget = new Budget();
+        budget.setDate(date);
+        budget.setMember(member);
+        budget.setTotalIncome(BigDecimal.ZERO);
+        budget.setTotalExpense(BigDecimal.ZERO);
+        return budget;
+    }
+
+    public void addAmount(String type, BigDecimal amount) {
+        if ("수입".equals(type)) {
+            this.totalIncome = this.totalIncome.add(amount);
+        } else if ("지출".equals(type)) {
+            this.totalExpense = this.totalExpense.add(amount);
+        }
+    }
+
+    public void minusBudgetTotal(String type, BigDecimal price) {
+        if ("수입".equals(type)) {
+            this.totalIncome = this.totalIncome.subtract(price);
+        } else if ("지출".equals(type)) {
+            this.totalExpense = this.totalExpense.subtract(price);
+        }
+    }
 }

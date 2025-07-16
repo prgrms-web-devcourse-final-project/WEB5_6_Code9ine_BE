@@ -60,4 +60,9 @@ public class AuthService {
                    .build();
     }
     
+    // 소셜 로그인용 토큰 생성 메서드
+    public TokenDto generateTokenForSocialLogin(String email, String roles) {
+        return processTokenSignin(email, roles);
+    }
+    
 }

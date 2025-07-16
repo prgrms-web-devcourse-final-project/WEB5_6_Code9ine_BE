@@ -10,6 +10,7 @@ import com.grepp.spring.app.model.budget_detail.model.UpdatedBudgetDetailRespons
 import com.grepp.spring.app.model.budget_detail.repos.BudgetDetailRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -50,12 +51,9 @@ public class BudgetDetailService {
 
         // 1. 해당 날짜의 가계부(Budget) 조회
         Budget budget = budgetRepository.findByDateAndMember(LocalDate.parse(dto.getDate()), member)
-            .orElseGet(() -> {
-                Budget newBudget = new Budget();
-                newBudget.setDate(LocalDate.parse(dto.getDate()));
-                newBudget.setMember(member);
-                return budgetRepository.save(newBudget);
-            });
+            .orElseGet(() -> budgetRepository.save(Budget.create(LocalDate.parse(dto.getDate()), member)));
+
+        budget.addAmount(dto.getType(),dto.getPrice());
 
         // 2. 지출 세부사항(BudgetDetail) 생성
         BudgetDetail detail = BudgetDetail.builder()
@@ -79,36 +77,39 @@ public class BudgetDetailService {
         BudgetDetail budgetDetail = budgetDetailRepository.findById(detailId)
             .orElseThrow(() -> new RuntimeException("해당 지출 내역이 존재하지 않습니다."));
 
-        Member member = budgetDetail.getBudget().getMember(); // 기존 멤버 가져오기
+        Budget oldBudget = budgetDetail.getBudget();
+        Member member = oldBudget.getMember();
         LocalDate newDate = LocalDate.parse(dto.getDate());
 
-        if (!budgetDetail.getBudget().getDate().equals(newDate)) {
+        String oldType = budgetDetail.getType();
+        BigDecimal oldPrice = budgetDetail.getPrice();
 
-            // 2. 기존 Budget에서 지출 제거
-            Budget oldBudget = budgetDetail.getBudget();
+        // 기존 Budget의 총합에서 기존 금액 차감
+        oldBudget.minusBudgetTotal(oldType, oldPrice);
+
+        Budget newBudget = oldBudget;
+
+        // 2. 날짜가 바뀌었으면 새 Budget으로 이동
+        if (!oldBudget.getDate().equals(newDate)) {
             oldBudget.getBudgetDetails().remove(budgetDetail);
 
-            // 3. 새로운 날짜에 해당하는 Budget을 찾거나 생성
-            Budget newBudget = budgetRepository.findByDateAndMember(newDate, member)
-                .orElseGet(() -> {
-                    Budget created = new Budget();
-                    created.setDate(newDate);
-                    created.setMember(member);
-                    return budgetRepository.save(created);
-                });
+            newBudget = budgetRepository.findByDateAndMember(newDate, member)
+                .orElseGet(() -> budgetRepository.save(Budget.create(LocalDate.parse(dto.getDate()), member)));
 
-            // 4. BudgetDetail의 Budget을 새로운 것으로 바꾸기
             budgetDetail.setBudget(newBudget);
-            //newBudget.getBudgetDetails().add(budgetDetail);
 
-            // 5. 예전 Budget이 고아가 되었으면 삭제
             if (oldBudget.getBudgetDetails().isEmpty()) {
                 budgetRepository.delete(oldBudget);
             }
         }
+
+        // BudgetDetail 업데이트
         budgetDetail.updateFromDto(dto);
 
-        UpdatedBudgetDetailResponseDto updatedExpenseResponseDto = new UpdatedBudgetDetailResponseDto(
+        // 새 Budget에 새 금액 더함
+        newBudget.addAmount(dto.getType(), dto.getPrice());
+
+        return new UpdatedBudgetDetailResponseDto(
             detailId,
             budgetDetail.getType(),
             budgetDetail.getDate(),
@@ -117,8 +118,6 @@ public class BudgetDetailService {
             budgetDetail.getContent(),
             budgetDetail.getRepeatCycle()
         );
-
-        return updatedExpenseResponseDto;
     }
 
     @Transactional
@@ -127,6 +126,7 @@ public class BudgetDetailService {
             .orElseThrow(() -> new RuntimeException("해당 지출 내역이 존재하지 않습니다."));
 
         Budget budget = detail.getBudget();
+        budget.minusBudgetTotal(detail.getType(), detail.getPrice());
 
         budgetDetailRepository.delete(detail);
 

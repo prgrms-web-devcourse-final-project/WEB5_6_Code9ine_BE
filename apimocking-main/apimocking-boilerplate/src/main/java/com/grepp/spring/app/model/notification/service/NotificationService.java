@@ -6,6 +6,7 @@ import com.grepp.spring.app.model.notification.domain.Notification;
 import com.grepp.spring.app.model.notification.model.NotificationDTO;
 import com.grepp.spring.app.model.notification.repos.NotificationRepository;
 import com.grepp.spring.util.NotFoundException;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -76,6 +77,86 @@ public class NotificationService {
                 .orElseThrow(() -> new NotFoundException("member not found"));
         notification.setMember(member);
         return notification;
+    }
+
+    // 좋아요 알림 조회
+    public List<com.grepp.spring.app.controller.api.notification.NotificationController.LikeNotificationResponse> getLikeNotifications(String memberId) {
+        Long memberIdLong = Long.parseLong(memberId);
+        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberIdLong, "LIKE");
+        
+        return notifications.stream()
+                .map(notification -> new com.grepp.spring.app.controller.api.notification.NotificationController.LikeNotificationResponse(
+                        notification.getNotificationId(),
+                        notification.getMessage(),
+                        notification.getIsRead(),
+                        notification.getSenderId(),
+                        notification.getType()
+                ))
+                .toList();
+    }
+
+    // 댓글 알림 조회
+    public List<com.grepp.spring.app.controller.api.notification.NotificationController.CommentNotificationResponse> getCommentNotifications(String memberId) {
+        Long memberIdLong = Long.parseLong(memberId);
+        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberIdLong, "COMMENT");
+        
+        return notifications.stream()
+                .map(notification -> new com.grepp.spring.app.controller.api.notification.NotificationController.CommentNotificationResponse(
+                        notification.getNotificationId(),
+                        notification.getMessage(),
+                        notification.getIsRead(),
+                        notification.getSenderId(),
+                        notification.getType()
+                ))
+                .toList();
+    }
+
+    // 칭호 획득 알림 조회
+    public List<com.grepp.spring.app.controller.api.notification.NotificationController.TitleNotificationResponse> getTitleNotifications(String memberId) {
+        Long memberIdLong = Long.parseLong(memberId);
+        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberIdLong, "TITLE");
+        
+        return notifications.stream()
+                .map(notification -> new com.grepp.spring.app.controller.api.notification.NotificationController.TitleNotificationResponse(
+                        notification.getNotificationId(),
+                        notification.getMessage(),
+                        notification.getIsRead(),
+                        notification.getType()
+                ))
+                .toList();
+    }
+
+    // 알림 생성 (팀원들이 호출할 메서드)
+    public Long createNotification(Long receiverId, String message, Integer senderId, String type) {
+        Member receiver = memberRepository.findById(receiverId)
+                .orElseThrow(() -> new NotFoundException("수신자를 찾을 수 없습니다."));
+        
+        Notification notification = new Notification();
+        notification.setMessage(message);
+        notification.setIsRead(false);
+        notification.setSenderId(senderId);
+        notification.setType(type);
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setModifiedAt(LocalDateTime.now());
+        notification.setActivated(true);
+        notification.setMember(receiver);
+        
+        return notificationRepository.save(notification).getNotificationId();
+    }
+
+    // 알림 읽음 처리
+    public void markNotificationAsRead(Long notificationId, Long memberId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new NotFoundException("알림을 찾을 수 없습니다."));
+        
+        // 본인의 알림만 읽음 처리 가능
+        if (!notification.getMember().getMemberId().equals(memberId)) {
+            throw new NotFoundException("해당 알림에 대한 권한이 없습니다.");
+        }
+        
+        notification.setIsRead(true);
+        notification.setModifiedAt(LocalDateTime.now());
+        notificationRepository.save(notification);
     }
 
 }

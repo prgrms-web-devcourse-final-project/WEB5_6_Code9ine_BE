@@ -113,33 +113,28 @@ public class CommunityController {
         Long memberId = principal.getMemberId();
         communityService.updatePost(id, request, memberId);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "게시글이 수정되었습니다.");
+        Map<String, String> response = Map.of("message", "게시글이 수정되었습니다.");
 
         return ResponseEntity
             .status(ResponseCode.OK.status())
             .body(ApiResponse.success(response));
     }
 
-//    @PatchMapping("/posts/{post-id}/delete")
-//    @Operation(summary = "커뮤니티 게시글 삭제")
-//    public ResponseEntity<ApiResponse<Map<String, String>>> togglePostActive(
-//        @PathVariable("post-id") int id
-//    ) {
-//
-//        if (id < 0 || id > 4) {
-//            return ResponseEntity
-//                .status(ResponseCode.NOT_FOUND.status())
-//                .body(ApiResponse.error(ResponseCode.NOT_FOUND));
-//        }
-//
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "게시글이 삭제되었습니다.");
-//
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(response));
-//    }
+    @PatchMapping("/posts/{post-id}/delete")
+    @Operation(summary = "커뮤니티 게시글 삭제")
+    public ResponseEntity<ApiResponse<Map<String, String>>> togglePostActive(
+        @PathVariable("post-id") Long id,
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        communityService.deletePost(id, memberId);
+
+        Map<String, String> response = Map.of("message", "게시글이 삭제되었습니다.");
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(response));
+    }
 //
 //    @GetMapping("/posts/{post-id}/comments")
 //    @Operation(summary = "커뮤니티 게시글별 댓글 조회")

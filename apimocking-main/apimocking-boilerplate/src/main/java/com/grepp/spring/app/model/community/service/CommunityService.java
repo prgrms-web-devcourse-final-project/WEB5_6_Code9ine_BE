@@ -21,4 +21,7 @@ public interface CommunityService {
 
     // 커뮤니티 게시글 수정
     void updatePost(Long postId, CommunityPostUpdateRequest request, Long memberId);
+
+    // 커뮤니티 게시글 삭제(soft delete)
+    void deletePost(Long postId, Long memberId);
 }

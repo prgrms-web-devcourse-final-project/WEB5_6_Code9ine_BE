@@ -125,6 +125,7 @@ public class CommunityServiceImpl implements CommunityService {
             .collect(Collectors.toList());
     }
 
+    // 게시글 수정
     @Override
     @Transactional
     public void updatePost(Long postId, CommunityPostUpdateRequest request, Long memberId) {
@@ -157,6 +158,21 @@ public class CommunityServiceImpl implements CommunityService {
         }
 
         postImageService.updatePostImages(post, request.imageUrls());
+    }
+
+    // 게시글 삭제(soft delete)
+    @Override
+    public void deletePost(Long postId, Long memberId) {
+        // 존재하는 게시글인지 검증
+        CommunityPost post = communityRepository.findById(postId)
+            .orElseThrow(() -> new IllegalArgumentException("해당 게시물이 존재하지 않습니다."));
+
+        // 해당 게시글 작성자인지 검증
+        if (!post.getMember().getMemberId().equals(memberId)) {
+            throw new AuthorizationDeniedException("게시물 삭제 권한이 없습니다.");
+        }
+
+        post.unActivated();
     }
 
 }

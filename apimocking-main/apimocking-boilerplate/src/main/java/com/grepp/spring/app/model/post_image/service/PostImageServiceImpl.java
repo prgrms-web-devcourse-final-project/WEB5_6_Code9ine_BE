@@ -3,6 +3,7 @@ package com.grepp.spring.app.model.post_image.service;
 import com.grepp.spring.app.model.community.domain.CommunityPost;
 import com.grepp.spring.app.model.post_image.domain.PostImage;
 import com.grepp.spring.app.model.post_image.repos.PostImageRepository;
+import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,11 @@ public class PostImageServiceImpl implements PostImageService{
     @Transactional
     @Override
     public void updatePostImages(CommunityPost post, List<String> updatedImageUrls) {
+
+        if (updatedImageUrls.size() > 8) {
+            throw new BadRequestException("이미지는 최대 8개까지만 업로드할 수 있습니다.");
+        }
+
         Set<PostImage> currentImages = post.getImages();
 
         // 기존 이미지와 새로운 이미지 요청 비교

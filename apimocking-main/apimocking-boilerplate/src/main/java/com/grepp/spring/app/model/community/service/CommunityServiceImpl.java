@@ -23,6 +23,7 @@ import com.grepp.spring.app.model.notification.service.NotificationService;
 import com.grepp.spring.app.model.post_image.domain.PostImage;
 import com.grepp.spring.app.model.post_image.repos.PostImageRepository;
 import com.grepp.spring.app.model.post_image.service.PostImageService;
+import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.util.NotFoundException;
 import java.util.ArrayList;
@@ -80,6 +81,10 @@ public class CommunityServiceImpl implements CommunityService {
         communityRepository.save(post);
 
         List<String> imgUrls = request.imageUrls();
+        if (imgUrls != null && imgUrls.size() > 8) {
+            throw new BadRequestException("이미지는 최대 8개까지 등록할 수 있습니다.");
+        }
+
         if (imgUrls != null && !imgUrls.isEmpty()) {
             List<PostImage> images = new ArrayList<>();
             for (int i = 0; i < imgUrls.size(); i++) {
@@ -223,7 +228,7 @@ public class CommunityServiceImpl implements CommunityService {
     public List<CommunityCommentResponse> getCommentsByPostId(Long postId) {
 
         // 존재하는 게시물인지 검증
-        CommunityPost post = getActivatedPost(postId);
+        getActivatedPost(postId);
 
         List<CommunityComment> comments = commentRepository.findByPost_PostIdAndActivatedTrue(postId);
 

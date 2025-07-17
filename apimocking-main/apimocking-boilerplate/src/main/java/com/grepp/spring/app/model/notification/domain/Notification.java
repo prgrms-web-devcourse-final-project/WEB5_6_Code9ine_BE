@@ -41,8 +41,11 @@ public class Notification {
     @Column(nullable = false)
     private Boolean isRead;
 
-    @Column(nullable = false)
-    private int senderId; // 보낸이
+    // senderId 필드 int → Long으로 변경
+    private Long senderId;
+
+    public Long getSenderId() { return senderId; }
+    public void setSenderId(Long senderId) { this.senderId = senderId; }
 
     @Column(length = 255)
     private String type; // 알림타입

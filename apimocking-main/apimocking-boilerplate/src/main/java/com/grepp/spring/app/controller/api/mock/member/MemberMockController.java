@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseCookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.PathVariable;
 
 // 멤버 로그인 Mock API 컨트롤러 (OAuth + JWT 토큰 사용)
 // 입력: MemberLoginRequest(email, password)
@@ -72,19 +73,40 @@ public class MemberMockController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // 이메일 인증 코드 발송 (EmailVerificationController 명세 반영)
     @PostMapping("/email/send")
-    public ResponseEntity<ApiResponse<MemberEmailSendResponse>> sendEmailCode(@RequestBody MemberEmailSendRequest request) {
-        // 이메일 인증(코드 발송) Mock 응답
-        MemberEmailSendResponse response = new MemberEmailSendResponse(2000, "이메일 인증 코드가 발송되었습니다.", null);
+    public ResponseEntity<ApiResponse<EmailSendResponse>> sendEmailCode(@RequestBody EmailSendRequest request) {
+        EmailSendResponse response = new EmailSendResponse("이메일 인증 코드가 발송되었습니다.");
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // 이메일 인증 코드 검증 (EmailVerificationController 명세 반영)
     @PostMapping("/email/verify")
-    public ResponseEntity<ApiResponse<MemberEmailVerifyResponse>> verifyEmailCode(@RequestBody MemberEmailVerifyRequest request) {
-        // 이메일 인증(코드 검증) Mock 응답
-        MemberEmailVerifyResponse response = new MemberEmailVerifyResponse(2000, "이메일 인증이 완료되었습니다.", null);
+    public ResponseEntity<ApiResponse<EmailVerifyResponse>> verifyEmailCode(@RequestBody EmailVerifyRequest request) {
+        // 항상 성공 응답
+        EmailVerifyResponse response = new EmailVerifyResponse("이메일 인증이 완료되었습니다.");
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    // 이메일 인증 상태 확인 (EmailVerificationController 명세 반영)
+    @GetMapping("/email/status/{email}")
+    public ResponseEntity<ApiResponse<EmailStatusResponse>> checkEmailStatus(@PathVariable String email) {
+        // 항상 인증됨으로 응답
+        EmailStatusResponse response = new EmailStatusResponse(true);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // === EmailVerificationController DTO ===
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class EmailSendRequest { private String email; }
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class EmailSendResponse { private String message; }
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class EmailVerifyRequest { private String email; private String code; }
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class EmailVerifyResponse { private String message; }
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class EmailStatusResponse { private boolean verified; }
 
     @PostMapping("/password/find")
     public ResponseEntity<ApiResponse<MemberPasswordFindResponse>> findPassword(@RequestBody MemberPasswordFindRequest request) {
@@ -117,22 +139,6 @@ public class MemberMockController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PostMapping("/login/google")
-    public ResponseEntity<ApiResponse<MemberLoginResponse>> googleLogin(@RequestBody Map<String, String> request) {
-        // OAuth 구글 로그인 Mock 응답
-        String mockGoogleAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJwcm92aWRlciI6Imdvb2dsZSIsImp0aSI6Imdvb2dsZS1hY2Nlc3MtdG9rZW4taWQiLCJpYXQiOjE3MzE5MjAwMDAsImV4cCI6MTczMTkyMzYwMH0.mock-google-signature";
-        String mockGoogleRefreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwicHJvdmlkZXIiOiJnb29nbGUiLCJqdGkiOiJnb29nbGUtcmVmcmVzaC10b2tlbi1pZCIsImlhdCI6MTczMTkyMDAwMCwiZXhwIjoxNzMxOTI4ODAwfQ.mock-google-refresh-signature";
-        
-        MemberLoginResponse.Data data = new MemberLoginResponse.Data(
-                mockGoogleAccessToken,
-                mockGoogleRefreshToken,
-                "Bearer",
-                3600L,
-                28800L
-        );
-        MemberLoginResponse response = new MemberLoginResponse(2000, "구글 로그인에 성공하였습니다.", data);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
 
     @PostMapping("/token/refresh")
     public ResponseEntity<ApiResponse<MemberLoginResponse>> refreshToken(@RequestBody MemberTokenRefreshRequest request) {
@@ -199,6 +205,163 @@ public class MemberMockController {
         // 회원 탈퇴 Mock 응답
         MemberLogoutResponse response = new MemberLogoutResponse(2000, "회원 탈퇴가 완료되었습니다.", null);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // 마이페이지 - 북마크한 게시글 목록 조회
+    @GetMapping("/bookmarks/posts")
+    public ResponseEntity<ApiResponse<Object>> getBookmarkedPosts() {
+        // 실제 명세와 동일한 포맷으로 하드코딩 응답
+        Map<String, Object> post = new java.util.HashMap<>();
+        post.put("postid", 0);
+        post.put("memberId", 1);
+        post.put("category", "챌린지");
+        post.put("challengeCategory", "카테고리1");
+        post.put("title", "게시물 제목0");
+        post.put("createdAt", "2025-07-10T11:32:00");
+        post.put("content", "게시글 내용0");
+        post.put("imageUrls", java.util.List.of("image0.jpg", "image1.jpg"));
+        post.put("commentCount", 3);
+        post.put("likeCount", 17);
+        post.put("isLiked", true);
+        post.put("isBookmarked", false);
+        post.put("challengeAchieved", true);
+        post.put("writerNickname", "작성자 닉네임0");
+        post.put("writerTitle", "칭호0");
+        post.put("writerLevel", 3);
+        post.put("writerProfileImage", "profile0.jpg");
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("code", "0000");
+        response.put("message", "북마크한 게시물을 조회하였습니다.");
+        response.put("data", java.util.List.of(post));
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // 마이페이지 - 내가 작성한 게시글 목록 조회
+    @GetMapping("/mypage/posts")
+    public ResponseEntity<ApiResponse<Object>> getMyPosts() {
+        Map<String, Object> post = new java.util.HashMap<>();
+        post.put("postid", 0);
+        post.put("memberId", 1);
+        post.put("category", "챌린지");
+        post.put("challengeCategory", "카테고리1");
+        post.put("title", "게시물 제목0");
+        post.put("createdAt", "2025-07-10T11:32:00");
+        post.put("content", "게시글 내용0");
+        post.put("imageUrls", java.util.List.of("image0.jpg", "image1.jpg"));
+        post.put("commentCount", 3);
+        post.put("likeCount", 17);
+        post.put("isLiked", true);
+        post.put("isBookmarked", false);
+        post.put("challengeAchieved", true);
+        post.put("writerNickname", "작성자 닉네임0");
+        post.put("writerTitle", "칭호0");
+        post.put("writerLevel", 3);
+        post.put("writerProfileImage", "profile0.jpg");
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("code", "0000");
+        response.put("message", "내가 작성한 게시글을 조회하였습니다.");
+        response.put("data", java.util.List.of(post));
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // 마이페이지 - 장소 북마크 목록 조회 (type 필드 포함)
+    @GetMapping("/bookmarks/places")
+    public ResponseEntity<Object> getBookmarkedPlaces() {
+        java.util.List<Object> data = new java.util.ArrayList<>();
+        java.util.Map<String, Object> store = new java.util.HashMap<>();
+        store.put("storeId", "1");
+        store.put("name", "서울식당");
+        store.put("address", "서울시 강남구 테헤란로 123");
+        store.put("categoey", "한식");
+        store.put("type", "store");
+        store.put("contact", "02-1212-1212");
+        store.put("firstmenu", "제육볶음");
+        store.put("firstprice", "13000");
+        store.put("secondmenu", "김치볶음밥");
+        store.put("secondprice", "7000");
+        store.put("thirdmenu", "잔치국수");
+        store.put("thirdprice", "5000");
+        store.put("bookmarkedAt", "2024-01-15T10:30:00");
+        data.add(store);
+        java.util.Map<String, Object> festival = new java.util.HashMap<>();
+        festival.put("festivalId", "1");
+        festival.put("name", "강남 축제");
+        festival.put("category", "축제테마");
+        festival.put("type", "festival");
+        festival.put("address", "서울시 강남구 역삼동");
+        festival.put("target", "주요고객");
+        festival.put("url", "https://festival.example.com");
+        festival.put("startAt", "2024-03-01");
+        festival.put("EndAt", "2024-03-15");
+        festival.put("bookmarkedAt", "2024-01-14T15:20:00");
+        data.add(festival);
+        java.util.Map<String, Object> library = new java.util.HashMap<>();
+        library.put("libraryId", "1");
+        library.put("name", "서울도서관");
+        library.put("type", "library");
+        library.put("address", "서울시 강남구 논현로 50");
+        library.put("url", "https://library.example.com");
+        library.put("bookmarkedAt", "2024-01-13T09:15:00");
+        data.add(library);
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("status", "success");
+        result.put("data", data);
+        return ResponseEntity.ok(result);
+    }
+
+    // 마이페이지 - 장소 북마크 해제
+    @PatchMapping("/bookmarks/places/{placeId}")
+    public ResponseEntity<ApiResponse<Object>> unbookmarkPlace(@PathVariable String placeId) {
+        return ResponseEntity.ok(ApiResponse.success(
+            Map.of(
+                "code", "2000",
+                "message", "장소 북마크를 해제했습니다.",
+                "data", Map.of()
+            )
+        ));
+    }
+
+    // 마이페이지 - 프로필 이미지 변경
+    @PatchMapping("/mypage/profile-image")
+    public ResponseEntity<ApiResponse<Object>> updateProfileImageV2(@RequestBody Map<String, String> request) {
+        return ResponseEntity.ok(ApiResponse.success(
+            Map.of(
+                "code", "2000",
+                "message", "프로필 이미지가 변경되었습니다.",
+                "data", Map.of()
+            )
+        ));
+    }
+
+    // 마이페이지 - 챌린지 대시보드 조회
+    @GetMapping("/mypage/challenges/dashboard")
+    public ResponseEntity<ApiResponse<Object>> getChallengeDashboard() {
+        return ResponseEntity.ok(ApiResponse.success(
+            Map.of(
+                "code", "2000",
+                "message", "챌린지 목록을 조회했습니다.",
+                "data", List.of(
+                    Map.of(
+                        "challengeId", 1,
+                        "title", "만원의 행복",
+                        "type", "일일",
+                        "description", "만원으로 하루 살아보기",
+                        "total", 1,
+                        "progress", 0,
+                        "icon", "moneyIcon"
+                    ),
+                    Map.of(
+                        "challengeId", 2,
+                        "title", "영수증 인증하기",
+                        "type", "커뮤니티",
+                        "description", "오늘 사용한 영수증 인증하기",
+                        "total", 1,
+                        "progress", 0,
+                        "icon", "receipt"
+                    )
+                )
+            )
+        ));
     }
 
     // === 내부 static DTO 클래스들 ===
@@ -282,43 +445,6 @@ public class MemberMockController {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MemberLogoutResponse {
-        private int code;
-        private String message;
-        private Object data;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MemberEmailSendRequest {
-        private String email;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MemberEmailSendResponse {
-        private int code;
-        private String message;
-        private Object data;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MemberEmailVerifyRequest {
-        private String email;
-        private String code;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MemberEmailVerifyResponse {
         private int code;
         private String message;
         private Object data;

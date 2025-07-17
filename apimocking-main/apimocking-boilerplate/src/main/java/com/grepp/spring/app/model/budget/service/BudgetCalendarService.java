@@ -1,12 +1,12 @@
 package com.grepp.spring.app.model.budget.service;
 
+import com.grepp.spring.app.model.budget.domain.Budget;
 import com.grepp.spring.app.model.budget.model.BudgetCalendarResponseDto;
 import com.grepp.spring.app.model.budget.model.BudgetDaySummary;
 import com.grepp.spring.app.model.budget_detail.repos.BudgetDetailRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +29,7 @@ public class BudgetCalendarService {
         List<BudgetDaySummary> days = getDailySummaries(memberId,yearmonth);
 
         return BudgetCalendarResponseDto.builder()
-            .month(today.format(DateTimeFormatter.ofPattern("yyyy-MM")))
+            .month(yearmonth)
             .totalIncome(totals.get("totalIncome"))
             .totalExpense(totals.get("totalExpense"))
             .days(days)
@@ -42,19 +42,18 @@ public class BudgetCalendarService {
         LocalDate start = today.withDayOfMonth(1);
 
         // 1. 전체 총합
-        List<Object[]> totalResults = budgetDetailRepository.findTotalIncomeAndExpense(memberId,start,
+        List<Budget> budgets = budgetDetailRepository.findTotalIncomeAndExpense(memberId,start,
             today);
 
         BigDecimal totalIncome = BigDecimal.ZERO;
         BigDecimal totalExpense = BigDecimal.ZERO;
 
-        for (Object[] row : totalResults) {
-            String type = (String) row[0];
-            BigDecimal sum = new BigDecimal(row[1].toString());
-            if ("수입".equals(type)) {
-                totalIncome = sum;
-            } else if ("지출".equals(type)) {
-                totalExpense = sum;
+        for (Budget budget : budgets) {
+            if (budget.getTotalIncome() != null) {
+                totalIncome = totalIncome.add(budget.getTotalIncome());
+            }
+            if (budget.getTotalExpense() != null) {
+                totalExpense = totalExpense.add(budget.getTotalExpense());
             }
         }
 

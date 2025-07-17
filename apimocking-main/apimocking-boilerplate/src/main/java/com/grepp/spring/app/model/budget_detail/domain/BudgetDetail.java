@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.budget_detail.domain;
 
 import com.grepp.spring.app.model.budget.domain.Budget;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailRequestDTO;
+import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,7 +26,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BudgetDetail {
+public class BudgetDetail extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, updatable = false)

@@ -5,6 +5,7 @@ import com.grepp.spring.app.model.challenge.code.CommunityCategory;
 import com.grepp.spring.app.model.community.domain.CommunityPost;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
+import com.grepp.spring.app.model.community.dto.CommunityPostUpdateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityUserInfoResponse;
 import com.grepp.spring.app.model.community.repos.CommunityBookmarkRepository;
 import com.grepp.spring.app.model.community.repos.CommunityCommentRepository;
@@ -17,11 +18,15 @@ import com.grepp.spring.app.model.post_image.repos.PostImageRepository;
 import com.grepp.spring.infra.payload.PageParam;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -116,6 +121,71 @@ public class CommunityServiceImpl implements CommunityService {
                 );
         })
             .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void updatePost(Long postId, CommunityPostUpdateRequest request, Long memberId) {
+        // 존재하는 게시글인지 검증
+        CommunityPost post = communityRepository.findById(postId)
+            .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+
+        // 해당 게시글 작성자인지 검증
+        if (!post.getMember().getMemberId().equals(memberId)) {
+            throw new AuthorizationDeniedException("게시글 수정 권한이 없습니다.");
+        }
+
+        // 변경되는 값이 존재할 때만 변경
+        if (request.title() != null && !request.title().isBlank()) {
+            post.setTitle(request.title());
+        }
+
+        if (request.content() != null && !request.content().isBlank()) {
+            post.setContent(request.content());
+        }
+
+        if (request.category() != null) {
+            post.setCategory(CommunityCategory.valueOf(request.category()));
+        }
+
+        if (request.challengeCategory() != null) {
+            post.setChallenge(ChallengeCategory.valueOf(request.challengeCategory()));
+        } else {
+            post.setChallenge(null);
+        }
+
+        // 기존 이미지와 새로운 이미지 요청 비교
+        List<String> requestedUrls = Optional.ofNullable(request.imageUrls()).orElse(Collections.emptyList());
+
+        List<PostImage> existingImages = postImageRepository.findByPost(post);
+        Set<String> existingUrls = existingImages.stream()
+            .map(PostImage::getImageUrl)
+            .collect(Collectors.toSet());
+
+        // 삭제한 이미지
+        List<PostImage> imagesToDelete = existingImages.stream()
+            .filter(img -> !requestedUrls.contains(img.getImageUrl()))
+            .toList();
+        postImageRepository.deleteAll(imagesToDelete);
+
+        // 새로운 이미지
+        List<String> urlsToAdd = requestedUrls.stream()
+            .filter(url -> !existingUrls.contains(url))
+            .toList();
+
+        List<PostImage> newImages = new ArrayList<>();
+        for (int i = 0; i < requestedUrls.size(); i++) {
+            String url = requestedUrls.get(i);
+            if (urlsToAdd.contains(url)) {
+                newImages.add(PostImage.builder()
+                    .post(post)
+                    .imageUrl(url)
+                    .sortOrder(i)
+                    .build());
+            }
+        }
+
+        postImageRepository.saveAll(newImages);
     }
 
 }

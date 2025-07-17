@@ -7,13 +7,13 @@ import java.util.List;
 @Schema(description = "커뮤니티 게시글 수정 요청 DTO")
 public record CommunityPostUpdateRequest(
 
-    @Schema(description = "게시글 제목", example = "게시글 제목")
+    @Schema(description = "게시글 제목", example = "게시글 제목 수정")
     String title,
 
-    @Schema(description = "게시글 내용", example = "게시글 내용")
+    @Schema(description = "게시글 내용", example = "게시글 내용 수정")
     String content,
 
-    @Schema(description = "이미지 파일 목록", example = "[\"image1.jpg\", \"image2.jpg\"]")
+    @Schema(description = "이미지 파일 목록", example = "[\"imageRe1.jpg\", \"imageRe2.jpg\"]")
     List<String> imageUrls,
 
     @Schema(
@@ -29,7 +29,6 @@ public record CommunityPostUpdateRequest(
         example = "NO_MONEY",
         allowableValues = {"NO_MONEY", "KIND_CONSUMER", "DETECTIVE", "MASTER", "COOK_KING"}
     )
-    @NotBlank(message = "챌린지 카테고리는 필수입니다.")
     String challengeCategory
 
 ) {

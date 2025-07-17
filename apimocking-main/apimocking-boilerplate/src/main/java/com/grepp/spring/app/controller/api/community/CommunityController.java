@@ -1,9 +1,11 @@
 package com.grepp.spring.app.controller.api.community;
 
+import com.google.rpc.context.AttributeContext.Auth;
 import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
+import com.grepp.spring.app.model.community.dto.CommunityPostUpdateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityUserInfoResponse;
 import com.grepp.spring.app.model.community.service.CommunityService;
 import com.grepp.spring.app.model.member.domain.Member;
@@ -14,6 +16,7 @@ import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -97,28 +102,25 @@ public class CommunityController {
             .status(HttpStatus.CREATED)
             .body(ApiResponse.successToCreate(responseBody));
     }
-//
-//    @PatchMapping("/posts/{post-id}")
-//    @Operation(summary = "커뮤니티 게시글 수정")
-//    public ResponseEntity<ApiResponse<Map<String, String>>> updatePost(
-//        @PathVariable("post-id") int id,
-//        @RequestBody CommunityPostUpdateRequest request
-//    ) {
-//
-//        if (id < 0 || id > 4) {
-//            return ResponseEntity
-//                .status(ResponseCode.NOT_FOUND.status())
-//                .body(ApiResponse.error(ResponseCode.NOT_FOUND));
-//        }
-//
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "게시글이 수정되었습니다.");
-//
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(response));
-//    }
-//
+
+    @PatchMapping("/posts/{post-id}")
+    @Operation(summary = "커뮤니티 게시글 수정")
+    public ResponseEntity<ApiResponse<Map<String, String>>> updatePost(
+        @PathVariable("post-id") Long id,
+        @RequestBody CommunityPostUpdateRequest request,
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        communityService.updatePost(id, request, memberId);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "게시글이 수정되었습니다.");
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(response));
+    }
+
 //    @PatchMapping("/posts/{post-id}/delete")
 //    @Operation(summary = "커뮤니티 게시글 삭제")
 //    public ResponseEntity<ApiResponse<Map<String, String>>> togglePostActive(

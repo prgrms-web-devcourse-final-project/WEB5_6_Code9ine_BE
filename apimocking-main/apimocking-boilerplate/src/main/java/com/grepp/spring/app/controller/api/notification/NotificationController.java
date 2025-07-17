@@ -33,9 +33,9 @@ public class NotificationController {
         public Long notificationId;
         public String message;
         public boolean read;
-        public int senderId;
+        public Long senderId;
         public String type;
-        public LikeNotificationResponse(Long notificationId, String message, boolean read, int senderId, String type) {
+        public LikeNotificationResponse(Long notificationId, String message, boolean read, Long senderId, String type) {
             this.notificationId = notificationId;
             this.message = message;
             this.read = read;
@@ -47,9 +47,9 @@ public class NotificationController {
         public Long notificationId;
         public String message;
         public boolean read;
-        public int senderId;
+        public Long senderId;
         public String type;
-        public CommentNotificationResponse(Long notificationId, String message, boolean read, int senderId, String type) {
+        public CommentNotificationResponse(Long notificationId, String message, boolean read, Long senderId, String type) {
             this.notificationId = notificationId;
             this.message = message;
             this.read = read;
@@ -72,7 +72,7 @@ public class NotificationController {
     public static class CreateNotificationRequest {
         @NotNull public Long receiverId;
         public String message;
-        @NotNull public Integer senderId;
+        @NotNull public Long senderId;
         @NotNull public String type;
         public String senderName; // 동적 메시지 생성을 위한 필드
         public String title;      // 칭호명 등 동적 메시지 생성을 위한 필드
@@ -95,7 +95,7 @@ public class NotificationController {
         String message = request.message;
         String senderName = request.senderName;
         if ((senderName == null || senderName.isBlank()) && request.senderId != null) {
-            memberRepository.findById(Long.valueOf(request.senderId)).ifPresent(member -> {
+            memberRepository.findById(request.senderId).ifPresent(member -> {
                 // senderId가 memberId와 동일하다고 가정
                 request.senderName = member.getNickname();
             });
@@ -110,7 +110,7 @@ public class NotificationController {
                 default -> message = "새로운 알림이 도착했습니다.";
             }
         }
-        Long id = notificationService.createNotification(request.receiverId, message, request.senderId, request.type);
+        Long id = notificationService.createNotification(request.receiverId, request.senderId, request.type);
         return ResponseEntity.status(201).body(new ApiResponse<>("2001", "성공적으로 생성되었습니다.", id));
     }
 

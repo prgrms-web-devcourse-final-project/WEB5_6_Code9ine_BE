@@ -34,7 +34,7 @@ public class NotificationDTO {
     @NotNull
     private Long member;
 
-    private int senderId; // 보낸이
+    private Long senderId; // 보낸이
     private String type; // 알림타입
 
 }

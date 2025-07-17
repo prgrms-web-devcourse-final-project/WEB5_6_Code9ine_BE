@@ -12,8 +12,12 @@ import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +41,7 @@ public class BudgetDetailService {
 
         // Budget에 연결된 BudgetDetail 꺼내기
         List<BudgetDetailDto> details = budget.getBudgetDetails().stream()
+            .sorted(Comparator.comparing(BudgetDetail::getCreatedAt).reversed()) // 내림차순
             .map(BudgetDetailDto::from)
             .toList();
 
@@ -137,5 +142,14 @@ public class BudgetDetailService {
         }
     }
 
+    @Transactional
+    public Page<BudgetDetailDto> getAllDetails(Long memberId, int page, int size) {
 
+        Pageable pageable = PageRequest.of(page, size);
+        LocalDate today = LocalDate.now();
+
+        return budgetDetailRepository
+            .findAllBeforeTodayByMemberIdOrderByDateAndCreatedAt(memberId, today, pageable)
+            .map(BudgetDetailDto::from);
+    }
 }

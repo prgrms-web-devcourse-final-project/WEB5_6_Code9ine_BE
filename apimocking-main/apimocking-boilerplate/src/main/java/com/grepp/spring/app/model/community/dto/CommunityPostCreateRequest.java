@@ -18,9 +18,20 @@ public record CommunityPostCreateRequest(
     @Schema(description = "이미지 파일 목록", example = "[\"image0.jpg\", \"image1.jpg\"]")
     List<String> imageUrls,
 
-    @Schema(description = "게시글 카테고리", example = "나가게")
+    @Schema(
+        description = "게시글 카테고리",
+        example = "CHALLENGE",
+        allowableValues = {"MY_STORE", "CHALLENGE", "FREE"}
+    )
     @NotBlank(message = "게시물 카테고리는 필수입니다.")
-    String category
+    String category,
+
+    @Schema(
+        description = "챌린지 세부 카테고리 (CHALLENGE일 경우에만)",
+        example = "NO_MONEY",
+        allowableValues = {"NO_MONEY", "KIND_CONSUMER", "DETECTIVE", "MASTER", "COOK_KING"}
+    )
+    String challengeCategory
 
 ) {
 

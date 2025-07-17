@@ -1,12 +1,16 @@
 package com.grepp.spring.app.controller.api.budgetdetail;
 
+import com.grepp.spring.app.model.auth.domain.Principal;
+import com.grepp.spring.app.model.budget_detail.model.BudgetDetailDto;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailRequestDTO;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailResponseDto;
+import com.grepp.spring.app.model.budget_detail.model.TotalBudgetDetailResponseDto;
 import com.grepp.spring.app.model.budget_detail.model.UpdatedBudgetDetailResponseDto;
 import com.grepp.spring.app.model.budget_detail.service.BudgetDetailService;
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,14 +31,26 @@ public class BudgetDetailController {
     private final BudgetDetailService budgetDetailService;
 
 
-//    @Operation(summary = "총 내역 조회")
-//    @GetMapping("/totaldetails")
-//    public ApiResponse<BudgetTotalDetailResponseDto> getBudgettotaldetails(@AuthenticationPrincipal UserDetails userDetails) {
-//
-//        BudgetTotalDetailResponseDto response = budgetDetailServiceNew.findExpensesByDate(userDetails.getUsername());
-//        return ApiResponse.success(response);
-//
-//    }
+    @Operation(summary = "총 내역 조회")
+    @GetMapping("/totaldetails")
+    public ApiResponse<TotalBudgetDetailResponseDto> getAllDetails(
+        @AuthenticationPrincipal Principal principal,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<BudgetDetailDto> pageResult = budgetDetailService.getAllDetails(principal.getMemberId(), page, size);
+
+        TotalBudgetDetailResponseDto responseDto = new TotalBudgetDetailResponseDto(
+            pageResult.getContent(),
+            pageResult.getNumber(),
+            pageResult.getSize(),
+            pageResult.getTotalElements(),
+            pageResult.getTotalPages(),
+            pageResult.isLast()
+        );
+
+        return ApiResponse.success(responseDto);
+    }
 
     @Operation(summary = "날짜별 내역 조회")
     @GetMapping("/detail")

@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.store.repos;
 
 import com.grepp.spring.app.model.store.domain.Store;
+import com.grepp.spring.app.model.store.dto.DetailStorePlaceResponse;
 import com.grepp.spring.app.model.store.dto.PlaceResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +20,11 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
             "AND (:#{#categories == null || #categories.isEmpty()} = true OR s.category IN :categories)")
     List<PlaceResponse> search(@Param("location") String location,
                                @Param("categories") List<String> categories);
+
+    @Query("SELECT new com.grepp.spring.app.model.store.dto.DetailStorePlaceResponse( +" +
+            "s.storeId, s.name , s.address, s.category, s.contact, s.firstMenu, s.firstPrice, s.secondMenu, s.secondPrice, s.thirdMenu, s.thirdPrice, s.longitude, s.latitude) " +
+            "FROM Store s " +
+            "WHERE s.storeId = :storeId"
+    )
+    List<DetailStorePlaceResponse> getDetailStoreSearch (Long storeId);
 }

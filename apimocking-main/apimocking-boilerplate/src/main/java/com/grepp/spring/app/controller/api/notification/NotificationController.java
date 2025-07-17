@@ -12,6 +12,7 @@ import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import org.springframework.security.core.Authentication;
 import com.grepp.spring.app.model.auth.domain.Principal;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.grepp.spring.app.model.member.repos.MemberRepository;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -19,10 +20,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 public class NotificationController {
     private final NotificationService notificationService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final MemberRepository memberRepository;
 
-    public NotificationController(NotificationService notificationService, JwtTokenProvider jwtTokenProvider) {
+    public NotificationController(NotificationService notificationService, JwtTokenProvider jwtTokenProvider, MemberRepository memberRepository) {
         this.notificationService = notificationService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.memberRepository = memberRepository;
     }
 
     // DTO 정의
@@ -68,9 +71,11 @@ public class NotificationController {
     }
     public static class CreateNotificationRequest {
         @NotNull public Long receiverId;
-        @NotNull public String message;
+        public String message;
         @NotNull public Integer senderId;
         @NotNull public String type;
+        public String senderName; // 동적 메시지 생성을 위한 필드
+        public String title;      // 칭호명 등 동적 메시지 생성을 위한 필드
     }
     public static class ApiResponse<T> {
         public String code;
@@ -87,7 +92,25 @@ public class NotificationController {
     @PostMapping
     @Operation(summary = "알림 생성", description = "알림을 생성합니다.")
     public ResponseEntity<ApiResponse<Long>> createNotification(@RequestBody CreateNotificationRequest request) {
-        Long id = notificationService.createNotification(request.receiverId, request.message, request.senderId, request.type);
+        String message = request.message;
+        String senderName = request.senderName;
+        if ((senderName == null || senderName.isBlank()) && request.senderId != null) {
+            memberRepository.findById(Long.valueOf(request.senderId)).ifPresent(member -> {
+                // senderId가 memberId와 동일하다고 가정
+                request.senderName = member.getNickname();
+            });
+            senderName = request.senderName;
+        }
+        if (message == null || message.isBlank()) {
+            // type에 따라 동적으로 메시지 생성
+            switch (request.type.toUpperCase()) {
+                case "LIKE" -> message = String.format("%s님이 회원님의 게시글에 좋아요를 눌렀어요!", senderName != null ? senderName : "알 수 없음");
+                case "COMMENT" -> message = String.format("%s님이 회원님의 게시글에 댓글을 달았어요!", senderName != null ? senderName : "알 수 없음");
+                case "TITLE" -> message = String.format("%s 칭호를 획득했어요!", request.title != null ? request.title : "칭호");
+                default -> message = "새로운 알림이 도착했습니다.";
+            }
+        }
+        Long id = notificationService.createNotification(request.receiverId, message, request.senderId, request.type);
         return ResponseEntity.status(201).body(new ApiResponse<>("2001", "성공적으로 생성되었습니다.", id));
     }
 

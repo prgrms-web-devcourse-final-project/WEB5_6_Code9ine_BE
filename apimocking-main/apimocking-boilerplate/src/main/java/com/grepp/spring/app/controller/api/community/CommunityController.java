@@ -3,6 +3,7 @@ package com.grepp.spring.app.controller.api.community;
 import com.google.rpc.context.AttributeContext.Auth;
 import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
+import com.grepp.spring.app.model.community.dto.CommunityCommentResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostUpdateRequest;
@@ -149,18 +150,18 @@ public class CommunityController {
             .status(ResponseCode.OK.status())
             .body(ApiResponse.success(result));
     }
-//
-//    @GetMapping("/posts/{post-id}/comments")
-//    @Operation(summary = "커뮤니티 게시글별 댓글 조회")
-//    public ResponseEntity<ApiResponse<List<CommunityCommentResponse>>> getCommentsByPostId(
-//        @PathVariable("post-id") int id
-//    ) {
-//
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(comments));
-//    }
-//
+
+    @GetMapping("/posts/{post-id}/comments")
+    @Operation(summary = "커뮤니티 게시글별 댓글 조회")
+    public ResponseEntity<ApiResponse<List<CommunityCommentResponse>>> getCommentsByPostId(
+        @PathVariable("post-id") Long id
+    ) {
+        List<CommunityCommentResponse> response = communityService.getCommentsByPostId(id);
+
+        return ResponseEntity
+            .ok(ApiResponse.success(response));
+    }
+
 //    @PostMapping("/posts/{post-id}/comments")
 //    @Operation(summary = "커뮤니티 게시글 댓글 작성")
 //    public ResponseEntity<ApiResponse<Map<String, String>>> createComment(

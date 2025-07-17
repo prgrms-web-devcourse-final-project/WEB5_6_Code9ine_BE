@@ -5,7 +5,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "커뮤니티 댓글 응답 DTO")
 public record CommunityCommentResponse(
     @Schema(description = "댓글 고유식별번호", example = "0")
-    int commentId,
+    Long commentId,
+
+    @Schema(description = "사용자 고유식별번호", example = "0")
+    Long memberId,
 
     @Schema(description = "댓글 내용", example = "댓글 내용")
     String content,

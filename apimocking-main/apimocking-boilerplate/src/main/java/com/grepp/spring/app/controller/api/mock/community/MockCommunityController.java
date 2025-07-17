@@ -94,27 +94,27 @@ public class MockCommunityController {
     List<String> categories = List.of("나가게", "챌린지", "자유 게시판");
 
     List<CommunityCommentResponse> comments = List.of(
-        new CommunityCommentResponse(0, "댓글 내용0", "댓글 작성자0", "profile0.jpg", "칭호0", 1,
+        new CommunityCommentResponse(0L, 0L,"댓글 내용0", "댓글 작성자0", "profile0.jpg", "칭호0", 1,
             "2025-07-10T09:10:00", "2025-07-10T09:20:00"),
-        new CommunityCommentResponse(1, "댓글 내용1", "댓글 작성자1", "profile1.jpg", "칭호1", 2,
+        new CommunityCommentResponse(1L, 1L,"댓글 내용1", "댓글 작성자1", "profile1.jpg", "칭호1", 2,
             "2025-07-10T10:15:00", "2025-07-10T10:45:00"),
-        new CommunityCommentResponse(2, "댓글 내용2", "댓글 작성자2", "profile2.jpg", "칭호2", 4,
+        new CommunityCommentResponse(2L, 1L,"댓글 내용2", "댓글 작성자2", "profile2.jpg", "칭호2", 4,
             "2025-07-10T08:00:00", "2025-07-10T08:05:00"),
-        new CommunityCommentResponse(3, "댓글 내용3", "댓글 작성자3", "profile3.jpg", "칭호3", 8,
+        new CommunityCommentResponse(3L, 1L,"댓글 내용3", "댓글 작성자3", "profile3.jpg", "칭호3", 8,
             "2025-07-10T11:00:00", "2025-07-10T11:30:00"),
-        new CommunityCommentResponse(4, "댓글 내용4", "댓글 작성자4", "profile4.jpg", "칭호4", 1,
+        new CommunityCommentResponse(4L, 1L,"댓글 내용4", "댓글 작성자4", "profile4.jpg", "칭호4", 1,
             "2025-07-10T13:05:00", "2025-07-10T13:25:00"),
-        new CommunityCommentResponse(5, "댓글 내용5", "댓글 작성자5", "profile5.jpg", "칭호5", 5,
+        new CommunityCommentResponse(5L, 1L,"댓글 내용5", "댓글 작성자5", "profile5.jpg", "칭호5", 5,
             "2025-07-10T07:40:00", "2025-07-10T07:45:00"),
-        new CommunityCommentResponse(6, "댓글 내용6", "댓글 작성자6", "profile6.jpg", "칭호6", 7,
+        new CommunityCommentResponse(6L, 1L,"댓글 내용6", "댓글 작성자6", "profile6.jpg", "칭호6", 7,
             "2025-07-10T14:10:00", "2025-07-10T14:40:00"),
-        new CommunityCommentResponse(7, "댓글 내용7", "댓글 작성자7", "profile7.jpg", "칭호7", 4,
+        new CommunityCommentResponse(7L, 1L,"댓글 내용7", "댓글 작성자7", "profile7.jpg", "칭호7", 4,
             "2025-07-10T15:00:00", "2025-07-10T15:30:00"),
-        new CommunityCommentResponse(8, "댓글 내용8", "댓글 작성자8", "profile8.jpg", "칭호8", 4,
+        new CommunityCommentResponse(8L, 1L,"댓글 내용8", "댓글 작성자8", "profile8.jpg", "칭호8", 4,
             "2025-07-10T09:20:00", "2025-07-10T09:50:00"),
-        new CommunityCommentResponse(9, "댓글 내용9", "댓글 작성자9", "profile9.jpg", "칭호9", 1,
+        new CommunityCommentResponse(9L, 1L,"댓글 내용9", "댓글 작성자9", "profile9.jpg", "칭호9", 1,
             "2025-07-10T12:00:00", "2025-07-10T12:15:00"),
-        new CommunityCommentResponse(10, "댓글 내용10", "댓글 작성자10", "profile10.jpg", "칭호10", 4,
+        new CommunityCommentResponse(10L, 1L,"댓글 내용10", "댓글 작성자10", "profile10.jpg", "칭호10", 4,
             "2025-07-10T12:10:00", "2025-07-10T12:45:00")
     );
 

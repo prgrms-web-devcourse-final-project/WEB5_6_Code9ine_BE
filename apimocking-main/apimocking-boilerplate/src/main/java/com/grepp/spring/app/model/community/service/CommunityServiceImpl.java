@@ -2,7 +2,9 @@ package com.grepp.spring.app.model.community.service;
 
 import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
+import com.grepp.spring.app.model.community.domain.CommunityComment;
 import com.grepp.spring.app.model.community.domain.CommunityPost;
+import com.grepp.spring.app.model.community.dto.CommunityCommentResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostUpdateRequest;
@@ -211,6 +213,33 @@ public class CommunityServiceImpl implements CommunityService {
             post.getMember().getLevel() != null ? post.getMember().getLevel() : 0,
             post.getMember().getProfileImage()
         );
+    }
+
+    // 게시글 댓글 조회
+    @Override
+    @Transactional(readOnly = true)
+    public List<CommunityCommentResponse> getCommentsByPostId(Long postId) {
+
+        if (!communityRepository.existsById(postId)) {
+            throw new NotFoundException("해당 게시글이 존재하지 않습니다.");
+        }
+
+        List<CommunityComment> comments = commentRepository.findByPost_PostIdAndActivatedTrue(postId);
+
+        return comments.stream()
+            .map(comment -> new CommunityCommentResponse(
+                comment.getCommentId(),
+                comment.getMember().getMemberId(),
+                comment.getContent(),
+                comment.getMember().getNickname(),
+                comment.getMember().getProfileImage(),
+                // TODO : member 엔티티 수정되면 다시 수정해야함
+                comment.getMember().getEquippedTitle() != null ? comment.getMember().getEquippedTitle().getName() : null,
+                comment.getMember().getLevel() != null ? comment.getMember().getLevel() : 0,
+                comment.getCreatedAt().toString(),
+                comment.getModifiedAt().toString()
+            ))
+            .toList();
     }
 
 }

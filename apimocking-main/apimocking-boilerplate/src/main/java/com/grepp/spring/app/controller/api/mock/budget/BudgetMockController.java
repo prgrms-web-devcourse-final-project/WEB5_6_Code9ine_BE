@@ -1,7 +1,7 @@
 package com.grepp.spring.app.controller.api.mock.budget;
 
 import com.grepp.spring.app.model.budget.model.BudgetAnalyzeResponseDto;
-import com.grepp.spring.app.model.budget.model.BudgetCalenderResponseDto;
+import com.grepp.spring.app.model.budget.model.BudgetCalendarResponseDto;
 import com.grepp.spring.app.model.budget.model.BudgetCategorySummary;
 import com.grepp.spring.app.model.budget.model.BudgetDaySummary;
 import com.grepp.spring.app.model.budget.model.BudgetGoal;
@@ -9,6 +9,7 @@ import com.grepp.spring.app.model.budget.model.BudgetMonthlyExpense;
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,14 +24,14 @@ public class BudgetMockController {
 
     @Operation(summary = "달력 페이지 조회")
     @GetMapping("/calendar")
-    public ApiResponse<BudgetCalenderResponseDto> getMonthlySummary(@RequestParam("yearmonth") String yearmonth) {
+    public ApiResponse<BudgetCalendarResponseDto> getMonthlySummary(@RequestParam("yearmonth") String yearmonth) {
         List<BudgetDaySummary> days = List.of(
-            new BudgetDaySummary(yearmonth+"-01", BigDecimal.valueOf(50000), BigDecimal.valueOf(32000), BigDecimal.valueOf(18000)),
-            new BudgetDaySummary(yearmonth+"-02", BigDecimal.valueOf(0), BigDecimal.valueOf(28000), BigDecimal.valueOf(-28000)),
-            new BudgetDaySummary(yearmonth+"-03", BigDecimal.valueOf(10000), BigDecimal.valueOf(10000), BigDecimal.valueOf(0))
+            new BudgetDaySummary(LocalDate.parse(yearmonth + "-01"), BigDecimal.valueOf(50000), BigDecimal.valueOf(32000), BigDecimal.valueOf(18000)),
+            new BudgetDaySummary(LocalDate.parse(yearmonth+"-02"), BigDecimal.valueOf(0), BigDecimal.valueOf(28000), BigDecimal.valueOf(-28000)),
+            new BudgetDaySummary(LocalDate.parse(yearmonth+"-03"), BigDecimal.valueOf(10000), BigDecimal.valueOf(10000), BigDecimal.valueOf(0))
         );
 
-        BudgetCalenderResponseDto response = new BudgetCalenderResponseDto(
+        BudgetCalendarResponseDto response = new BudgetCalendarResponseDto(
             yearmonth,
             BigDecimal.valueOf(1250000),
             BigDecimal.valueOf(870000),

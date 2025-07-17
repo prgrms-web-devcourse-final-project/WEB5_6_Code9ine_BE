@@ -16,7 +16,7 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
             "s.contact, s.firstMenu, s.firstPrice, s.latitude, s.longitude, null) " +
             "FROM Store s " +
             "WHERE s.location = :location " +
-            "AND (:categories IS NULL OR s.category IN :categories)")
+            "AND (:#{#categories == null || #categories.isEmpty()} = true OR s.category IN :categories)")
     List<PlaceResponse> search(@Param("location") String location,
                                @Param("categories") List<String> categories);
 }

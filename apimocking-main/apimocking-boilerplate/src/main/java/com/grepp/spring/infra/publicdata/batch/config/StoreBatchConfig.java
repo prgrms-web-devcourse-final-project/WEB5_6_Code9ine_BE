@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
@@ -79,6 +80,7 @@ public class StoreBatchConfig {
 
     // json 을 dto 로 리더 (내부에 만들어둔 조건 실행)
     @Bean
+    @StepScope
     public ItemReader<StoreDto> storeItemReader() {
         return new ListItemReader<>(storeApiClient.fetchFilteredStores());
     }

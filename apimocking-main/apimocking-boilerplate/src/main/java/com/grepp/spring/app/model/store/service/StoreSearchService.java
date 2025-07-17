@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -19,23 +20,36 @@ public class StoreSearchService {
     private final StoreRepository storeRepository;
     private final LibraryRepository libraryRepository;
     private final FestivalRepository festivalRepository;
+    private static final String SEARCH_KEY = "popular_keywords";
 
     public List<PlaceResponse> search(String location, List<String> type, List<String> category) {
+
         stringRedisTemplate.opsForZSet().incrementScore("popular_keywords", location, 1);
 
         List<PlaceResponse> result = new ArrayList<>();
 
-        if (type.contains("store")) {
-            result.addAll(storeRepository.search(location, type));
+        boolean includeStore = type.contains("store") || !category.isEmpty() || type.isEmpty();
+        boolean includeFestival = type.contains("festival") || type.isEmpty();
+        boolean includeLibrary = type.contains("library") || type.isEmpty();
+
+        if (includeStore) {
+            result.addAll(storeRepository.search(location, category));
         }
-        if (type.contains("festival")) {
+
+        if (includeFestival) {
             result.addAll(festivalRepository.search(location));
         }
-        if (type.contains("library")) {
+
+        if (includeLibrary) {
             result.addAll(libraryRepository.search(location));
         }
 
         return result;
     }
 
+    public List<String> getTopKeywords() {
+        return Objects.requireNonNull(stringRedisTemplate.opsForZSet()
+                        .reverseRange(SEARCH_KEY, 0, 4))
+                .stream().toList();
+    }
 }

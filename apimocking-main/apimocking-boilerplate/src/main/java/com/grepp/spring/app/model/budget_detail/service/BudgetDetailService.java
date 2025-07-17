@@ -12,6 +12,7 @@ import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,6 +41,7 @@ public class BudgetDetailService {
 
         // Budget에 연결된 BudgetDetail 꺼내기
         List<BudgetDetailDto> details = budget.getBudgetDetails().stream()
+            .sorted(Comparator.comparing(BudgetDetail::getCreatedAt).reversed()) // 내림차순
             .map(BudgetDetailDto::from)
             .toList();
 

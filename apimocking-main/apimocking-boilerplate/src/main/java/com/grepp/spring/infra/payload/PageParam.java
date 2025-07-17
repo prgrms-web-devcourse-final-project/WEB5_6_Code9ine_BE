@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @Data
 @Schema(description = "페이지네이션 요청")
@@ -19,6 +20,6 @@ public class PageParam{
     private int size = 10;
 
     public Pageable toPageable() {
-        return PageRequest.of(page - 1, size);
+        return PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC,"createdAt"));
     }
 }

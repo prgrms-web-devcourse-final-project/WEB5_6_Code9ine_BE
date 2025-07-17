@@ -90,7 +90,7 @@ public class CommunityServiceImpl implements CommunityService {
     public List<CommunityPostDetailResponse> getPostsByCategory(String category, PageParam pageParam, Long memberId) {
         CommunityCategory categoryEnum = CommunityCategory.valueOf(category);
         Pageable pageable = pageParam.toPageable();
-        Page<CommunityPost> posts =  communityRepository.findByCategory(categoryEnum, pageable);
+        Page<CommunityPost> posts =  communityRepository.findByCategoryAndActivatedIsTrue(categoryEnum, pageable);
 
         return posts.stream()
             .map(post -> {

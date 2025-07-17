@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CommunityRepository extends JpaRepository<CommunityPost, Long> {
 
-    Page<CommunityPost> findByCategory(CommunityCategory category, Pageable pageable);
+    Page<CommunityPost> findByCategoryAndActivatedIsTrue(CommunityCategory category, Pageable pageable);
 }

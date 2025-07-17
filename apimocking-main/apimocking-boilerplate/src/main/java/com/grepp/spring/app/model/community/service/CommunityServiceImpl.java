@@ -15,6 +15,7 @@ import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.app.model.post_image.domain.PostImage;
 import com.grepp.spring.app.model.post_image.repos.PostImageRepository;
+import com.grepp.spring.app.model.post_image.service.PostImageService;
 import com.grepp.spring.infra.payload.PageParam;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class CommunityServiceImpl implements CommunityService {
 
+    private final PostImageService postImageService;
     private final MemberService memberService;
     private final CommunityRepository communityRepository;
     private final CommunityCommentRepository commentRepository;
@@ -154,38 +156,7 @@ public class CommunityServiceImpl implements CommunityService {
             post.setChallenge(null);
         }
 
-        // 기존 이미지와 새로운 이미지 요청 비교
-        List<String> requestedUrls = Optional.ofNullable(request.imageUrls()).orElse(Collections.emptyList());
-
-        List<PostImage> existingImages = postImageRepository.findByPost(post);
-        Set<String> existingUrls = existingImages.stream()
-            .map(PostImage::getImageUrl)
-            .collect(Collectors.toSet());
-
-        // 삭제한 이미지
-        List<PostImage> imagesToDelete = existingImages.stream()
-            .filter(img -> !requestedUrls.contains(img.getImageUrl()))
-            .toList();
-        postImageRepository.deleteAll(imagesToDelete);
-
-        // 새로운 이미지
-        List<String> urlsToAdd = requestedUrls.stream()
-            .filter(url -> !existingUrls.contains(url))
-            .toList();
-
-        List<PostImage> newImages = new ArrayList<>();
-        for (int i = 0; i < requestedUrls.size(); i++) {
-            String url = requestedUrls.get(i);
-            if (urlsToAdd.contains(url)) {
-                newImages.add(PostImage.builder()
-                    .post(post)
-                    .imageUrl(url)
-                    .sortOrder(i)
-                    .build());
-            }
-        }
-
-        postImageRepository.saveAll(newImages);
+        postImageService.updatePostImages(post, request.imageUrls());
     }
 
 }

@@ -44,7 +44,7 @@ public class Member {
     )
     private Long memberId;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = true, unique = true, length = 50)
     private String email;
 
     @Column(nullable = true) // 소셜 로그인 사용자를 위해 nullable = true로 변경
@@ -74,11 +74,11 @@ public class Member {
     @Column
     private String profileImage;
 
-    @Column
-    private Integer level;
+    @Column(nullable = false, columnDefinition = "integer default 1")
+    private Integer level = 1;
 
-    @Column
-    private Integer totalExp;
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private Integer totalExp = 0;
 
     @Column
     private Decimal goalAmount;
@@ -108,15 +108,12 @@ public class Member {
     @OneToMany(mappedBy = "member")
     private Set<PlaceBookmark> placeBookmarks = new HashSet<>();
 
-    // --- 소셜 로그인 관련 필드 추가 ---
-    @Column(nullable = false)
-    private String provider = "local"; // "kakao", "google", "local" 등, 기본값은 'local'
+    // --- 소셜 로그인 관련 필드 ---
+    @Column(nullable = true, unique = true)
+    private String kakaoId; // 카카오 고유 ID (providerId → kakaoId로 명확히)
 
     @Column
-    private String providerId; // 소셜 서비스에서 제공하는 고유 ID
-
-    @Column
-    private String socialEmail; // 소셜 계정의 이메일 (기존 email과 다를 수 있음)
+    private String socialEmail; // 소셜 계정의 이메일 (있을 때만)
     // ---------------------------------
 
 }

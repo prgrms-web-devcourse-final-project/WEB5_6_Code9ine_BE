@@ -17,18 +17,16 @@ import com.grepp.spring.app.model.post_image.domain.PostImage;
 import com.grepp.spring.app.model.post_image.repos.PostImageRepository;
 import com.grepp.spring.app.model.post_image.service.PostImageService;
 import com.grepp.spring.infra.payload.PageParam;
-import jakarta.transaction.Transactional;
+import com.grepp.spring.util.NotFoundException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +43,7 @@ public class CommunityServiceImpl implements CommunityService {
 
     // 커뮤니티 로그인 유저 정보
     @Override
+    @Transactional(readOnly = true)
     public CommunityUserInfoResponse getMyInfo(Long memberId) {
         Member member = memberService.getMemberById(memberId);
 
@@ -60,6 +59,7 @@ public class CommunityServiceImpl implements CommunityService {
 
     // 커뮤니티 게시글 생성
     @Override
+    @Transactional
     public void createPost(CommunityPostCreateRequest request, Member member) {
         CommunityPost post = CommunityPost.builder()
             .title(request.title())
@@ -87,6 +87,7 @@ public class CommunityServiceImpl implements CommunityService {
 
     // 커뮤니티 게시글 카테고리별 조회
     @Override
+    @Transactional(readOnly = true)
     public List<CommunityPostDetailResponse> getPostsByCategory(String category, PageParam pageParam, Long memberId) {
         CommunityCategory categoryEnum = CommunityCategory.valueOf(category);
         Pageable pageable = pageParam.toPageable();
@@ -162,6 +163,7 @@ public class CommunityServiceImpl implements CommunityService {
 
     // 게시글 삭제(soft delete)
     @Override
+    @Transactional
     public void deletePost(Long postId, Long memberId) {
         // 존재하는 게시글인지 검증
         CommunityPost post = communityRepository.findById(postId)
@@ -173,6 +175,42 @@ public class CommunityServiceImpl implements CommunityService {
         }
 
         post.unActivated();
+    }
+
+    // 게시물 단건 조회
+    @Override
+    @Transactional(readOnly = true)
+    public CommunityPostDetailResponse getPostById(Long postId, Long memberId) {
+
+        CommunityPost post = communityRepository.findByPostIdAndActivatedIsTrue(postId)
+            .orElseThrow(() -> new NotFoundException("존재하지 않거나 삭제된 게시글입니다."));
+
+        int commentCount = commentRepository.countCommentByPostId(postId);
+        int likeCount = likeRepository.countLikeByPostId(postId);
+        boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
+        boolean isBookmarked = bookmarkRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
+        // TODO : 챌린지 달성 여부는 챌린지 repository 구현된 이후 추가
+
+        return new CommunityPostDetailResponse(
+            post.getPostId(),
+            post.getMember().getMemberId(),
+            post.getCategory().name(),
+            post.getChallenge() != null ? post.getChallenge().name() : null,
+            post.getTitle(),
+            post.getCreatedAt().toString(),
+            post.getContent(),
+            post.getImages().stream().map(PostImage::getImageUrl).toList(),
+            commentCount,
+            likeCount,
+            isLiked,
+            isBookmarked,
+            false,
+            post.getMember().getNickname(),
+            // TODO : member 엔티티 수정되면 다시 수정해야함
+            post.getMember().getEquippedTitle().getName(),
+            post.getMember().getLevel() != null ? post.getMember().getLevel() : 0,
+            post.getMember().getProfileImage()
+        );
     }
 
 }

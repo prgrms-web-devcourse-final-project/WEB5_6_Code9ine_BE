@@ -135,6 +135,20 @@ public class CommunityController {
             .status(ResponseCode.OK.status())
             .body(ApiResponse.success(response));
     }
+
+    @GetMapping("/posts/{postId}")
+    @Operation(summary = "게시글 단건 조회")
+    public ResponseEntity<ApiResponse<CommunityPostDetailResponse>> getPostById(
+        @PathVariable Long postId,
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        CommunityPostDetailResponse result = communityService.getPostById(postId, memberId);
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(result));
+    }
 //
 //    @GetMapping("/posts/{post-id}/comments")
 //    @Operation(summary = "커뮤니티 게시글별 댓글 조회")

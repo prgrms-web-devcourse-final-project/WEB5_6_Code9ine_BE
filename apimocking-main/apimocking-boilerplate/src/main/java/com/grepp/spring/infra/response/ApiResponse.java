@@ -19,14 +19,21 @@ public record ApiResponse<T>(
         return new ApiResponse<>(ResponseCode.CREATED.code(), ResponseCode.CREATED.message(), data);
     }
     
+
     public static <T> ApiResponse<T> noContent() {
         return new ApiResponse<>(ResponseCode.OK.code(), ResponseCode.OK.message(), null);
     }
     
+
     public static <T> ApiResponse<T> error(ResponseCode code) {
         return new ApiResponse<>(code.code(), code.message(), null);
     }
     
+
+    public static <T> ApiResponse<T> error(ResponseCode code, String message) {
+        return new ApiResponse<>(code.code(), message, null);
+    }
+
     public static <T> ApiResponse<T> error(ResponseCode code, T data) {
         return new ApiResponse<>(code.code(), code.message(), data);
     }

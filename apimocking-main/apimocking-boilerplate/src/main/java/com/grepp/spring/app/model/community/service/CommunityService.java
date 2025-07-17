@@ -17,11 +17,14 @@ public interface CommunityService {
     void createPost(CommunityPostCreateRequest request, Member member);
 
     // 커뮤니티 게시글 카테고리별 조회
-    List<CommunityPostDetailResponse> getPostsByCategory(String category, PageParam pageParam, Long userId);
+    List<CommunityPostDetailResponse> getPostsByCategory(String category, PageParam pageParam, Long memberId);
 
     // 커뮤니티 게시글 수정
     void updatePost(Long postId, CommunityPostUpdateRequest request, Long memberId);
 
     // 커뮤니티 게시글 삭제(soft delete)
     void deletePost(Long postId, Long memberId);
+
+    // 커뮤니티 게시글 단건 조회
+    CommunityPostDetailResponse getPostById(Long postId, Long memberId);
 }

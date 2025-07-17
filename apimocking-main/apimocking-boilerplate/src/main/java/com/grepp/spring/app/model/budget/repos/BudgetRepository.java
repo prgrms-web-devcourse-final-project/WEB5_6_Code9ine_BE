@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
 
     Budget findFirstByMember(Member member);
+    Optional<Budget> findByMemberAndDate(Member member, LocalDate date);
 
     @Query(value = """
             SELECT SUM(total_income - total_expense) / COUNT(DISTINCT member_id)

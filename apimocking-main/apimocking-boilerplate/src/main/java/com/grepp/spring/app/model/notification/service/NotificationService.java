@@ -127,12 +127,16 @@ public class NotificationService {
     }
 
     // 알림 생성 (팀원들이 호출할 메서드)
-    public Long createNotification(Long receiverId, String message, Integer senderId, String type) {
+    public Long createNotification(Long receiverId, Long senderId, String type) {
+        if (senderId != null && senderId.equals(receiverId)) {
+            // 자기 자신에게는 알림 생성하지 않음
+            return null;
+        }
         Member receiver = memberRepository.findById(receiverId)
                 .orElseThrow(() -> new NotFoundException("수신자를 찾을 수 없습니다."));
         
         Notification notification = new Notification();
-        notification.setMessage(message);
+        // message는 컨트롤러에서 생성해서 setMessage로 주입
         notification.setIsRead(false);
         notification.setSenderId(senderId);
         notification.setType(type);

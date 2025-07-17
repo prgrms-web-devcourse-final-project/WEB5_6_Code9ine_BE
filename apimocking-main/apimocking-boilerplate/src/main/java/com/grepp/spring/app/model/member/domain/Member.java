@@ -4,7 +4,7 @@ import com.google.type.Decimal;
 import com.grepp.spring.app.model.attendance.domain.Attendance;
 import com.grepp.spring.app.model.budget.domain.Budget;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
-import com.grepp.spring.app.model.community_post.domain.CommunityPost;
+import com.grepp.spring.app.model.community.domain.CommunityPost;
 import com.grepp.spring.app.model.notification.domain.Notification;
 import com.grepp.spring.app.model.place_bookmark.domain.PlaceBookmark;
 import com.grepp.spring.app.model.achieved_title.domain.AchievedTitle;

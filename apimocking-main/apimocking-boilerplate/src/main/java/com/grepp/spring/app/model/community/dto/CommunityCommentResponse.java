@@ -19,8 +19,8 @@ public record CommunityCommentResponse(
     @Schema(description = "작성자 칭호", example = "칭호")
     String writerTitle,
 
-    @Schema(description = "작성자 휘장", example = "휘장")
-    String writerSymbol,
+    @Schema(description = "작성자 레벨", example = "3")
+    int writerLevel,
 
     @Schema(description = "댓글 작성일시", example = "2025-07-03T15:00:00")
     String createdAt,

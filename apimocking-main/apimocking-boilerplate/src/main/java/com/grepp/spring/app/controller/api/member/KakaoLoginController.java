@@ -13,6 +13,7 @@ import com.grepp.spring.infra.response.ResponseCode;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ import java.util.Map;
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
 @Slf4j
+@Profile("!mock")
 public class KakaoLoginController {
 
     private final KakaoOAuthClient kakaoOAuthClient;

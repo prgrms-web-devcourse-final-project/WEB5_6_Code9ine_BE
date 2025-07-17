@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,7 @@ import jakarta.validation.constraints.Size;
 
 @RestController
 @RequestMapping("/api/members")
+@Profile("!mock")
 public class MemberController {
     private final MemberService memberService;
     private final MemberRepository memberRepository;

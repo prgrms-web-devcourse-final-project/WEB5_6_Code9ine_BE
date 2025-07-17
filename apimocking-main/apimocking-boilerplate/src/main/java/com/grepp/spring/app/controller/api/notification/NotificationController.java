@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -17,6 +18,7 @@ import com.grepp.spring.app.model.member.repos.MemberRepository;
 @RestController
 @RequestMapping("/api/notifications")
 @Tag(name = "알림 API", description = "알림 관련 API")
+@Profile("!mock")
 public class NotificationController {
     private final NotificationService notificationService;
     private final JwtTokenProvider jwtTokenProvider;

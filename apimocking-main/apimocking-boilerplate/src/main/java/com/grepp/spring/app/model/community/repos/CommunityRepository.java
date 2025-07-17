@@ -4,6 +4,7 @@ import com.grepp.spring.app.model.challenge.code.CommunityCategory;
 import com.grepp.spring.app.model.community.domain.CommunityPost;
 import feign.Param;
 import jakarta.persistence.LockModeType;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,4 +24,7 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM CommunityPost p WHERE p.postId = :postId AND p.activated = true")
     Optional<CommunityPost> findActivatedPostWithLock(@Param("postId") Long postId);
+
+    // 커뮤니티 인기 게시글 조회
+    List<CommunityPost> findTop10ByActivatedIsTrueOrderByLikeCountDesc();
 }

@@ -8,6 +8,7 @@ import com.grepp.spring.app.model.community.dto.CommunityCommentResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostUpdateRequest;
+import com.grepp.spring.app.model.community.dto.CommunityTopPostResponse;
 import com.grepp.spring.app.model.community.dto.CommunityUserInfoResponse;
 import com.grepp.spring.app.model.community.service.CommunityService;
 import com.grepp.spring.app.model.member.domain.Member;
@@ -231,11 +232,13 @@ public class CommunityController {
             .body(ApiResponse.success(response));
     }
 
-//    @GetMapping("/posts/top")
-//    @Operation(summary = "커뮤니티 인기 게시글 조회")
-//    public ResponseEntity<ApiResponse<List<CommunityTopPostResponse>>> getTopPosts() {
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(topPosts));
-//    }
+    @GetMapping("/posts/top")
+    @Operation(summary = "커뮤니티 인기 게시글 조회")
+    public ResponseEntity<ApiResponse<List<CommunityTopPostResponse>>> getTopPosts() {
+        List<CommunityTopPostResponse> topPosts = communityService.getTopPosts();
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(topPosts));
+    }
 }

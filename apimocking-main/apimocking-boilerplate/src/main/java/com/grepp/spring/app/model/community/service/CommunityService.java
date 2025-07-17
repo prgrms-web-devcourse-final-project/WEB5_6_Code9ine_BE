@@ -5,6 +5,7 @@ import com.grepp.spring.app.model.community.dto.CommunityCommentResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostUpdateRequest;
+import com.grepp.spring.app.model.community.dto.CommunityTopPostResponse;
 import com.grepp.spring.app.model.community.dto.CommunityUserInfoResponse;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.infra.payload.PageParam;
@@ -30,18 +31,21 @@ public interface CommunityService {
     // 커뮤니티 게시글 단건 조회
     CommunityPostDetailResponse getPostById(Long postId, Long memberId);
 
-    // 게시글 댓글 조회
+    // 커뮤니티 게시글 댓글 조회
     List<CommunityCommentResponse> getCommentsByPostId(Long postId);
 
-    // 게시글 댓글 작성
+    // 커뮤니티 게시글 댓글 작성
     void createComment(Long postId, CommunityCommentCreateRequest request, Member member);
 
-    // 게시글 댓글 삭제
+    // 커뮤니티 게시글 댓글 삭제
     void deleteComment(Long commentId, Long memberId);
 
-    // 게시글 좋아요 활성화/비활성화
+    // 커뮤니티 게시글 좋아요 활성화/비활성화
     boolean toggleLike(Long postId, Long memberId);
 
-    // 게시글 북마크 활성화/비활성화
+    // 커뮤니티 게시글 북마크 활성화/비활성화
     boolean toggleBookmark(Long postId, Long memberId);
+
+    // 커뮤니티 인기 게시글 조회
+    List<CommunityTopPostResponse> getTopPosts();
 }

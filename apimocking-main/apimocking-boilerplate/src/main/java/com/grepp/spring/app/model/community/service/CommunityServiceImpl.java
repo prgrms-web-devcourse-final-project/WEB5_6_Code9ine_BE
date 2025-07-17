@@ -11,6 +11,7 @@ import com.grepp.spring.app.model.community.dto.CommunityCommentResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostUpdateRequest;
+import com.grepp.spring.app.model.community.dto.CommunityTopPostResponse;
 import com.grepp.spring.app.model.community.dto.CommunityUserInfoResponse;
 import com.grepp.spring.app.model.community.repos.CommunityBookmarkRepository;
 import com.grepp.spring.app.model.community.repos.CommunityCommentRepository;
@@ -58,8 +59,7 @@ public class CommunityServiceImpl implements CommunityService {
             member.getNickname(),
             member.getProfileImage(),
             member.getEquippedTitle().getName(),
-            // TODO : member 엔티티 수정되면 다시 수정해야함
-            member.getLevel() != null ? member.getLevel() : 0
+            member.getLevel()
         );
     }
 
@@ -123,9 +123,8 @@ public class CommunityServiceImpl implements CommunityService {
                     isBookmarked,
                     false,
                     post.getMember().getNickname(),
-                    // TODO : member 엔티티 수정되면 다시 수정해야함
                     post.getMember().getEquippedTitle() != null ? post.getMember().getEquippedTitle().getName() : null,
-                    post.getMember().getLevel() != null ? post.getMember().getLevel() : 0,
+                    post.getMember().getLevel(),
                     post.getMember().getProfileImage()
                 );
         })
@@ -210,9 +209,8 @@ public class CommunityServiceImpl implements CommunityService {
             isBookmarked,
             false,
             post.getMember().getNickname(),
-            // TODO : member 엔티티 수정되면 다시 수정해야함
-            post.getMember().getEquippedTitle().getName(),
-            post.getMember().getLevel() != null ? post.getMember().getLevel() : 0,
+            post.getMember().getEquippedTitle() != null ? post.getMember().getEquippedTitle().getName() : null,
+            post.getMember().getLevel(),
             post.getMember().getProfileImage()
         );
     }
@@ -234,9 +232,8 @@ public class CommunityServiceImpl implements CommunityService {
                 comment.getContent(),
                 comment.getMember().getNickname(),
                 comment.getMember().getProfileImage(),
-                // TODO : member 엔티티 수정되면 다시 수정해야함
                 comment.getMember().getEquippedTitle() != null ? comment.getMember().getEquippedTitle().getName() : null,
-                comment.getMember().getLevel() != null ? comment.getMember().getLevel() : 0,
+                comment.getMember().getLevel(),
                 comment.getCreatedAt().toString(),
                 comment.getModifiedAt().toString()
             ))
@@ -315,7 +312,9 @@ public class CommunityServiceImpl implements CommunityService {
         }
     }
 
+    // 게시물 북마크 활성화/비활성화
     @Override
+    @Transactional
     public boolean toggleBookmark(Long postId, Long memberId) {
         // 존재하는 게시물인지 검증
         CommunityPost post = getActivatedPost(postId);
@@ -343,6 +342,25 @@ public class CommunityServiceImpl implements CommunityService {
             bookmarkRepository.save(newBookmark);
             return true;
         }
+    }
+
+    // 커뮤니티 인기 게시글 조회
+    @Override
+    @Transactional(readOnly = true)
+    public List<CommunityTopPostResponse> getTopPosts() {
+        List<CommunityPost> posts = communityRepository.findTop10ByActivatedIsTrueOrderByLikeCountDesc();
+
+        return posts.stream().map(post -> new CommunityTopPostResponse(
+            post.getPostId(),
+            post.getMember().getNickname(),
+            post.getMember().getEquippedTitle() != null ? post.getMember().getEquippedTitle().getName() : null,
+            post.getMember().getLevel(),
+            post.getMember().getProfileImage(),
+            post.getTitle(),
+            post.getCreatedAt().toString(),
+            post.getCategory().toString(),
+            post.getLikeCount()
+        )).toList();
     }
 
     // 존재하는 게시물인지 검증 메서드(조회)

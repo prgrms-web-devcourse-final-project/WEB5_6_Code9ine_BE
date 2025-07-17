@@ -120,25 +120,25 @@ public class MockCommunityController {
 
     List<CommunityTopPostResponse> topPosts = List.of(
         new CommunityTopPostResponse(5L, "작성자 닉네임5", "칭호5", 1, "profile5.jpg", "게시물 제목5",
-            "2025-07-09T07:55:00"),
+            "2025-07-09T07:55:00", "FREE", 12),
         new CommunityTopPostResponse(7L, "작성자 닉네임7", "칭호7", 2, "profile7.jpg", "게시물 제목7",
-            "2025-07-09T16:40:00"),
+            "2025-07-09T16:40:00", "FREE", 146),
         new CommunityTopPostResponse(2L, "작성자 닉네임2", "칭호2", 3, "profile2.jpg", "게시물 제목2",
-            "2025-07-10T08:12:00"),
+            "2025-07-10T08:12:00","FREE",6464),
         new CommunityTopPostResponse(9L, "작성자 닉네임9", "칭호9", 1, "profile9.jpg", "게시물 제목9",
-            "2025-07-10T12:05:00"),
+            "2025-07-10T12:05:00","FREE",12312),
         new CommunityTopPostResponse(0L, "작성자 닉네임0", "칭호0", 4, "profile0.jpg", "게시물 제목0",
-            "2025-07-10T11:32:00"),
+            "2025-07-10T11:32:00","FREE",44),
         new CommunityTopPostResponse(10L, "작성자 닉네임10", "칭호10", 5, "profile10.jpg", "게시물 제목10",
-            "2025-07-09T20:20:00"),
+            "2025-07-09T20:20:00","FREE",1),
         new CommunityTopPostResponse(4L, "작성자 닉네임4", "칭호4", 7, "profile4.jpg", "게시물 제목4",
-            "2025-07-10T13:45:00"),
+            "2025-07-10T13:45:00","FREE",55),
         new CommunityTopPostResponse(6L, "작성자 닉네임6", "칭호6", 1, "profile6.jpg", "게시물 제목6",
-            "2025-07-10T10:22:00"),
+            "2025-07-10T10:22:00","FREE",73),
         new CommunityTopPostResponse(11L, "작성자 닉네임11", "칭호11", 4, "profile11.jpg", "게시물 제목11",
-            "2025-07-10T15:30:00"),
+            "2025-07-10T15:30:00","FREE",123),
         new CommunityTopPostResponse(1L, "작성자 닉네임1", "칭호1", 8, "profile1.jpg", "게시물 제목1",
-            "2025-07-09T14:55:00")
+            "2025-07-09T14:55:00","FREE",73)
     );
 
     @GetMapping("/me")

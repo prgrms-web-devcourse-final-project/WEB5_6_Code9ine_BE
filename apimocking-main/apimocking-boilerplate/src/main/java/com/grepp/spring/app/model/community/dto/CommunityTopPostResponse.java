@@ -24,8 +24,13 @@ public record CommunityTopPostResponse(
     String title,
 
     @Schema(description = "게시글 작성일", example = "2025-07-03T14:20:00")
-    String createdAt
+    String createdAt,
 
+    @Schema(description = "게시글 카테고리", example = "FREE")
+    String category,
+
+    @Schema(description = "좋아요 수", example = "55")
+    int likeCount
 ) {
 
 }

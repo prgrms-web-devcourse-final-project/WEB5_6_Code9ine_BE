@@ -246,6 +246,12 @@ public class MockCommunityController {
         @PathVariable("post-id") int id
     ) {
 
+        if (id < 0 || id > 4) {
+            return ResponseEntity
+                .status(ResponseCode.NOT_FOUND.status())
+                .body(ApiResponse.error(ResponseCode.NOT_FOUND));
+        }
+
         return ResponseEntity
             .status(ResponseCode.OK.status())
             .body(ApiResponse.success(comments));

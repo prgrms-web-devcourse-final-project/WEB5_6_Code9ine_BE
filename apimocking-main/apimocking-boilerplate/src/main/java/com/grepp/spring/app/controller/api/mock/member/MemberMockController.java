@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseCookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.PathVariable;
 
 // 멤버 로그인 Mock API 컨트롤러 (OAuth + JWT 토큰 사용)
 // 입력: MemberLoginRequest(email, password)
@@ -72,19 +73,40 @@ public class MemberMockController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // 이메일 인증 코드 발송 (EmailVerificationController 명세 반영)
     @PostMapping("/email/send")
-    public ResponseEntity<ApiResponse<MemberEmailSendResponse>> sendEmailCode(@RequestBody MemberEmailSendRequest request) {
-        // 이메일 인증(코드 발송) Mock 응답
-        MemberEmailSendResponse response = new MemberEmailSendResponse(2000, "이메일 인증 코드가 발송되었습니다.", null);
+    public ResponseEntity<ApiResponse<EmailSendResponse>> sendEmailCode(@RequestBody EmailSendRequest request) {
+        EmailSendResponse response = new EmailSendResponse("이메일 인증 코드가 발송되었습니다.");
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // 이메일 인증 코드 검증 (EmailVerificationController 명세 반영)
     @PostMapping("/email/verify")
-    public ResponseEntity<ApiResponse<MemberEmailVerifyResponse>> verifyEmailCode(@RequestBody MemberEmailVerifyRequest request) {
-        // 이메일 인증(코드 검증) Mock 응답
-        MemberEmailVerifyResponse response = new MemberEmailVerifyResponse(2000, "이메일 인증이 완료되었습니다.", null);
+    public ResponseEntity<ApiResponse<EmailVerifyResponse>> verifyEmailCode(@RequestBody EmailVerifyRequest request) {
+        // 항상 성공 응답
+        EmailVerifyResponse response = new EmailVerifyResponse("이메일 인증이 완료되었습니다.");
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    // 이메일 인증 상태 확인 (EmailVerificationController 명세 반영)
+    @GetMapping("/email/status/{email}")
+    public ResponseEntity<ApiResponse<EmailStatusResponse>> checkEmailStatus(@PathVariable String email) {
+        // 항상 인증됨으로 응답
+        EmailStatusResponse response = new EmailStatusResponse(true);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // === EmailVerificationController DTO ===
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class EmailSendRequest { private String email; }
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class EmailSendResponse { private String message; }
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class EmailVerifyRequest { private String email; private String code; }
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class EmailVerifyResponse { private String message; }
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class EmailStatusResponse { private boolean verified; }
 
     @PostMapping("/password/find")
     public ResponseEntity<ApiResponse<MemberPasswordFindResponse>> findPassword(@RequestBody MemberPasswordFindRequest request) {
@@ -117,22 +139,6 @@ public class MemberMockController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PostMapping("/login/google")
-    public ResponseEntity<ApiResponse<MemberLoginResponse>> googleLogin(@RequestBody Map<String, String> request) {
-        // OAuth 구글 로그인 Mock 응답
-        String mockGoogleAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJwcm92aWRlciI6Imdvb2dsZSIsImp0aSI6Imdvb2dsZS1hY2Nlc3MtdG9rZW4taWQiLCJpYXQiOjE3MzE5MjAwMDAsImV4cCI6MTczMTkyMzYwMH0.mock-google-signature";
-        String mockGoogleRefreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwicHJvdmlkZXIiOiJnb29nbGUiLCJqdGkiOiJnb29nbGUtcmVmcmVzaC10b2tlbi1pZCIsImlhdCI6MTczMTkyMDAwMCwiZXhwIjoxNzMxOTI4ODAwfQ.mock-google-refresh-signature";
-        
-        MemberLoginResponse.Data data = new MemberLoginResponse.Data(
-                mockGoogleAccessToken,
-                mockGoogleRefreshToken,
-                "Bearer",
-                3600L,
-                28800L
-        );
-        MemberLoginResponse response = new MemberLoginResponse(2000, "구글 로그인에 성공하였습니다.", data);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
 
     @PostMapping("/token/refresh")
     public ResponseEntity<ApiResponse<MemberLoginResponse>> refreshToken(@RequestBody MemberTokenRefreshRequest request) {
@@ -282,43 +288,6 @@ public class MemberMockController {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MemberLogoutResponse {
-        private int code;
-        private String message;
-        private Object data;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MemberEmailSendRequest {
-        private String email;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MemberEmailSendResponse {
-        private int code;
-        private String message;
-        private Object data;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MemberEmailVerifyRequest {
-        private String email;
-        private String code;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MemberEmailVerifyResponse {
         private int code;
         private String message;
         private Object data;

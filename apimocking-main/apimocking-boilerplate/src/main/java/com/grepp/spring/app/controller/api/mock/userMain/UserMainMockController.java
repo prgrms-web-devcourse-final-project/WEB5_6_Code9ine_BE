@@ -14,6 +14,11 @@ import java.util.Map;
 @Profile("mock")
 public class UserMainMockController {
 
+    @GetMapping("all-saving")
+    public ApiResponse<Map<String, Object>> getAllSaving() {
+        return ApiResponse.success(Map.of("allsaving", 46464646));
+    }
+
     // 사용자 평균 절약 금액
     @GetMapping("/average-saving")
     public ApiResponse<Map<String, Object>> getAverageSaving() {

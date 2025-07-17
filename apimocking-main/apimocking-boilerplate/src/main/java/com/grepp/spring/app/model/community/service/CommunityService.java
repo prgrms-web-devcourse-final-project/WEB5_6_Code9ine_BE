@@ -33,6 +33,9 @@ public interface CommunityService {
     // 게시글 댓글 조회
     List<CommunityCommentResponse> getCommentsByPostId(Long postId);
 
-    // 게시물 댓글 작성
+    // 게시글 댓글 작성
     void createComment(Long postId, CommunityCommentCreateRequest request, Member member);
+
+    // 게시글 댓글 삭제
+    void deleteComment(Long commentId, Long memberId);
 }

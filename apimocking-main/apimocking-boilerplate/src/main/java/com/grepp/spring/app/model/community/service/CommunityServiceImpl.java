@@ -258,6 +258,11 @@ public class CommunityServiceImpl implements CommunityService {
         commentRepository.save(comment);
     }
 
+    @Override
+    public void deleteComment(Long commentId, Long memberId) {
+
+    }
+
     // 존재하는 게시물인지 검증 메서드
     private CommunityPost getActivatedPost(Long postId) {
         return communityRepository.findByPostIdAndActivatedIsTrue(postId)

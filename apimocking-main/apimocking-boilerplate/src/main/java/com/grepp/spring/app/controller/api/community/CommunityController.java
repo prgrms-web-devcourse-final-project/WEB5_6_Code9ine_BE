@@ -181,26 +181,22 @@ public class CommunityController {
             .body(ApiResponse.successToCreate(response));
     }
 
-//    @PatchMapping("/comments/{comment-id}/delete")
-//    @Operation(summary = "커뮤니티 댓글 삭제")
-//    public ResponseEntity<ApiResponse<Map<String, String>>> deleteComment(
-//        @PathVariable("comment-id") int id
-//    ) {
-//
-//        if (id < 0 || id > 4) {
-//            return ResponseEntity
-//                .status(ResponseCode.NOT_FOUND.status())
-//                .body(ApiResponse.error(ResponseCode.NOT_FOUND));
-//        }
-//
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "댓글이 삭제되었습니다.");
-//
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(response));
-//    }
-//
+    @PatchMapping("/comments/{comment-id}/delete")
+    @Operation(summary = "커뮤니티 댓글 삭제")
+    public ResponseEntity<ApiResponse<Map<String, String>>> deleteComment(
+        @PathVariable("comment-id") Long id,
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        communityService.deleteComment(id, memberId);
+
+        Map<String, String> response = Map.of("message", "댓글이 삭제되었습니다.");
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(response));
+    }
+
 //    @PatchMapping("/posts/{post-id}/like")
 //    @Operation(summary = "커뮤니티 게시글 좋아요 활성화/비활성화", description = "현재는 '좋아요가 등록되었습니다'만 뜹니다")
 //    public ResponseEntity<ApiResponse<Map<String, String>>> toggleLike(

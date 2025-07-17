@@ -41,4 +41,7 @@ public interface CommunityService {
 
     // 게시글 좋아요 활성화/비활성화
     boolean toggleLike(Long postId, Long memberId);
+
+    // 게시글 북마크 활성화/비활성화
+    boolean toggleBookmark(Long postId, Long memberId);
 }

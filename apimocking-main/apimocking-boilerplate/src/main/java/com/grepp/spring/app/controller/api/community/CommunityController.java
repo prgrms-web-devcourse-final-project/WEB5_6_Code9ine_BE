@@ -214,25 +214,23 @@ public class CommunityController {
             .body(ApiResponse.success(response));
     }
 
-//    @PatchMapping("/posts/{post-id}/bookmark")
-//    @Operation(summary = "커뮤니티 게시글 북마크 활성화/비활성화", description = "현재는 '북마크가 등록되었습니다'만 뜹니다")
-//    public ResponseEntity<ApiResponse<Map<String, String>>> toggleBookmark(
-//        @PathVariable("post-id") int id
-//    ) {
-//        if (id < 0 || id > 4) {
-//            return ResponseEntity
-//                .status(ResponseCode.NOT_FOUND.status())
-//                .body(ApiResponse.error(ResponseCode.NOT_FOUND));
-//        }
-//
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "북마크가 등록되었습니다.");
-//
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(response));
-//    }
-//
+    @PatchMapping("/posts/{post-id}/bookmark")
+    @Operation(summary = "커뮤니티 게시글 북마크 활성화/비활성화")
+    public ResponseEntity<ApiResponse<Map<String, String>>> toggleBookmark(
+        @PathVariable("post-id") Long id,
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        boolean isBookmarked = communityService.toggleBookmark(id, memberId);
+
+        String msg = isBookmarked ? "북마크가 등록되었습니다." : "북마크가 해제되었습니다.";
+        Map<String, String> response = Map.of("message", msg);
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(response));
+    }
+
 //    @GetMapping("/posts/top")
 //    @Operation(summary = "커뮤니티 인기 게시글 조회")
 //    public ResponseEntity<ApiResponse<List<CommunityTopPostResponse>>> getTopPosts() {

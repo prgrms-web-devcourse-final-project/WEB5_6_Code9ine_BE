@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.community.service;
 
 import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
+import com.grepp.spring.app.model.community.domain.CommunityBookmark;
 import com.grepp.spring.app.model.community.domain.CommunityComment;
 import com.grepp.spring.app.model.community.domain.CommunityLike;
 import com.grepp.spring.app.model.community.domain.CommunityPost;
@@ -101,7 +102,7 @@ public class CommunityServiceImpl implements CommunityService {
         return posts.stream()
             .map(post -> {
                 Long postId = post.getPostId();
-                int commentCount = commentRepository.countCommentByPostId(postId);
+                int commentCount = commentRepository.countByPost_PostIdAndActivatedTrue(postId);
                 int likeCount = likeRepository.countLikeByPost_PostIdAndActivatedTrue(postId);
                 boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
                 boolean isBookmarked = bookmarkRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
@@ -188,7 +189,7 @@ public class CommunityServiceImpl implements CommunityService {
         // 존재하는 게시물인지 검증
         CommunityPost post = getActivatedPost(postId);
 
-        int commentCount = commentRepository.countCommentByPostId(postId);
+        int commentCount = commentRepository.countByPost_PostIdAndActivatedTrue(postId);
         int likeCount = likeRepository.countLikeByPost_PostIdAndActivatedTrue(postId);
         boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
         boolean isBookmarked = bookmarkRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
@@ -310,6 +311,36 @@ public class CommunityServiceImpl implements CommunityService {
                 .build();
             likeRepository.save(newLike);
             post.setLikeCount(post.getLikeCount() + 1);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean toggleBookmark(Long postId, Long memberId) {
+        // 존재하는 게시물인지 검증
+        CommunityPost post = getActivatedPost(postId);
+
+        // 북마크 활성화 여부 확인
+        Optional<CommunityBookmark> existingBookmark = bookmarkRepository.findByPost_PostIdAndMember_MemberId(postId, memberId);
+
+        if (existingBookmark.isPresent()) {
+            CommunityBookmark bookmark = existingBookmark.get();
+            if (bookmark.getActivated()) {
+                // 활성화 → 비활성화
+                bookmark.unActivated();
+                return false;
+            } else {
+                // 비활성화 → 활성화
+                bookmark.activate();
+                return true;
+            }
+        } else {
+            // 북마크가 없는 경우 새로 생성
+            CommunityBookmark newBookmark = CommunityBookmark.builder()
+                .post(post)
+                .member(memberService.getMemberById(memberId))
+                .build();
+            bookmarkRepository.save(newBookmark);
             return true;
         }
     }

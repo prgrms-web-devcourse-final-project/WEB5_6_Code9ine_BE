@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.budget_detail.repos;
 
 import com.grepp.spring.app.model.budget.domain.Budget;
+import com.grepp.spring.app.model.budget.model.BudgetCategorySummary;
 import com.grepp.spring.app.model.budget_detail.domain.BudgetDetail;
 import feign.Param;
 import java.time.LocalDate;
@@ -50,4 +51,21 @@ public interface BudgetDetailRepository extends JpaRepository<BudgetDetail, Long
         @Param("today") LocalDate today,
         Pageable pageable
     );
+
+
+    @Query("""
+    SELECT new com.grepp.spring.app.model.budget.model.BudgetCategorySummary(
+        d.category,
+        SUM(d.price)
+    )
+    FROM BudgetDetail d
+    WHERE d.type = '지출'
+      AND d.budget.member.memberId = :memberId
+      AND d.budget.date BETWEEN :start AND :end
+    GROUP BY d.category
+""")
+    List<BudgetCategorySummary> findMonthlyCategoryExpense(
+        @Param("memberId") Long memberId,
+        @Param("startDate") LocalDate start,
+        @Param("endDate") LocalDate end);
 }

@@ -15,7 +15,6 @@ import lombok.Setter;
 public class BudgetGoal {
 
     private String itemName;
-    private String itemImage;
-    private BigDecimal itemPrice;
+    private Decimal itemPrice;
 
 }

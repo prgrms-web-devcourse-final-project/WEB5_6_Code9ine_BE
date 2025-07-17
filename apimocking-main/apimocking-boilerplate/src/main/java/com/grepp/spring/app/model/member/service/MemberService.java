@@ -89,9 +89,7 @@ public class MemberService {
         memberDTO.setLevel(member.getLevel());
         memberDTO.setTotalExp(member.getTotalExp());
         // 소셜 로그인 관련 필드 매핑
-        memberDTO.setProvider(member.getProvider());
-        memberDTO.setProviderId(member.getProviderId());
-        memberDTO.setSocialEmail(member.getSocialEmail());
+        memberDTO.setKakaoId(member.getKakaoId());
         return memberDTO;
     }
 
@@ -109,9 +107,7 @@ public class MemberService {
         member.setLevel(memberDTO.getLevel());
         member.setTotalExp(memberDTO.getTotalExp());
         // 소셜 로그인 관련 필드 매핑
-        member.setProvider(memberDTO.getProvider());
-        member.setProviderId(memberDTO.getProviderId());
-        member.setSocialEmail(memberDTO.getSocialEmail());
+        member.setKakaoId(memberDTO.getKakaoId());
         return member;
     }
 
@@ -122,13 +118,13 @@ public class MemberService {
     // --- 소셜 로그인 관련 메서드 추가 ---
     
     // provider와 providerId로 소셜 계정 조회
-    public java.util.Optional<Member> findByProviderAndProviderId(String provider, String providerId) {
-        return memberRepository.findByProviderAndProviderId(provider, providerId);
+    public java.util.Optional<Member> findByKakaoId(String kakaoId) {
+        return memberRepository.findByKakaoId(kakaoId);
     }
     
     // provider와 providerId로 소셜 계정 존재 여부 확인
-    public boolean existsByProviderAndProviderId(String provider, String providerId) {
-        return memberRepository.existsByProviderAndProviderId(provider, providerId);
+    public boolean existsByKakaoId(String kakaoId) {
+        return memberRepository.existsByKakaoId(kakaoId);
     }
     
     // 소셜 이메일로 계정 조회
@@ -144,7 +140,7 @@ public class MemberService {
     // 카카오 로그인 처리 메서드
     public Long processKakaoLogin(String email, String nickname, Long kakaoId) {
         // 카카오 ID로 기존 회원 조회
-        java.util.Optional<Member> existingMember = memberRepository.findByProviderAndProviderId("kakao", kakaoId.toString());
+        java.util.Optional<Member> existingMember = memberRepository.findByKakaoId(kakaoId.toString());
         
         if (existingMember.isPresent()) {
             // 기존 카카오 회원이면 로그인 처리
@@ -156,8 +152,6 @@ public class MemberService {
         if (memberByEmail.isPresent()) {
             // 기존 이메일 회원이면 소셜 정보 추가
             Member member = memberByEmail.get();
-            member.setProvider("kakao");
-            member.setProviderId(kakaoId.toString());
             member.setSocialEmail(email);
             memberRepository.save(member);
             return member.getMemberId();
@@ -168,13 +162,7 @@ public class MemberService {
         newMember.setEmail(email);
         newMember.setNickname(nickname);
         newMember.setName(nickname); // 카카오 닉네임을 이름으로 사용
-        newMember.setProvider("kakao");
-        newMember.setProviderId(kakaoId.toString());
-        newMember.setSocialEmail(email);
-        newMember.setRole("ROLE_USER");
-        newMember.setActivated(true);
-        newMember.setLevel(1);
-        newMember.setTotalExp(0);
+        newMember.setKakaoId(kakaoId.toString());
         
         return memberRepository.save(newMember).getMemberId();
     }

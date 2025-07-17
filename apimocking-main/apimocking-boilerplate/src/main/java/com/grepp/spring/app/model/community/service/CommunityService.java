@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.community.service;
 
+import com.grepp.spring.app.model.community.dto.CommunityCommentCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityCommentResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
@@ -31,4 +32,7 @@ public interface CommunityService {
 
     // 게시글 댓글 조회
     List<CommunityCommentResponse> getCommentsByPostId(Long postId);
+
+    // 게시물 댓글 작성
+    void createComment(Long postId, CommunityCommentCreateRequest request, Member member);
 }

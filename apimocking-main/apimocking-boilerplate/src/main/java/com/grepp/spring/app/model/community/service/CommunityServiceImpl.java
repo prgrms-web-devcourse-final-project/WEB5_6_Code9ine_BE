@@ -4,6 +4,7 @@ import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
 import com.grepp.spring.app.model.community.domain.CommunityComment;
 import com.grepp.spring.app.model.community.domain.CommunityPost;
+import com.grepp.spring.app.model.community.dto.CommunityCommentCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityCommentResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
@@ -133,8 +134,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Transactional
     public void updatePost(Long postId, CommunityPostUpdateRequest request, Long memberId) {
         // 존재하는 게시글인지 검증
-        CommunityPost post = communityRepository.findById(postId)
-            .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+        CommunityPost post = getActivatedPost(postId);
 
         // 해당 게시글 작성자인지 검증
         if (!post.getMember().getMemberId().equals(memberId)) {
@@ -168,8 +168,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Transactional
     public void deletePost(Long postId, Long memberId) {
         // 존재하는 게시글인지 검증
-        CommunityPost post = communityRepository.findById(postId)
-            .orElseThrow(() -> new IllegalArgumentException("해당 게시물이 존재하지 않습니다."));
+        CommunityPost post = getActivatedPost(postId);
 
         // 해당 게시글 작성자인지 검증
         if (!post.getMember().getMemberId().equals(memberId)) {
@@ -184,8 +183,8 @@ public class CommunityServiceImpl implements CommunityService {
     @Transactional(readOnly = true)
     public CommunityPostDetailResponse getPostById(Long postId, Long memberId) {
 
-        CommunityPost post = communityRepository.findByPostIdAndActivatedIsTrue(postId)
-            .orElseThrow(() -> new NotFoundException("존재하지 않거나 삭제된 게시글입니다."));
+        // 존재하는 게시물인지 검증
+        CommunityPost post = getActivatedPost(postId);
 
         int commentCount = commentRepository.countCommentByPostId(postId);
         int likeCount = likeRepository.countLikeByPostId(postId);
@@ -220,9 +219,8 @@ public class CommunityServiceImpl implements CommunityService {
     @Transactional(readOnly = true)
     public List<CommunityCommentResponse> getCommentsByPostId(Long postId) {
 
-        if (!communityRepository.existsById(postId)) {
-            throw new NotFoundException("해당 게시글이 존재하지 않습니다.");
-        }
+        // 존재하는 게시물인지 검증
+        CommunityPost post = getActivatedPost(postId);
 
         List<CommunityComment> comments = commentRepository.findByPost_PostIdAndActivatedTrue(postId);
 
@@ -240,6 +238,30 @@ public class CommunityServiceImpl implements CommunityService {
                 comment.getModifiedAt().toString()
             ))
             .toList();
+    }
+
+    // 게시물 댓글 작성
+    @Override
+    @Transactional
+    public void createComment(Long postId, CommunityCommentCreateRequest request, Member member) {
+
+        // 존재하는 게시물인지 검증
+        CommunityPost post = getActivatedPost(postId);
+
+        // 댓글 생성 및 저장
+        CommunityComment comment = CommunityComment.builder()
+            .post(post)
+            .member(member)
+            .content(request.content())
+            .build();
+
+        commentRepository.save(comment);
+    }
+
+    // 존재하는 게시물인지 검증 메서드
+    private CommunityPost getActivatedPost(Long postId) {
+        return communityRepository.findByPostIdAndActivatedIsTrue(postId)
+            .orElseThrow(() -> new NotFoundException("존재하지 않거나 삭제된 게시글입니다."));
     }
 
 }

@@ -3,6 +3,7 @@ package com.grepp.spring.app.controller.api.community;
 import com.google.rpc.context.AttributeContext.Auth;
 import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
+import com.grepp.spring.app.model.community.dto.CommunityCommentCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityCommentResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
@@ -162,26 +163,24 @@ public class CommunityController {
             .ok(ApiResponse.success(response));
     }
 
-//    @PostMapping("/posts/{post-id}/comments")
-//    @Operation(summary = "커뮤니티 게시글 댓글 작성")
-//    public ResponseEntity<ApiResponse<Map<String, String>>> createComment(
-//        @PathVariable("post-id") int id,
-//        @RequestBody @Valid CommunityCommentCreateRequest request
-//    ) {
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "댓글이 생성되었습니다.");
-//
-//        if (id < 0 || id > 4) {
-//            return ResponseEntity
-//                .status(ResponseCode.NOT_FOUND.status())
-//                .body(ApiResponse.error(ResponseCode.NOT_FOUND));
-//        }
-//
-//        return ResponseEntity
-//            .status(ResponseCode.CREATED.status())
-//            .body(ApiResponse.successToCreate(response));
-//    }
-//
+    @PostMapping("/posts/{post-id}/comments")
+    @Operation(summary = "커뮤니티 게시글 댓글 작성")
+    public ResponseEntity<ApiResponse<Map<String, String>>> createComment(
+        @PathVariable("post-id") Long id,
+        @RequestBody @Valid CommunityCommentCreateRequest request,
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        Member member = memberService.getMemberById(memberId);
+
+        communityService.createComment(id, request, member);
+        Map<String, String> response = Map.of("message", "댓글이 생성되었습니다.");
+
+        return ResponseEntity
+            .status(ResponseCode.CREATED.status())
+            .body(ApiResponse.successToCreate(response));
+    }
+
 //    @PatchMapping("/comments/{comment-id}/delete")
 //    @Operation(summary = "커뮤니티 댓글 삭제")
 //    public ResponseEntity<ApiResponse<Map<String, String>>> deleteComment(

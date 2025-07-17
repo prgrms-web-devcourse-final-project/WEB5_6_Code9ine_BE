@@ -36,7 +36,7 @@ public class CommunityPost extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JoinColumn(name = "post_id", nullable = false)
+    @Column(name = "post_id", nullable = false)
     private Long postId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -48,6 +48,12 @@ public class CommunityPost extends BaseEntity {
 
     @Column(nullable = false)
     private String content;
+
+    @Column(nullable = false)
+    private int likeCount = 0;
+
+    @Column(nullable = false)
+    private int commentCount = 0;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

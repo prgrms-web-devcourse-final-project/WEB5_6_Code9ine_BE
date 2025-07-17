@@ -3,6 +3,7 @@ package com.grepp.spring.app.model.community.service;
 import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
 import com.grepp.spring.app.model.community.domain.CommunityComment;
+import com.grepp.spring.app.model.community.domain.CommunityLike;
 import com.grepp.spring.app.model.community.domain.CommunityPost;
 import com.grepp.spring.app.model.community.dto.CommunityCommentCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityCommentResponse;
@@ -23,6 +24,7 @@ import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.util.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -100,7 +102,7 @@ public class CommunityServiceImpl implements CommunityService {
             .map(post -> {
                 Long postId = post.getPostId();
                 int commentCount = commentRepository.countCommentByPostId(postId);
-                int likeCount = likeRepository.countLikeByPostId(postId);
+                int likeCount = likeRepository.countLikeByPost_PostIdAndActivatedTrue(postId);
                 boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
                 boolean isBookmarked = bookmarkRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
                 // TODO : 챌린지 달성 여부는 챌린지 repository 구현된 이후 추가
@@ -187,7 +189,7 @@ public class CommunityServiceImpl implements CommunityService {
         CommunityPost post = getActivatedPost(postId);
 
         int commentCount = commentRepository.countCommentByPostId(postId);
-        int likeCount = likeRepository.countLikeByPostId(postId);
+        int likeCount = likeRepository.countLikeByPost_PostIdAndActivatedTrue(postId);
         boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
         boolean isBookmarked = bookmarkRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
         // TODO : 챌린지 달성 여부는 챌린지 repository 구현된 이후 추가
@@ -246,7 +248,7 @@ public class CommunityServiceImpl implements CommunityService {
     public void createComment(Long postId, CommunityCommentCreateRequest request, Member member) {
 
         // 존재하는 게시물인지 검증
-        CommunityPost post = getActivatedPost(postId);
+        CommunityPost post = getActivatedPostWithLock(postId);
 
         // 댓글 생성 및 저장
         CommunityComment comment = CommunityComment.builder()
@@ -256,9 +258,12 @@ public class CommunityServiceImpl implements CommunityService {
             .build();
 
         commentRepository.save(comment);
+        post.setCommentCount(post.getCommentCount() + 1);
     }
 
+    // 게시물 댓글 삭제
     @Override
+    @Transactional
     public void deleteComment(Long commentId, Long memberId) {
 
         // 존재하는 댓글인지 검증
@@ -270,11 +275,54 @@ public class CommunityServiceImpl implements CommunityService {
         }
 
         comment.unActivated();
+        CommunityPost post = getActivatedPostWithLock(comment.getPost().getPostId());
+        post.setCommentCount(Math.max(0, post.getCommentCount() - 1));
     }
 
-    // 존재하는 게시물인지 검증 메서드
+    // 게시물 좋아요 활성화/비활성화
+    @Override
+    @Transactional
+    public boolean toggleLike(Long postId, Long memberId) {
+        // 존재하는 게시물인지 검증
+        CommunityPost post = getActivatedPostWithLock(postId);
+
+        // 좋아요 활성화 여부 확인
+        Optional<CommunityLike> existingLike = likeRepository.findByPost_PostIdAndMember_MemberId(postId, memberId);
+
+        if (existingLike.isPresent()) {
+            CommunityLike like = existingLike.get();
+            if (like.getActivated()) {
+                // 활성화 → 비활성화
+                like.unActivated();
+                post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
+                return false;
+            } else {
+                // 비활성화 → 활성화
+                like.activate();
+                post.setLikeCount(post.getLikeCount() + 1);
+                return true;
+            }
+        } else {
+            // 좋아요가 없는 경우 새로 생성
+            CommunityLike newLike = CommunityLike.builder()
+                .post(post)
+                .member(memberService.getMemberById(memberId))
+                .build();
+            likeRepository.save(newLike);
+            post.setLikeCount(post.getLikeCount() + 1);
+            return true;
+        }
+    }
+
+    // 존재하는 게시물인지 검증 메서드(조회)
     private CommunityPost getActivatedPost(Long postId) {
         return communityRepository.findByPostIdAndActivatedIsTrue(postId)
+            .orElseThrow(() -> new NotFoundException("존재하지 않거나 삭제된 게시글입니다."));
+    }
+
+    // 존재하는 게시물인지 검증 메서드(변경, 락)
+    private CommunityPost getActivatedPostWithLock(Long postId) {
+        return communityRepository.findActivatedPostWithLock(postId)
             .orElseThrow(() -> new NotFoundException("존재하지 않거나 삭제된 게시글입니다."));
     }
 

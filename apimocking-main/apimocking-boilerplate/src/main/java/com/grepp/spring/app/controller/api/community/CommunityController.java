@@ -85,7 +85,7 @@ public class CommunityController {
     }
 
     @PostMapping("/posts")
-    @Operation(summary = "커뮤니티 게시글 생성")
+    @Operation(summary = "커뮤니티 게시글 생성", description = "카테고리 : MY_STORE, CHALLENGE, FREE<br/> 챌린지 카테고리 : NO_MONEY, KIND_CONSUMER, DETECTIVE, MASTER,COOK_KING ")
     public ResponseEntity<ApiResponse<Map<String, String>>> createPost(
         @RequestBody @Valid CommunityPostCreateRequest request,
         @AuthenticationPrincipal Principal principal
@@ -197,26 +197,23 @@ public class CommunityController {
             .body(ApiResponse.success(response));
     }
 
-//    @PatchMapping("/posts/{post-id}/like")
-//    @Operation(summary = "커뮤니티 게시글 좋아요 활성화/비활성화", description = "현재는 '좋아요가 등록되었습니다'만 뜹니다")
-//    public ResponseEntity<ApiResponse<Map<String, String>>> toggleLike(
-//        @PathVariable("post-id") int id
-//    ) {
-//
-//        if (id < 0 || id > 4) {
-//            return ResponseEntity
-//                .status(ResponseCode.NOT_FOUND.status())
-//                .body(ApiResponse.error(ResponseCode.NOT_FOUND));
-//        }
-//
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "좋아요가 등록되었습니다.");
-//
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(response));
-//    }
-//
+    @PatchMapping("/posts/{post-id}/like")
+    @Operation(summary = "커뮤니티 게시글 좋아요 활성화/비활성화")
+    public ResponseEntity<ApiResponse<Map<String, String>>> toggleLike(
+        @PathVariable("post-id") Long id,
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        boolean isLiked = communityService.toggleLike(id, memberId);
+
+        String msg = isLiked ? "좋아요가 등록되었습니다." : "좋아요가 해제되었습니다.";
+        Map<String, String> response = Map.of("message", msg);
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(response));
+    }
+
 //    @PatchMapping("/posts/{post-id}/bookmark")
 //    @Operation(summary = "커뮤니티 게시글 북마크 활성화/비활성화", description = "현재는 '북마크가 등록되었습니다'만 뜹니다")
 //    public ResponseEntity<ApiResponse<Map<String, String>>> toggleBookmark(

@@ -261,6 +261,15 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     public void deleteComment(Long commentId, Long memberId) {
 
+        // 존재하는 댓글인지 검증
+        CommunityComment comment = getActivatedComment(commentId);
+
+        // 해당 댓글 작성자인지 검증
+        if (!comment.getMember().getMemberId().equals(memberId)) {
+            throw new AuthorizationDeniedException("댓글 삭제 권한이 없습니다.");
+        }
+
+        comment.unActivated();
     }
 
     // 존재하는 게시물인지 검증 메서드
@@ -269,4 +278,9 @@ public class CommunityServiceImpl implements CommunityService {
             .orElseThrow(() -> new NotFoundException("존재하지 않거나 삭제된 게시글입니다."));
     }
 
+    // 존재하는 댓글인지 검증 메서드
+    private CommunityComment getActivatedComment(Long commentId) {
+        return commentRepository.findByCommentIdAndActivatedTrue(commentId)
+            .orElseThrow(() -> new NotFoundException("존재하지 않거나 이미 삭제된 댓글입니다."));
+    }
 }

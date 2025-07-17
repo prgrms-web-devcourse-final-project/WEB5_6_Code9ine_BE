@@ -1,6 +1,7 @@
 package com.grepp.spring.app.controller.api.search;
 
 import com.grepp.spring.app.model.store.dto.PlaceResponse;
+import com.grepp.spring.app.model.store.dto.RegionResponse;
 import com.grepp.spring.app.model.store.service.StoreSearchService;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
@@ -60,9 +61,9 @@ public class SearchController {
     }
 
     @GetMapping("/top")
-    public ResponseEntity<ApiResponse<List<String>>> getTopKeywords() {
+    public ResponseEntity<ApiResponse<List<RegionResponse>>> getTopKeywords() {
         try {
-            List<String> keywords = storeSearchService.getTopKeywords();
+            List<RegionResponse> keywords = storeSearchService.getTopKeywords();
             return ResponseEntity.ok(ApiResponse.success(keywords));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

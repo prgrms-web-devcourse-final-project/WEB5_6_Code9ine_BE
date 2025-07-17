@@ -3,14 +3,13 @@ package com.grepp.spring.app.model.store.service;
 import com.grepp.spring.app.model.festival.repos.FestivalRepository;
 import com.grepp.spring.app.model.library.repos.LibraryRepository;
 import com.grepp.spring.app.model.store.dto.PlaceResponse;
+import com.grepp.spring.app.model.store.dto.RegionResponse;
 import com.grepp.spring.app.model.store.repos.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -47,9 +46,10 @@ public class StoreSearchService {
         return result;
     }
 
-    public List<String> getTopKeywords() {
-        return Objects.requireNonNull(stringRedisTemplate.opsForZSet()
-                        .reverseRange(SEARCH_KEY, 0, 4))
-                .stream().toList();
+    public List<RegionResponse> getTopKeywords() {
+        return Optional.ofNullable(stringRedisTemplate.opsForZSet().reverseRange(SEARCH_KEY, 0, 4))
+                .orElse(Set.of()).stream()
+                .map(RegionResponse::new) // 혹은 keyword -> new RegionResponse(keyword)
+                .toList();
     }
 }

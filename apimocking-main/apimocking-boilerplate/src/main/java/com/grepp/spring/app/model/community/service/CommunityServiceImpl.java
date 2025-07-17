@@ -19,6 +19,7 @@ import com.grepp.spring.app.model.community.repos.CommunityLikeRepository;
 import com.grepp.spring.app.model.community.repos.CommunityRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.service.MemberService;
+import com.grepp.spring.app.model.notification.service.NotificationService;
 import com.grepp.spring.app.model.post_image.domain.PostImage;
 import com.grepp.spring.app.model.post_image.repos.PostImageRepository;
 import com.grepp.spring.app.model.post_image.service.PostImageService;
@@ -42,6 +43,7 @@ public class CommunityServiceImpl implements CommunityService {
 
     private final PostImageService postImageService;
     private final MemberService memberService;
+    private final NotificationService notificationService;
     private final CommunityRepository communityRepository;
     private final CommunityCommentRepository commentRepository;
     private final CommunityLikeRepository likeRepository;
@@ -257,6 +259,12 @@ public class CommunityServiceImpl implements CommunityService {
 
         commentRepository.save(comment);
         post.setCommentCount(post.getCommentCount() + 1);
+
+        // 알림 생성
+        Long receiverId = post.getMember().getMemberId();
+        Long senderId = member.getMemberId();
+
+        notificationService.createNotification(receiverId, senderId, "COMMENT");
     }
 
     // 게시물 댓글 삭제
@@ -298,6 +306,8 @@ public class CommunityServiceImpl implements CommunityService {
                 // 비활성화 → 활성화
                 like.activate();
                 post.setLikeCount(post.getLikeCount() + 1);
+                // 알림 생성
+                notificationService.createNotification(post.getMember().getMemberId(), memberId, "LIKE");
                 return true;
             }
         } else {
@@ -308,6 +318,7 @@ public class CommunityServiceImpl implements CommunityService {
                 .build();
             likeRepository.save(newLike);
             post.setLikeCount(post.getLikeCount() + 1);
+            notificationService.createNotification(post.getMember().getMemberId(), memberId, "LIKE");
             return true;
         }
     }

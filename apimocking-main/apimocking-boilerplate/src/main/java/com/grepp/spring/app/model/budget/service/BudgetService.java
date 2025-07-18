@@ -68,7 +68,11 @@ public class BudgetService {
         LocalDate startOfMonth = currentYearMonth.atDay(1);
         LocalDate endOfMonth = currentYearMonth.atEndOfMonth();
         
-        List<Budget> monthlyBudgets = budgetRepository.findByMember_MemberIdAndDateBetween(memberId, startOfMonth, endOfMonth);
+        // Member 객체를 먼저 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException("Member not found"));
+        
+        List<Budget> monthlyBudgets = budgetRepository.findAllByMemberAndDateBetweenOrderByDateAsc(member, startOfMonth, endOfMonth);
         
         BigDecimal totalIncome = BigDecimal.ZERO;
         BigDecimal totalExpense = BigDecimal.ZERO;

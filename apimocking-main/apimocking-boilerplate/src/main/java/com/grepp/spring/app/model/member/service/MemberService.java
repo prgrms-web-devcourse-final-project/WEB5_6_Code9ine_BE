@@ -190,9 +190,8 @@ public class MemberService {
             referencedWarning.addParam(memberAttendance.getAttendanceId());
             return referencedWarning;
         }
-        final java.util.Optional<Budget> memberBudgetOpt = budgetRepository.findFirstByMember(member);
-        if (memberBudgetOpt.isPresent()) {
-            Budget memberBudget = memberBudgetOpt.get();
+        final Budget memberBudget = budgetRepository.findFirstByMember(member);
+        if (memberBudget != null) {
             referencedWarning.setKey("member.budget.member.referenced");
             referencedWarning.addParam(memberBudget.getBudgetId());
             return referencedWarning;

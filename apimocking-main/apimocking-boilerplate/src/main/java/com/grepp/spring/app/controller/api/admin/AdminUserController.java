@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -38,4 +39,18 @@ public class AdminUserController {
             .status(ResponseCode.OK.status())
             .body(ApiResponse.success(result));
     }
+
+    @GetMapping("/search")
+    @Operation(summary = "관리자 유저 닉네임으로 검색")
+    public ResponseEntity<ApiResponse<AdminUserResponse>> getUserByNickname(
+        @RequestParam String nickname
+    ) {
+        AdminUserResponse result = adminService.getUserByNickname(nickname);
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(result));
+    }
+
+
 }

@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.member.repos;
 
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.model.TopSaversResponse;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -49,4 +50,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     // 관리자 모든 유저 조회
     Page<Member> findByRoleEquals(String role, Pageable pageable);
+
+    // 관리자 유저 닉네임으로 검색
+    Optional<Member> findByNicknameAndRole(String nickname, String role);
 }

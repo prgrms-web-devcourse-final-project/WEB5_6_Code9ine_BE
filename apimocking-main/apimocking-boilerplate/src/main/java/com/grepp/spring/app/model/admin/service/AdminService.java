@@ -14,4 +14,6 @@ public interface AdminService {
     // 관리자 모든 유저 조회
     List<AdminUserResponse> getAllUsers(PageParam pageParam);
 
+    // 관리자 유저 닉네임으로 검색
+    AdminUserResponse getUserByNickname(String nickname);
 }

@@ -6,8 +6,6 @@ import com.grepp.spring.app.model.budget.domain.Budget;
 import com.grepp.spring.app.model.budget.repos.BudgetRepository;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
-import com.grepp.spring.app.model.community_post.domain.CommunityPost;
-import com.grepp.spring.app.model.community_post.repos.CommunityPostRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.model.MemberDTO;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
@@ -26,7 +24,6 @@ import org.springframework.stereotype.Service;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final CommunityPostRepository communityPostRepository;
     private final NotificationRepository notificationRepository;
     private final ChallengeCountRepository challengeCountRepository;
     private final AttendanceRepository attendanceRepository;
@@ -34,14 +31,12 @@ public class MemberService {
     private final PlaceBookmarkRepository placeBookmarkRepository;
 
     public MemberService(final MemberRepository memberRepository,
-            final CommunityPostRepository communityPostRepository,
             final NotificationRepository notificationRepository,
             final ChallengeCountRepository challengeCountRepository,
             final AttendanceRepository attendanceRepository,
             final BudgetRepository budgetRepository,
             final PlaceBookmarkRepository placeBookmarkRepository) {
         this.memberRepository = memberRepository;
-        this.communityPostRepository = communityPostRepository;
         this.notificationRepository = notificationRepository;
         this.challengeCountRepository = challengeCountRepository;
         this.attendanceRepository = attendanceRepository;
@@ -94,9 +89,7 @@ public class MemberService {
         memberDTO.setLevel(member.getLevel());
         memberDTO.setTotalExp(member.getTotalExp());
         // 소셜 로그인 관련 필드 매핑
-        memberDTO.setProvider(member.getProvider());
-        memberDTO.setProviderId(member.getProviderId());
-        memberDTO.setSocialEmail(member.getSocialEmail());
+        memberDTO.setKakaoId(member.getKakaoId());
         return memberDTO;
     }
 
@@ -114,9 +107,7 @@ public class MemberService {
         member.setLevel(memberDTO.getLevel());
         member.setTotalExp(memberDTO.getTotalExp());
         // 소셜 로그인 관련 필드 매핑
-        member.setProvider(memberDTO.getProvider());
-        member.setProviderId(memberDTO.getProviderId());
-        member.setSocialEmail(memberDTO.getSocialEmail());
+        member.setKakaoId(memberDTO.getKakaoId());
         return member;
     }
 
@@ -127,13 +118,13 @@ public class MemberService {
     // --- 소셜 로그인 관련 메서드 추가 ---
     
     // provider와 providerId로 소셜 계정 조회
-    public java.util.Optional<Member> findByProviderAndProviderId(String provider, String providerId) {
-        return memberRepository.findByProviderAndProviderId(provider, providerId);
+    public java.util.Optional<Member> findByKakaoId(String kakaoId) {
+        return memberRepository.findByKakaoId(kakaoId);
     }
     
     // provider와 providerId로 소셜 계정 존재 여부 확인
-    public boolean existsByProviderAndProviderId(String provider, String providerId) {
-        return memberRepository.existsByProviderAndProviderId(provider, providerId);
+    public boolean existsByKakaoId(String kakaoId) {
+        return memberRepository.existsByKakaoId(kakaoId);
     }
     
     // 소셜 이메일로 계정 조회
@@ -149,7 +140,7 @@ public class MemberService {
     // 카카오 로그인 처리 메서드
     public Long processKakaoLogin(String email, String nickname, Long kakaoId) {
         // 카카오 ID로 기존 회원 조회
-        java.util.Optional<Member> existingMember = memberRepository.findByProviderAndProviderId("kakao", kakaoId.toString());
+        java.util.Optional<Member> existingMember = memberRepository.findByKakaoId(kakaoId.toString());
         
         if (existingMember.isPresent()) {
             // 기존 카카오 회원이면 로그인 처리
@@ -161,8 +152,6 @@ public class MemberService {
         if (memberByEmail.isPresent()) {
             // 기존 이메일 회원이면 소셜 정보 추가
             Member member = memberByEmail.get();
-            member.setProvider("kakao");
-            member.setProviderId(kakaoId.toString());
             member.setSocialEmail(email);
             memberRepository.save(member);
             return member.getMemberId();
@@ -173,13 +162,7 @@ public class MemberService {
         newMember.setEmail(email);
         newMember.setNickname(nickname);
         newMember.setName(nickname); // 카카오 닉네임을 이름으로 사용
-        newMember.setProvider("kakao");
-        newMember.setProviderId(kakaoId.toString());
-        newMember.setSocialEmail(email);
-        newMember.setRole("ROLE_USER");
-        newMember.setActivated(true);
-        newMember.setLevel(1);
-        newMember.setTotalExp(0);
+        newMember.setKakaoId(kakaoId.toString());
         
         return memberRepository.save(newMember).getMemberId();
     }
@@ -189,12 +172,6 @@ public class MemberService {
         final ReferencedWarning referencedWarning = new ReferencedWarning();
         final Member member = memberRepository.findById(memberId)
                 .orElseThrow(NotFoundException::new);
-        final CommunityPost memberCommunityPost = communityPostRepository.findFirstByMember(member);
-        if (memberCommunityPost != null) {
-            referencedWarning.setKey("member.communityPost.member.referenced");
-            referencedWarning.addParam(memberCommunityPost.getPostId());
-            return referencedWarning;
-        }
         final Notification memberNotification = notificationRepository.findFirstByMember(member);
         if (memberNotification != null) {
             referencedWarning.setKey("member.notification.member.referenced");
@@ -228,4 +205,9 @@ public class MemberService {
         return null;
     }
 
+    // id 조회 후 member 객체 반환, 없으면 예외 처리
+    public Member getMemberById(Long memberId) {
+        return memberRepository.findById(memberId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+    }
 }

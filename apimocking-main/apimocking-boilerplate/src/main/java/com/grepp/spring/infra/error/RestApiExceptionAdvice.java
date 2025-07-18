@@ -1,8 +1,10 @@
 package com.grepp.spring.infra.error;
 
+import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.error.exceptions.CommonException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
+import com.grepp.spring.util.NotFoundException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +56,15 @@ public class RestApiExceptionAdvice {
                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED));
     }
     
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiResponse<String>> notFoundHandler(NotFoundException ex) {
+        log.error(ex.getMessage(), ex);
+        return ResponseEntity
+            .status(ResponseCode.NOT_FOUND.status())
+            .body(ApiResponse.error(ResponseCode.NOT_FOUND, ex.getMessage()));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<String>> runtimeExceptionHandler(RuntimeException ex) {
         log.error(ex.getMessage(), ex);
@@ -61,6 +72,12 @@ public class RestApiExceptionAdvice {
                    .internalServerError()
                    .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR));
     }
-    
-    
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<String>> handleBadRequest(BadRequestException ex) {
+        log.error(ex.getMessage(), ex);
+        return ResponseEntity
+            .status(ResponseCode.BAD_REQUEST.status())
+            .body(ApiResponse.error(ResponseCode.BAD_REQUEST, ex.getMessage()));
+    }
 }

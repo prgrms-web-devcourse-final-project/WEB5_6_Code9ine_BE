@@ -5,7 +5,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "커뮤니티 댓글 응답 DTO")
 public record CommunityCommentResponse(
     @Schema(description = "댓글 고유식별번호", example = "0")
-    int commentId,
+    Long commentId,
+
+    @Schema(description = "사용자 고유식별번호", example = "0")
+    Long memberId,
 
     @Schema(description = "댓글 내용", example = "댓글 내용")
     String content,
@@ -19,8 +22,8 @@ public record CommunityCommentResponse(
     @Schema(description = "작성자 칭호", example = "칭호")
     String writerTitle,
 
-    @Schema(description = "작성자 휘장", example = "휘장")
-    String writerSymbol,
+    @Schema(description = "작성자 레벨", example = "3")
+    int writerLevel,
 
     @Schema(description = "댓글 작성일시", example = "2025-07-03T15:00:00")
     String createdAt,

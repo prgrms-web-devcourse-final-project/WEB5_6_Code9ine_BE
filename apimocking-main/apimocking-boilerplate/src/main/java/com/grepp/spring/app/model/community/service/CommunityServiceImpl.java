@@ -81,7 +81,6 @@ public class CommunityServiceImpl implements CommunityService {
 
         communityRepository.save(post);
 
-                    .build());
         List<String> imageUrls = request.imageUrls();
         if (imageUrls != null && !imageUrls.isEmpty()) {
             postImageService.addPostImages(post, imageUrls);

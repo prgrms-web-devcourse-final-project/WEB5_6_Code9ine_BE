@@ -13,6 +13,7 @@ import com.grepp.spring.app.model.community.dto.CommunityUserInfoResponse;
 import com.grepp.spring.app.model.community.service.CommunityService;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.service.MemberService;
+import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
@@ -73,9 +74,7 @@ public class CommunityController {
             .anyMatch(c -> c.name().equals(category));
 
         if (!isValidCategory) {
-            return ResponseEntity
-                .status(ResponseCode.BAD_REQUEST.status())
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST));
+            throw new BadRequestException("유효하지 않은 카테고리입니다.");
         }
 
         List<CommunityPostDetailResponse> posts = communityService.getPostsByCategory(category, pageParam, principal.getMemberId());

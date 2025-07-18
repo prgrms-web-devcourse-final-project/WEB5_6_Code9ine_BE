@@ -1,7 +1,6 @@
 package com.grepp.spring.app.model.admin.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.math.BigDecimal;
 
 @Schema(description = "관리자 가게 메뉴 응답 DTO")
 public record AdminStoreMenuResponse(

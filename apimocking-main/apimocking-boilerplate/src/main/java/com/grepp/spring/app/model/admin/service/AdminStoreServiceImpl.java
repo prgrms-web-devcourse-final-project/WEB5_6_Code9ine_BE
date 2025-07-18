@@ -1,10 +1,14 @@
 package com.grepp.spring.app.model.admin.service;
 
+import com.grepp.spring.app.model.admin.dto.AdminStoreCreateRequest;
+import com.grepp.spring.app.model.admin.dto.AdminStoreMenuCreateRequest;
 import com.grepp.spring.app.model.admin.dto.AdminStoreMenuResponse;
 import com.grepp.spring.app.model.admin.dto.AdminStoreResponse;
 import com.grepp.spring.app.model.store.domain.Store;
 import com.grepp.spring.app.model.store.repos.StoreRepository;
+import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.payload.PageParam;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminStoreServiceImpl implements AdminStoreService {
 
     private final StoreRepository storeRepository;
+
+    private static final List<String> categories = List.of("한식", "중식", "일식", "양식", "미용업", "세탁업", "숙박업");
 
     // 관리자 모든 가게 조회
     @Transactional(readOnly = true)
@@ -56,6 +62,43 @@ public class AdminStoreServiceImpl implements AdminStoreService {
                 mappingMenus(store)
             )
         ).collect(Collectors.toList());
+    }
+
+    // 관리자 장소 등록
+    @Override
+    @Transactional
+    public void createStore(AdminStoreCreateRequest request) {
+
+        if (!categories.contains(request.category())) {
+            throw new BadRequestException("유효하지 않은 카테고리입니다");
+        }
+
+        Store store = new Store();
+        store.setName(request.name());
+        store.setAddress(request.address());
+        store.setCategory(request.category());
+        store.setActivated(true);
+        store.setCreatedAt(LocalDateTime.now());
+        store.setModifiedAt(LocalDateTime.now());
+
+        List<AdminStoreMenuCreateRequest> menus = request.menus();
+
+        if (menus != null) {
+            if (!menus.isEmpty()) {
+                store.setFirstMenu(menus.getFirst().name());
+                store.setFirstPrice(menus.getFirst().price());
+            }
+            if (menus.size() >= 2) {
+                store.setSecondMenu(menus.get(1).name());
+                store.setSecondPrice(menus.get(1).price());
+            }
+            if (menus.size() == 3) {
+                store.setThirdMenu(menus.get(2).name());
+                store.setThirdPrice(menus.get(2).price());
+            }
+        }
+
+        storeRepository.save(store);
     }
 
     // 가게 메뉴, 가격 맵핑

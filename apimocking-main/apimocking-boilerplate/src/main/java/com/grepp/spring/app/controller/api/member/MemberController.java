@@ -4,6 +4,7 @@ import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.place_bookmark.service.PlaceBookmarkService;
+import com.grepp.spring.app.model.community.service.CommunityService;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import jakarta.validation.Valid;
@@ -39,6 +40,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/members")
@@ -54,8 +57,9 @@ public class MemberController {
     private final RefreshTokenService refreshTokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final PlaceBookmarkService placeBookmarkService;
+    private final CommunityService communityService;
 
-    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService) {
+    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService, CommunityService communityService) {
         this.memberService = memberService;
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
@@ -66,6 +70,7 @@ public class MemberController {
         this.refreshTokenService = refreshTokenService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.placeBookmarkService = placeBookmarkService;
+        this.communityService = communityService;
     }
 
     // 회원가입
@@ -322,6 +327,86 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // 마이페이지 조회
+    @GetMapping("/mypage")
+    @Operation(summary = "마이페이지 조회", description = "현재 로그인한 사용자의 마이페이지 정보를 조회합니다.")
+    public ResponseEntity<ApiResponse<MypageResponse>> getMypage() {
+        // JWT에서 현재 사용자 ID 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 이메일로 멤버 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
+        // 레벨/경험치 계산
+        int level = member.getLevel();
+        int currentExp = member.getTotalExp() % 100; // 현재 레벨에서의 경험치
+        int nextLevelExp = 100; // 고정값
+        int expProgress = (int) ((double) currentExp / nextLevelExp * 100);
+        
+        // 실제 데이터 조회
+        List<Map<String, Object>> myPosts = communityService.getMyPosts(member.getMemberId());
+        List<Map<String, Object>> bookmarkedPosts = communityService.getBookmarkedPosts(member.getMemberId());
+        List<Map<String, Object>> bookmarkedPlaces = placeBookmarkService.getMemberPlaceBookmarks(member.getMemberId());
+        
+        // 목표 정보 (목표 설정 API 구현 후 교체)
+        String goalStuff = member.getGoalStuff();
+        BigDecimal remainPrice = member.getGoalAmount() != null ? new BigDecimal(member.getGoalAmount().toString()) : null;
+        
+        // 임시 칭호 정보 (칭호 API 구현 후 교체)
+        Map<String, Object> equippedTitle = null;
+        List<Map<String, Object>> achievedTitles = List.of(
+            Map.of(
+                "titleId", 1,
+                "name", "개근왕",
+                "description", "30일 연속 출석",
+                "minCount", 30,
+                "achieved", true
+            ),
+            Map.of(
+                "titleId", 2,
+                "name", "절약왕", 
+                "description", "한 달 동안 지출을 10만원 이하로!",
+                "minCount", 1,
+                "achieved", true
+            ),
+            Map.of(
+                "titleId", 3,
+                "name", "인싸왕",
+                "description", "친구 5명 초대",
+                "minCount", 5,
+                "achieved", true
+            )
+        );
+        
+        MypageResponse.Data data = new MypageResponse.Data(
+            member.getMemberId(),
+            member.getEmail(),
+            member.getName(),
+            member.getProfileImage(),
+            level,
+            currentExp,
+            nextLevelExp,
+            expProgress,
+            myPosts,
+            goalStuff,
+            remainPrice,
+            bookmarkedPosts,
+            bookmarkedPlaces,
+            equippedTitle,
+            achievedTitles
+        );
+        
+        MypageResponse response = new MypageResponse(data);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     // ===== 유틸리티 메서드 =====
     
     // 이메일 마스킹 처리
@@ -496,5 +581,29 @@ public class MemberController {
     @Getter @Setter @NoArgsConstructor
     public static class UnbookmarkResponse {
         // 응답 데이터 없음 (성공 메시지만 반환)
+    }
+
+    // 마이페이지 조회 응답 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class MypageResponse {
+        private Data data;
+        @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+        public static class Data {
+            private Long memberId;
+            private String email;
+            private String name;
+            private String profileImage;
+            private int level;
+            private int currentExp;
+            private int nextLevelExp;
+            private int expProgress;
+            private List<Map<String, Object>> myPosts;
+            private String goalStuff;
+            private BigDecimal remainPrice;
+            private List<Map<String, Object>> bookmarkedPosts;
+            private List<Map<String, Object>> bookmarkedPlaces;
+            private Map<String, Object> equippedTitle;
+            private List<Map<String, Object>> achievedTitles;
+        }
     }
 } 

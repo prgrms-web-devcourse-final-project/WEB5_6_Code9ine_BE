@@ -27,7 +27,9 @@ import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.util.NotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -384,5 +386,38 @@ public class CommunityServiceImpl implements CommunityService {
     private CommunityComment getActivatedComment(Long commentId) {
         return commentRepository.findByCommentIdAndActivatedTrue(commentId)
             .orElseThrow(() -> new NotFoundException("존재하지 않거나 이미 삭제된 댓글입니다."));
+    }
+
+    // 내가 작성한 게시글 목록 조회 (마이페이지용)
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getMyPosts(Long memberId) {
+        List<CommunityPost> posts = communityRepository.findByMember_MemberIdAndActivatedIsTrue(memberId);
+        
+        return posts.stream()
+            .map(post -> {
+                Map<String, Object> postMap = new HashMap<>();
+                postMap.put("postId", post.getPostId());
+                postMap.put("title", post.getTitle());
+                return postMap;
+            })
+            .toList();
+    }
+
+    // 내가 북마크한 게시글 목록 조회 (마이페이지용)
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getBookmarkedPosts(Long memberId) {
+        List<CommunityBookmark> bookmarks = bookmarkRepository.findByMember_MemberIdAndActivatedTrue(memberId);
+        
+        return bookmarks.stream()
+            .map(bookmark -> {
+                CommunityPost post = bookmark.getPost();
+                Map<String, Object> postMap = new HashMap<>();
+                postMap.put("postId", post.getPostId());
+                postMap.put("title", post.getTitle());
+                return postMap;
+            })
+            .toList();
     }
 }

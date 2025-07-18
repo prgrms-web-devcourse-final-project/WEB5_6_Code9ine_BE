@@ -10,6 +10,7 @@ import com.grepp.spring.app.model.community.dto.CommunityUserInfoResponse;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.infra.payload.PageParam;
 import java.util.List;
+import java.util.Map;
 
 public interface CommunityService {
 
@@ -48,4 +49,10 @@ public interface CommunityService {
 
     // 커뮤니티 인기 게시글 조회
     List<CommunityTopPostResponse> getTopPosts();
+
+    // 내가 작성한 게시글 목록 조회 (마이페이지용)
+    List<Map<String, Object>> getMyPosts(Long memberId);
+
+    // 내가 북마크한 게시글 목록 조회 (마이페이지용)
+    List<Map<String, Object>> getBookmarkedPosts(Long memberId);
 }

@@ -51,6 +51,7 @@ public class BudgetController {
     public ApiResponse<BudgetAnalyzeResponseDto>  getDashboard(@AuthenticationPrincipal Principal principal) {
 
         BudgetGoal goal = budgetAnalyzeService.getMemberGoal(principal.getMemberId());
+
         Map<String, BigDecimal> totals = budgetCalendarService.getMonthlySummaryUpToToday(
             principal.getMemberId());
 

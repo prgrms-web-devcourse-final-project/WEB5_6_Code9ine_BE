@@ -10,6 +10,7 @@ public abstract class DetailPlaceResponse {
 
     public DetailPlaceResponse() {}
 
+    public abstract String getType();
     public abstract String getName();
     public abstract String getAddress();
     public abstract Double getLatitude();

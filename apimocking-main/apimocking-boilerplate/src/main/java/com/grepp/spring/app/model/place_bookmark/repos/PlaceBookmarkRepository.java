@@ -12,6 +12,8 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+import java.util.Optional;
+
 
 public interface PlaceBookmarkRepository extends JpaRepository<PlaceBookmark, Long> {
 
@@ -26,13 +28,13 @@ public interface PlaceBookmarkRepository extends JpaRepository<PlaceBookmark, Lo
     // 멤버별 활성화된 장소 북마크 목록 조회
     List<PlaceBookmark> findByMemberAndActivatedTrue(Member member);
 
-    // 특정 멤버의 특정 스토어 북마크 조회
+    // 특정 멤버의 특정 스토어 북마크 조회 / 김찬우 / 안재호
     Optional<PlaceBookmark> findByMemberAndStore(Member member, Store store);
 
-    // 특정 멤버의 특정 페스티벌 북마크 조회
+    // 특정 멤버의 특정 페스티벌 북마크 조회 / 김찬우 / 안재호
     Optional<PlaceBookmark> findByMemberAndFestival(Member member, Festival festival);
 
-    // 특정 멤버의 특정 도서관 북마크 조회
+    // 특정 멤버의 특정 도서관 북마크 조회 / 김찬우 / 안재호
     Optional<PlaceBookmark> findByMemberAndLibrary(Member member, Library library);
 
     // 특정 멤버의 특정 스토어 북마크 존재 여부 확인

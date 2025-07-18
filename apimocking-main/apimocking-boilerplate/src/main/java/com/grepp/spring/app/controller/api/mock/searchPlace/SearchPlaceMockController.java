@@ -1,6 +1,6 @@
 package com.grepp.spring.app.controller.api.mock.searchPlace;
 
-import com.grepp.spring.app.model.store.dto.BookmarkToggleRequest;
+import com.grepp.spring.app.model.store.dto.BookmarkToggleMockRequest;
 import com.grepp.spring.infra.response.ApiResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
@@ -206,7 +206,7 @@ public class SearchPlaceMockController {
     @PatchMapping("/users/{userId}/places-bookmarks/toggle")
     public ApiResponse<Map<String, Object>> toggleBookmarkMock(
             @PathVariable Long userId,
-            @RequestBody BookmarkToggleRequest request
+            @RequestBody BookmarkToggleMockRequest request
     ) {
         Map<String, Object> response = new HashMap<>();
 

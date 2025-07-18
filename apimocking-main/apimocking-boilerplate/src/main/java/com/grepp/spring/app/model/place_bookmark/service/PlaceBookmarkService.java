@@ -7,20 +7,24 @@ import com.grepp.spring.app.model.library.repos.LibraryRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.place_bookmark.domain.PlaceBookmark;
+import com.grepp.spring.app.model.place_bookmark.model.BookmarkResponse;
+import com.grepp.spring.app.model.place_bookmark.model.BookmarkToggleRequest;
 import com.grepp.spring.app.model.place_bookmark.model.PlaceBookmarkDTO;
 import com.grepp.spring.app.model.place_bookmark.repos.PlaceBookmarkRepository;
 import com.grepp.spring.app.model.store.domain.Store;
 import com.grepp.spring.app.model.store.repos.StoreRepository;
 import com.grepp.spring.util.NotFoundException;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class PlaceBookmarkService {
 
     private final PlaceBookmarkRepository placeBookmarkRepository;
@@ -29,15 +33,6 @@ public class PlaceBookmarkService {
     private final StoreRepository storeRepository;
     private final LibraryRepository libraryRepository;
 
-    public PlaceBookmarkService(final PlaceBookmarkRepository placeBookmarkRepository,
-            final MemberRepository memberRepository, final FestivalRepository festivalRepository,
-            final StoreRepository storeRepository, final LibraryRepository libraryRepository) {
-        this.placeBookmarkRepository = placeBookmarkRepository;
-        this.memberRepository = memberRepository;
-        this.festivalRepository = festivalRepository;
-        this.storeRepository = storeRepository;
-        this.libraryRepository = libraryRepository;
-    }
 
     public List<PlaceBookmarkDTO> findAll() {
         final List<PlaceBookmark> placeBookmarks = placeBookmarkRepository.findAll(Sort.by("pBookmarkId"));
@@ -69,13 +64,14 @@ public class PlaceBookmarkService {
         placeBookmarkRepository.deleteById(pBookmarkId);
     }
 
+
     // 멤버별 장소 북마크 목록 조회
     public List<Map<String, Object>> getMemberPlaceBookmarks(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException("멤버를 찾을 수 없습니다."));
 
         List<PlaceBookmark> bookmarks = placeBookmarkRepository.findByMemberAndActivatedTrue(member);
-        
+
         return bookmarks.stream()
                 .map(this::convertToResponseMap)
                 .toList();
@@ -118,7 +114,7 @@ public class PlaceBookmarkService {
     // PlaceBookmark를 응답용 Map으로 변환
     private Map<String, Object> convertToResponseMap(PlaceBookmark bookmark) {
         Map<String, Object> result = new HashMap<>();
-        
+
         // placeId는 pBookmarkId 사용
         result.put("placeId", bookmark.getPBookmarkId().toString());
         result.put("bookmarkedAt", bookmark.getCreatedAt());
@@ -189,6 +185,63 @@ public class PlaceBookmarkService {
                 .orElseThrow(() -> new NotFoundException("library not found"));
         placeBookmark.setLibrary(library);
         return placeBookmark;
+    }
+
+
+    // 김찬우
+    public BookmarkResponse toggleBookmark(Long memberId, BookmarkToggleRequest request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 없음"));
+
+        String type = request.getType();
+        Long id = request.getId();
+
+        // 장소 객체 조회 + 기존 북마크 조회
+        switch (type.toLowerCase()) {
+            case "store" -> {
+                Store store = storeRepository.findById(id).orElseThrow();
+                Optional<PlaceBookmark> existing = placeBookmarkRepository.findByMemberAndStore(member, store);
+                if (existing.isPresent()) {
+                    placeBookmarkRepository.delete(existing.get());
+                    return new BookmarkResponse(id, false, "북마크가 제거되었습니다.");
+                }
+                PlaceBookmark bookmark = new PlaceBookmark();
+                bookmark.setMember(member);
+                bookmark.setStore(store);
+                placeBookmarkRepository.save(bookmark);
+                return new BookmarkResponse(id, true, "북마크가 추가되었습니다.");
+            }
+
+            case "festival" -> {
+                Festival festival = festivalRepository.findById(id).orElseThrow();
+                Optional<PlaceBookmark> existing = placeBookmarkRepository.findByMemberAndFestival(member, festival);
+                if (existing.isPresent()) {
+                    placeBookmarkRepository.delete(existing.get());
+                    return new BookmarkResponse(id, false, "북마크가 제거되었습니다.");
+                }
+                PlaceBookmark bookmark = new PlaceBookmark();
+                bookmark.setMember(member);
+                bookmark.setFestival(festival);
+                placeBookmarkRepository.save(bookmark);
+                return new BookmarkResponse(id, true, "북마크가 추가되었습니다.");
+            }
+
+            case "library" -> {
+                Library library = libraryRepository.findById(id).orElseThrow();
+                Optional<PlaceBookmark> existing = placeBookmarkRepository.findByMemberAndLibrary(member, library);
+                if (existing.isPresent()) {
+                    placeBookmarkRepository.delete(existing.get());
+                    return new BookmarkResponse(id, false, "북마크가 제거되었습니다.");
+                }
+                PlaceBookmark bookmark = new PlaceBookmark();
+                bookmark.setMember(member);
+                bookmark.setLibrary(library);
+                placeBookmarkRepository.save(bookmark);
+                return new BookmarkResponse(id, true, "북마크가 추가되었습니다.");
+            }
+
+            default -> throw new IllegalArgumentException("잘못된 장소 타입입니다.");
+        }
     }
 
 }

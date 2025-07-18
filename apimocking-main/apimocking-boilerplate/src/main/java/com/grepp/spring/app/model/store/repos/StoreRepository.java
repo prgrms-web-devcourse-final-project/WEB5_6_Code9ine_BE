@@ -22,7 +22,7 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
                                @Param("categories") List<String> categories);
 
     @Query("SELECT new com.grepp.spring.app.model.store.dto.DetailStorePlaceResponse(" +
-            "s.storeId, s.name, s.address, s.category, s.contact, " +
+            "s.storeId, s.name, s.address, s.category,'store', s.contact, " +
             "s.firstMenu, s.firstPrice, s.secondMenu, s.secondPrice, " +
             "s.thirdMenu, s.thirdPrice, s.longitude, s.latitude) " +
             "FROM Store s WHERE s.storeId = :storeId")

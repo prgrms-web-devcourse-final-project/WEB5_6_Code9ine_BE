@@ -3,6 +3,7 @@ package com.grepp.spring.app.controller.api.member;
 import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.member.domain.Member;
+import com.grepp.spring.app.model.place_bookmark.service.PlaceBookmarkService;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import jakarta.validation.Valid;
@@ -33,9 +34,15 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/members")
+@Tag(name = "멤버 API", description = "멤버 관련 API")
 public class MemberController {
     private final MemberService memberService;
     private final MemberRepository memberRepository;
@@ -46,8 +53,9 @@ public class MemberController {
     private final UserBlackListRepository userBlackListRepository;
     private final RefreshTokenService refreshTokenService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PlaceBookmarkService placeBookmarkService;
 
-    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider) {
+    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService) {
         this.memberService = memberService;
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
@@ -57,6 +65,7 @@ public class MemberController {
         this.userBlackListRepository = userBlackListRepository;
         this.refreshTokenService = refreshTokenService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.placeBookmarkService = placeBookmarkService;
     }
 
     // 회원가입
@@ -267,6 +276,52 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(logoutResponse));
     }
 
+    // 장소 북마크 조회
+    @GetMapping("/bookmarks/places")
+    @Operation(summary = "장소 북마크 조회", description = "현재 로그인한 사용자의 장소 북마크 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getPlaceBookmarks() {
+        // JWT에서 현재 사용자 ID 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 이메일로 멤버 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
+        List<Map<String, Object>> bookmarks = placeBookmarkService.getMemberPlaceBookmarks(member.getMemberId());
+        return ResponseEntity.ok(ApiResponse.success(bookmarks));
+    }
+
+    // 장소 북마크 해제
+    @PatchMapping("/bookmarks/places/{place-id}")
+    @Operation(summary = "장소 북마크 해제", description = "특정 장소의 북마크를 해제합니다.")
+    public ResponseEntity<ApiResponse<UnbookmarkResponse>> unbookmarkPlace(
+            @PathVariable("place-id") Long placeId,
+            @RequestBody UnbookmarkRequest request) {
+        // JWT에서 현재 사용자 ID 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 이메일로 멤버 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
+        placeBookmarkService.unbookmarkPlace(member.getMemberId(), placeId, request.getPlaceType());
+        
+        UnbookmarkResponse response = new UnbookmarkResponse();
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     // ===== 유틸리티 메서드 =====
     
     // 이메일 마스킹 처리
@@ -427,6 +482,19 @@ public class MemberController {
     // 로그아웃 관련 DTO
     @Getter @Setter @NoArgsConstructor
     public static class LogoutResponse {
+        // 응답 데이터 없음 (성공 메시지만 반환)
+    }
+
+    // 장소 북마크 해제 요청 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class UnbookmarkRequest {
+        @Schema(description = "장소 타입", example = "store|festival|library")
+        private String placeType;
+    }
+
+    // 장소 북마크 해제 응답 DTO
+    @Getter @Setter @NoArgsConstructor
+    public static class UnbookmarkResponse {
         // 응답 데이터 없음 (성공 메시지만 반환)
     }
 } 

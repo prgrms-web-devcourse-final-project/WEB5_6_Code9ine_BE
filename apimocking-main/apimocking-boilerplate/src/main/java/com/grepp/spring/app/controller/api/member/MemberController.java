@@ -6,6 +6,7 @@ import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.place_bookmark.service.PlaceBookmarkService;
 import com.grepp.spring.app.model.community.service.CommunityService;
 import com.grepp.spring.app.model.budget.service.BudgetService;
+import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.achieved_title.service.AchievedTitleService;
 import com.grepp.spring.app.model.achieved_title.domain.AchievedTitle;
 import com.grepp.spring.app.model.achieved_title.repos.AchievedTitleRepository;
@@ -361,6 +362,54 @@ public class MemberController {
     }
 
     // 마이페이지 조회
+    @GetMapping("/bookmarks/pos")
+    @Operation(summary = "북마크한 게시글 조회", description = "현재 로그인한 사용자가 북마크한 게시글 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getBookmarkedPosts() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Principal principal = (Principal) authentication.getPrincipal();
+        Long memberId = principal.getMemberId();
+        
+        List<Map<String, Object>> bookmarkedPosts = communityService.getBookmarkedPosts(memberId);
+        
+        return ResponseEntity.ok(ApiResponse.success(bookmarkedPosts));
+    }
+
+    @PatchMapping("/mypage/update")
+    @Operation(summary = "마이페이지 수정 (닉네임, 비밀번호)", description = "닉네임과 비밀번호를 선택적으로 수정합니다.")
+    public ResponseEntity<ApiResponse<Object>> updateProfile(@RequestBody @Valid ProfileUpdateRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Principal principal = (Principal) authentication.getPrincipal();
+        Long memberId = principal.getMemberId();
+        
+        // 닉네임 중복 검사 (닉네임이 입력된 경우)
+        if (request.getNickname() != null && !request.getNickname().isBlank()) {
+            boolean nicknameExists = memberRepository.findAll().stream()
+                .anyMatch(m -> m.getNickname().equalsIgnoreCase(request.getNickname()) && !m.getMemberId().equals(memberId));
+            if (nicknameExists) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이미 사용중인 닉네임입니다.", null));
+            }
+        }
+        
+        // 비밀번호 확인 (새 비밀번호가 입력된 경우)
+        if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+            if (!request.getNewPassword().equals(request.getPasswordCheck())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "비밀번호가 일치하지 않습니다.", null));
+            }
+        }
+        
+        // 비밀번호 암호화 처리
+        if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+            request.setNewPassword(passwordEncoder.encode(request.getNewPassword()));
+        }
+        
+        // 프로필 업데이트
+        memberService.updateProfile(memberId, request);
+        
+        return ResponseEntity.ok(ApiResponse.success(Map.of()));
+    }
+
     @GetMapping("/mypage")
     @Operation(summary = "마이페이지 조회", description = "현재 로그인한 사용자의 마이페이지 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<MypageResponse>> getMypage() {
@@ -847,6 +896,19 @@ public class MemberController {
     @Getter @Setter @NoArgsConstructor
     public static class PasswordChangeResponse {
         // 응답 데이터 없음 (성공 메시지만 반환)
+    }
+
+    // 프로필 수정 요청 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class ProfileUpdateRequest {
+        @Schema(description = "새 닉네임", example = "안재호수정")
+        private String nickname;
+        
+        @Schema(description = "새 비밀번호", example = "newpassword123!")
+        private String newPassword;
+        
+        @Schema(description = "새 비밀번호 확인", example = "newpassword123!")
+        private String passwordCheck;
     }
 
     // 로그아웃 관련 DTO

@@ -210,4 +210,30 @@ public class MemberService {
         return memberRepository.findById(memberId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
     }
+
+    public void updateProfile(Long memberId, com.grepp.spring.app.controller.api.member.MemberController.ProfileUpdateRequest request) {
+        Member member = getMemberById(memberId);
+        
+        // 닉네임 업데이트 (입력된 경우)
+        if (request.getNickname() != null && !request.getNickname().isBlank()) {
+            member.setNickname(request.getNickname());
+        }
+        
+        // 비밀번호 업데이트 (입력된 경우)
+        if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+            // 비밀번호 암호화는 컨트롤러에서 처리하므로 여기서는 그대로 설정
+            member.setPassword(request.getNewPassword());
+        }
+        
+        memberRepository.save(member);
+    }
+
+    public void withdrawMember(Long memberId) {
+        Member member = getMemberById(memberId);
+        
+        // 회원 탈퇴 처리 (activated = false)
+        member.setActivated(false);
+        
+        memberRepository.save(member);
+    }
 }

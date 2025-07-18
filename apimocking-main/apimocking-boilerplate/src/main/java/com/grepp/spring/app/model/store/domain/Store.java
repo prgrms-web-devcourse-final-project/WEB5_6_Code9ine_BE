@@ -1,11 +1,8 @@
 package com.grepp.spring.app.model.store.domain;
 
-import com.grepp.spring.app.model.place_bookmark.domain.PlaceBookmark;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -71,8 +68,5 @@ public class Store {
 
     @Column
     private String sido;
-
-    @OneToMany(mappedBy = "store")
-    private Set<PlaceBookmark> placeBookmarks = new HashSet<>();
 
 }

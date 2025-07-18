@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,7 +104,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Transactional(readOnly = true)
     public List<CommunityPostDetailResponse> getPostsByCategory(String category, PageParam pageParam, Long memberId) {
         CommunityCategory categoryEnum = CommunityCategory.valueOf(category);
-        Pageable pageable = pageParam.toPageable();
+        Pageable pageable = pageParam.toPageable(Sort.by(Sort.Direction.DESC,"createdAt"));
         Page<CommunityPost> posts =  communityRepository.findByCategoryAndActivatedIsTrue(categoryEnum, pageable);
 
         return posts.stream()

@@ -19,7 +19,7 @@ public class PageParam{
     @Min(1)
     private int size = 10;
 
-    public Pageable toPageable() {
-        return PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC,"createdAt"));
+    public Pageable toPageable(Sort sort) {
+        return PageRequest.of(page - 1, size, sort);
     }
 }

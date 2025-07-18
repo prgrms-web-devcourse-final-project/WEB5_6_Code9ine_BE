@@ -87,8 +87,9 @@ public class BudgetDetailController {
 
     @Operation(summary = "날짜별 지출 없음 등록")
     @PostMapping("/noexpenses")
-    public ApiResponse<?> noExpense() {
+    public ApiResponse<?> noExpense(@AuthenticationPrincipal Principal principal) {
 
+        budgetDetailService.registerNoExpense(principal.getMemberId());
         return new ApiResponse<>("2000", "지출없음으로되었습니다", null);
     }
 

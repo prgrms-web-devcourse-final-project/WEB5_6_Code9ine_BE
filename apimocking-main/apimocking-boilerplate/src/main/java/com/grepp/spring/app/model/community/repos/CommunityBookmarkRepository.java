@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.community.repos;
 
 import com.grepp.spring.app.model.community.domain.CommunityBookmark;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,4 +12,7 @@ public interface CommunityBookmarkRepository extends JpaRepository<CommunityBook
 
     // 커뮤니티 북마크 활성화 여부
     boolean existsByPost_PostIdAndMember_MemberId(Long postId, Long memberId);
+
+    // 내가 북마크한 게시글 목록 조회
+    List<CommunityBookmark> findByMember_MemberIdAndActivatedTrue(Long memberId);
 }

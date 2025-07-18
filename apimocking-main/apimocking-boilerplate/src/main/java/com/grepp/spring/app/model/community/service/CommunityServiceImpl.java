@@ -27,7 +27,9 @@ import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.util.NotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -385,5 +387,110 @@ public class CommunityServiceImpl implements CommunityService {
     private CommunityComment getActivatedComment(Long commentId) {
         return commentRepository.findByCommentIdAndActivatedTrue(commentId)
             .orElseThrow(() -> new NotFoundException("존재하지 않거나 이미 삭제된 댓글입니다."));
+    }
+
+    // 내가 작성한 게시글 목록 조회 (마이페이지용)
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getMyPosts(Long memberId) {
+        List<CommunityPost> posts = communityRepository.findByMember_MemberIdAndActivatedIsTrue(memberId);
+        
+        return posts.stream()
+            .map(post -> {
+                Map<String, Object> postMap = new HashMap<>();
+                postMap.put("postId", post.getPostId());
+                postMap.put("memberId", post.getMember().getMemberId());
+                postMap.put("category", post.getCategory().toString());
+                postMap.put("challengeCategory", post.getChallenge() != null ? post.getChallenge().toString() : null);
+                postMap.put("title", post.getTitle());
+                postMap.put("createdAt", post.getCreatedAt().toString());
+                postMap.put("content", post.getContent());
+                
+                // 이미지 URL 목록
+                List<String> imageUrls = post.getImages().stream()
+                    .filter(image -> image.getActivated())
+                    .map(image -> image.getImageUrl())
+                    .toList();
+                postMap.put("imageUrls", imageUrls);
+                
+                postMap.put("commentCount", post.getCommentCount());
+                postMap.put("likeCount", post.getLikeCount());
+                
+                // 현재 사용자가 좋아요를 눌렀는지 확인
+                boolean isLiked = post.getLiked().stream()
+                    .anyMatch(like -> like.getMember().getMemberId().equals(memberId) && like.getActivated());
+                postMap.put("isLiked", isLiked);
+                
+                // 현재 사용자가 북마크했는지 확인
+                boolean isBookmarked = post.getBookmarks().stream()
+                    .anyMatch(bookmark -> bookmark.getMember().getMemberId().equals(memberId) && bookmark.getActivated());
+                postMap.put("isBookmarked", isBookmarked);
+                
+                // 챌린지 달성 여부
+                postMap.put("challengeAchieved", post.getChallenge() != null);
+                
+                // 작성자 정보
+                Member writer = post.getMember();
+                postMap.put("writerNickname", writer.getNickname());
+                postMap.put("writerTitle", writer.getEquippedTitle() != null ? writer.getEquippedTitle().getName() : null);
+                postMap.put("writerLevel", writer.getLevel());
+                postMap.put("writerProfileImage", writer.getProfileImage());
+                
+                return postMap;
+            })
+            .toList();
+    }
+
+    // 내가 북마크한 게시글 목록 조회 (마이페이지용)
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getBookmarkedPosts(Long memberId) {
+        List<CommunityBookmark> bookmarks = bookmarkRepository.findByMember_MemberIdAndActivatedTrue(memberId);
+        
+        return bookmarks.stream()
+            .map(bookmark -> {
+                CommunityPost post = bookmark.getPost();
+                Map<String, Object> postMap = new HashMap<>();
+                postMap.put("postid", post.getPostId());
+                postMap.put("memberId", post.getMember().getMemberId());
+                postMap.put("category", post.getCategory().toString());
+                postMap.put("challengeCategory", post.getChallenge() != null ? post.getChallenge().toString() : null);
+                postMap.put("title", post.getTitle());
+                postMap.put("createdAt", post.getCreatedAt().toString());
+                postMap.put("content", post.getContent());
+                
+                // 이미지 URL 목록
+                List<String> imageUrls = post.getImages().stream()
+                    .filter(image -> image.getActivated())
+                    .map(image -> image.getImageUrl())
+                    .toList();
+                postMap.put("imageUrls", imageUrls);
+                
+                postMap.put("commentCount", post.getCommentCount());
+                postMap.put("likeCount", post.getLikeCount());
+                
+                // 현재 사용자가 좋아요를 눌렀는지 확인
+                boolean isLiked = post.getLiked().stream()
+                    .anyMatch(like -> like.getMember().getMemberId().equals(memberId) && like.getActivated());
+                postMap.put("isLiked", isLiked);
+                
+                // 북마크 여부 (명세서에 맞게 실제 북마크 상태 반영)
+                boolean isBookmarked = post.getBookmarks().stream()
+                    .anyMatch(b -> b.getMember().getMemberId().equals(memberId) && b.getActivated());
+                postMap.put("isBookmarked", isBookmarked);
+                
+                // 챌린지 달성 여부
+                postMap.put("challengeAchieved", post.getChallenge() != null);
+                
+                // 작성자 정보
+                Member writer = post.getMember();
+                postMap.put("writerNickname", writer.getNickname());
+                postMap.put("writerTitle", writer.getEquippedTitle() != null ? writer.getEquippedTitle().getName() : null);
+                postMap.put("writerLevel", writer.getLevel());
+                postMap.put("writerProfileImage", writer.getProfileImage());
+                
+                return postMap;
+            })
+            .toList();
     }
 }

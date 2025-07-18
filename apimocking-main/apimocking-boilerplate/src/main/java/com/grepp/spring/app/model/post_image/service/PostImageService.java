@@ -6,5 +6,5 @@ import java.util.List;
 public interface PostImageService {
 
     void updatePostImages(CommunityPost post, List<String> updatedImageUrls);
-
+    void addPostImages(CommunityPost post, List<String> imageUrls);
 }

@@ -1,5 +1,6 @@
 package com.grepp.spring.infra.error;
 
+import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.error.exceptions.CommonException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
@@ -71,6 +72,12 @@ public class RestApiExceptionAdvice {
                    .internalServerError()
                    .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR));
     }
-    
-    
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<String>> handleBadRequest(BadRequestException ex) {
+        log.error(ex.getMessage(), ex);
+        return ResponseEntity
+            .status(ResponseCode.BAD_REQUEST.status())
+            .body(ApiResponse.error(ResponseCode.BAD_REQUEST, ex.getMessage()));
+    }
 }

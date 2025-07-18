@@ -3,13 +3,17 @@ package com.grepp.spring.app.controller.api.community;
 import com.google.rpc.context.AttributeContext.Auth;
 import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
+import com.grepp.spring.app.model.community.dto.CommunityCommentCreateRequest;
+import com.grepp.spring.app.model.community.dto.CommunityCommentResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostCreateRequest;
 import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
 import com.grepp.spring.app.model.community.dto.CommunityPostUpdateRequest;
+import com.grepp.spring.app.model.community.dto.CommunityTopPostResponse;
 import com.grepp.spring.app.model.community.dto.CommunityUserInfoResponse;
 import com.grepp.spring.app.model.community.service.CommunityService;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.service.MemberService;
+import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
@@ -70,9 +74,7 @@ public class CommunityController {
             .anyMatch(c -> c.name().equals(category));
 
         if (!isValidCategory) {
-            return ResponseEntity
-                .status(ResponseCode.BAD_REQUEST.status())
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST));
+            throw new BadRequestException("유효하지 않은 카테고리입니다.");
         }
 
         List<CommunityPostDetailResponse> posts = communityService.getPostsByCategory(category, pageParam, principal.getMemberId());
@@ -83,7 +85,7 @@ public class CommunityController {
     }
 
     @PostMapping("/posts")
-    @Operation(summary = "커뮤니티 게시글 생성")
+    @Operation(summary = "커뮤니티 게시글 생성", description = "카테고리 : MY_STORE, CHALLENGE, FREE<br/> 챌린지 카테고리 : NO_MONEY, KIND_CONSUMER, DETECTIVE, MASTER,COOK_KING ")
     public ResponseEntity<ApiResponse<Map<String, String>>> createPost(
         @RequestBody @Valid CommunityPostCreateRequest request,
         @AuthenticationPrincipal Principal principal
@@ -149,102 +151,93 @@ public class CommunityController {
             .status(ResponseCode.OK.status())
             .body(ApiResponse.success(result));
     }
-//
-//    @GetMapping("/posts/{post-id}/comments")
-//    @Operation(summary = "커뮤니티 게시글별 댓글 조회")
-//    public ResponseEntity<ApiResponse<List<CommunityCommentResponse>>> getCommentsByPostId(
-//        @PathVariable("post-id") int id
-//    ) {
-//
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(comments));
-//    }
-//
-//    @PostMapping("/posts/{post-id}/comments")
-//    @Operation(summary = "커뮤니티 게시글 댓글 작성")
-//    public ResponseEntity<ApiResponse<Map<String, String>>> createComment(
-//        @PathVariable("post-id") int id,
-//        @RequestBody @Valid CommunityCommentCreateRequest request
-//    ) {
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "댓글이 생성되었습니다.");
-//
-//        if (id < 0 || id > 4) {
-//            return ResponseEntity
-//                .status(ResponseCode.NOT_FOUND.status())
-//                .body(ApiResponse.error(ResponseCode.NOT_FOUND));
-//        }
-//
-//        return ResponseEntity
-//            .status(ResponseCode.CREATED.status())
-//            .body(ApiResponse.successToCreate(response));
-//    }
-//
-//    @PatchMapping("/comments/{comment-id}/delete")
-//    @Operation(summary = "커뮤니티 댓글 삭제")
-//    public ResponseEntity<ApiResponse<Map<String, String>>> deleteComment(
-//        @PathVariable("comment-id") int id
-//    ) {
-//
-//        if (id < 0 || id > 4) {
-//            return ResponseEntity
-//                .status(ResponseCode.NOT_FOUND.status())
-//                .body(ApiResponse.error(ResponseCode.NOT_FOUND));
-//        }
-//
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "댓글이 삭제되었습니다.");
-//
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(response));
-//    }
-//
-//    @PatchMapping("/posts/{post-id}/like")
-//    @Operation(summary = "커뮤니티 게시글 좋아요 활성화/비활성화", description = "현재는 '좋아요가 등록되었습니다'만 뜹니다")
-//    public ResponseEntity<ApiResponse<Map<String, String>>> toggleLike(
-//        @PathVariable("post-id") int id
-//    ) {
-//
-//        if (id < 0 || id > 4) {
-//            return ResponseEntity
-//                .status(ResponseCode.NOT_FOUND.status())
-//                .body(ApiResponse.error(ResponseCode.NOT_FOUND));
-//        }
-//
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "좋아요가 등록되었습니다.");
-//
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(response));
-//    }
-//
-//    @PatchMapping("/posts/{post-id}/bookmark")
-//    @Operation(summary = "커뮤니티 게시글 북마크 활성화/비활성화", description = "현재는 '북마크가 등록되었습니다'만 뜹니다")
-//    public ResponseEntity<ApiResponse<Map<String, String>>> toggleBookmark(
-//        @PathVariable("post-id") int id
-//    ) {
-//        if (id < 0 || id > 4) {
-//            return ResponseEntity
-//                .status(ResponseCode.NOT_FOUND.status())
-//                .body(ApiResponse.error(ResponseCode.NOT_FOUND));
-//        }
-//
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "북마크가 등록되었습니다.");
-//
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(response));
-//    }
-//
-//    @GetMapping("/posts/top")
-//    @Operation(summary = "커뮤니티 인기 게시글 조회")
-//    public ResponseEntity<ApiResponse<List<CommunityTopPostResponse>>> getTopPosts() {
-//        return ResponseEntity
-//            .status(ResponseCode.OK.status())
-//            .body(ApiResponse.success(topPosts));
-//    }
+
+    @GetMapping("/posts/{post-id}/comments")
+    @Operation(summary = "커뮤니티 게시글별 댓글 조회")
+    public ResponseEntity<ApiResponse<List<CommunityCommentResponse>>> getCommentsByPostId(
+        @PathVariable("post-id") Long id
+    ) {
+        List<CommunityCommentResponse> response = communityService.getCommentsByPostId(id);
+
+        return ResponseEntity
+            .ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/posts/{post-id}/comments")
+    @Operation(summary = "커뮤니티 게시글 댓글 작성")
+    public ResponseEntity<ApiResponse<Map<String, String>>> createComment(
+        @PathVariable("post-id") Long id,
+        @RequestBody @Valid CommunityCommentCreateRequest request,
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        Member member = memberService.getMemberById(memberId);
+
+        communityService.createComment(id, request, member);
+        Map<String, String> response = Map.of("message", "댓글이 생성되었습니다.");
+
+        return ResponseEntity
+            .status(ResponseCode.CREATED.status())
+            .body(ApiResponse.successToCreate(response));
+    }
+
+    @PatchMapping("/comments/{comment-id}/delete")
+    @Operation(summary = "커뮤니티 댓글 삭제")
+    public ResponseEntity<ApiResponse<Map<String, String>>> deleteComment(
+        @PathVariable("comment-id") Long id,
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        communityService.deleteComment(id, memberId);
+
+        Map<String, String> response = Map.of("message", "댓글이 삭제되었습니다.");
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(response));
+    }
+
+    @PatchMapping("/posts/{post-id}/like")
+    @Operation(summary = "커뮤니티 게시글 좋아요 활성화/비활성화")
+    public ResponseEntity<ApiResponse<Map<String, String>>> toggleLike(
+        @PathVariable("post-id") Long id,
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        boolean isLiked = communityService.toggleLike(id, memberId);
+
+        String msg = isLiked ? "좋아요가 등록되었습니다." : "좋아요가 해제되었습니다.";
+        Map<String, String> response = Map.of("message", msg);
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(response));
+    }
+
+    @PatchMapping("/posts/{post-id}/bookmark")
+    @Operation(summary = "커뮤니티 게시글 북마크 활성화/비활성화")
+    public ResponseEntity<ApiResponse<Map<String, String>>> toggleBookmark(
+        @PathVariable("post-id") Long id,
+        @AuthenticationPrincipal Principal principal
+    ) {
+        Long memberId = principal.getMemberId();
+        boolean isBookmarked = communityService.toggleBookmark(id, memberId);
+
+        String msg = isBookmarked ? "북마크가 등록되었습니다." : "북마크가 해제되었습니다.";
+        Map<String, String> response = Map.of("message", msg);
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(response));
+    }
+
+    @GetMapping("/posts/top")
+    @Operation(summary = "커뮤니티 인기 게시글 조회")
+    public ResponseEntity<ApiResponse<List<CommunityTopPostResponse>>> getTopPosts() {
+        List<CommunityTopPostResponse> topPosts = communityService.getTopPosts();
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(topPosts));
+    }
 }

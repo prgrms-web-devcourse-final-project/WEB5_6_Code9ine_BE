@@ -15,12 +15,21 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
     Budget findFirstByMember(Member member);
     Optional<Budget> findByMemberAndDate(Member member, LocalDate date);
 
+    // 김찬우
     @Query(value = """
             SELECT SUM(total_income - total_expense) / COUNT(DISTINCT member_id)
             FROM budget
             WHERE total_income IS NOT NULL AND total_expense IS NOT NULL
             """, nativeQuery = true)
     BigDecimal getAverageSaving();
+
+    // 김찬우
+    @Query(value = """
+            SELECT SUM(total_income - total_expense)
+            FROM budget
+            WHERE total_income IS NOT NULL AND total_expense IS NOT NULL
+            """, nativeQuery = true)
+    BigDecimal getAllSaving();
 
     Optional<Budget> findByDateAndMember(LocalDate date, Member member);
 
@@ -59,4 +68,3 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
         @Param("memberId") Long memberId,
         @Param("today") LocalDate today);
 }
-

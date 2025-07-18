@@ -1,17 +1,13 @@
 package com.grepp.spring.app.model.festival.domain;
 
-import com.grepp.spring.app.model.place_bookmark.domain.PlaceBookmark;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -64,8 +60,5 @@ public class Festival {
 
     @Column
     private LocalDate endAt;
-
-    @OneToMany(mappedBy = "festival")
-    private Set<PlaceBookmark> placeBookmarks = new HashSet<>();
 
 }

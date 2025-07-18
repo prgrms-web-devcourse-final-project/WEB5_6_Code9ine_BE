@@ -9,6 +9,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ChallengeTopResponse {
 
-    private String name;
+    private String description;
 
 }

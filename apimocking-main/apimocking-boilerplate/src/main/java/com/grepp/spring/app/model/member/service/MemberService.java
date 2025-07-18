@@ -227,4 +227,13 @@ public class MemberService {
         
         memberRepository.save(member);
     }
+
+    public void withdrawMember(Long memberId) {
+        Member member = getMemberById(memberId);
+        
+        // 회원 탈퇴 처리 (activated = false)
+        member.setActivated(false);
+        
+        memberRepository.save(member);
+    }
 }

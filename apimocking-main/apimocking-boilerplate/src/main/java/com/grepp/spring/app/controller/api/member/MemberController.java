@@ -410,6 +410,19 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(Map.of()));
     }
 
+    @PatchMapping("/withdraw")
+    @Operation(summary = "회원 탈퇴", description = "현재 로그인한 사용자의 계정을 비활성화합니다.")
+    public ResponseEntity<ApiResponse<Object>> withdrawMember() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Principal principal = (Principal) authentication.getPrincipal();
+        Long memberId = principal.getMemberId();
+        
+        // 회원 탈퇴 처리 (activated = false)
+        memberService.withdrawMember(memberId);
+        
+        return ResponseEntity.ok(ApiResponse.success(Map.of()));
+    }
+
     @GetMapping("/mypage")
     @Operation(summary = "마이페이지 조회", description = "현재 로그인한 사용자의 마이페이지 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<MypageResponse>> getMypage() {

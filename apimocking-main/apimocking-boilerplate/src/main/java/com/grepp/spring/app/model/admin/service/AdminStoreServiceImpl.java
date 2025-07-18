@@ -2,7 +2,6 @@ package com.grepp.spring.app.model.admin.service;
 
 import com.grepp.spring.app.model.admin.dto.AdminStoreMenuResponse;
 import com.grepp.spring.app.model.admin.dto.AdminStoreResponse;
-import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.store.domain.Store;
 import com.grepp.spring.app.model.store.repos.StoreRepository;
 import com.grepp.spring.infra.payload.PageParam;
@@ -30,26 +29,51 @@ public class AdminStoreServiceImpl implements AdminStoreService {
 
         Page<Store> storePage = storeRepository.findAllByActivatedTrue(pageable);
 
-        return storePage.getContent().stream().map(store -> {
-            List<AdminStoreMenuResponse> menus = new ArrayList<>();
-
-            if (store.getFirstMenu() != null) {
-                menus.add(new AdminStoreMenuResponse(store.getFirstMenu(), store.getFirstPrice()));
-            }
-            if (store.getSecondMenu() != null) {
-                menus.add(new AdminStoreMenuResponse(store.getSecondMenu(), store.getSecondPrice()));
-            }
-            if (store.getThirdMenu() != null) {
-                menus.add(new AdminStoreMenuResponse(store.getThirdMenu(), store.getThirdPrice()));
-            }
-
-            return new AdminStoreResponse(
+        return storePage.getContent().stream().map(store ->
+            new AdminStoreResponse(
                 store.getStoreId(),
                 store.getName(),
                 store.getAddress(),
                 store.getCategory(),
-                menus
-            );
-        }).collect(Collectors.toList());
+                mappingMenus(store)
+            )
+        ).collect(Collectors.toList());
     }
+
+    // 관리자 지정 카테고리로 가게 조회
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdminStoreResponse> getStoreByCategory(String category, PageParam pageParam) {
+        Pageable pageable = pageParam.toPageable(Sort.by(Sort.Direction.ASC, "storeId"));
+        Page<Store> storePage = storeRepository.findAllByCategoryAndActivatedTrue(category, pageable);
+
+        return storePage.getContent().stream().map(store ->
+            new AdminStoreResponse(
+                store.getStoreId(),
+                store.getName(),
+                store.getAddress(),
+                store.getCategory(),
+                mappingMenus(store)
+            )
+        ).collect(Collectors.toList());
+    }
+
+    // 가게 메뉴, 가격 맵핑
+    private List<AdminStoreMenuResponse> mappingMenus(Store store) {
+        List<AdminStoreMenuResponse> menus = new ArrayList<>();
+
+        if (store.getFirstMenu() != null) {
+            menus.add(new AdminStoreMenuResponse(store.getFirstMenu(), store.getFirstPrice()));
+        }
+        if (store.getSecondMenu() != null) {
+            menus.add(new AdminStoreMenuResponse(store.getSecondMenu(), store.getSecondPrice()));
+        }
+        if (store.getThirdMenu() != null) {
+            menus.add(new AdminStoreMenuResponse(store.getThirdMenu(), store.getThirdPrice()));
+        }
+
+        return menus;
+    }
+
+
 }

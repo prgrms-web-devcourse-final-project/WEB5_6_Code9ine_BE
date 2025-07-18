@@ -8,4 +8,7 @@ public interface AdminStoreService {
 
     // 관리자 모든 가게 조회
     List<AdminStoreResponse> getAllStores(PageParam pageParam);
+
+    // 관리자 지정 카테고리로 가게 조회
+    List<AdminStoreResponse> getStoreByCategory(String category, PageParam pageParam);
 }

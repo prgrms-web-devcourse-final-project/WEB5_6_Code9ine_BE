@@ -84,4 +84,15 @@ public class AdminStoreController {
             .body(ApiResponse.success(Map.of("message", "장소가 수정되었습니다.")));
     }
 
+    @PatchMapping("/{store-id}/delete")
+    @Operation(summary = "관리자 장소 삭제")
+    public ResponseEntity<ApiResponse<Map<String, String>>> deleteStore(
+        @PathVariable("store-id") Long id
+    ) {
+        adminStoreService.deleteStore(id);
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(Map.of("message", "장소가 삭제되었습니다.")));
+    }
 }

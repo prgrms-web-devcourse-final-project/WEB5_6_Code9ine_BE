@@ -125,6 +125,15 @@ public class AdminStoreServiceImpl implements AdminStoreService {
         updateMenus(store, request.menus());
     }
 
+    // 관리자 장소 삭제
+    @Override
+    @Transactional
+    public void deleteStore(Long storeId) {
+        Store store = getActivatedStore(storeId);
+        store.setActivated(false);
+        store.setModifiedAt(LocalDateTime.now());
+    }
+
     // 가게 메뉴, 가격 맵핑
     private List<AdminStoreMenuResponse> mappingMenus(Store store) {
         List<AdminStoreMenuResponse> menus = new ArrayList<>();

@@ -19,4 +19,7 @@ public interface AdminStoreService {
 
     // 관리자 장소 수정
     void updateStore(Long storeId, AdminStoreUpdateRequest request);
+
+    // 관리자 장소 삭제 (soft delete)
+    void deleteStore(Long storeId);
 }

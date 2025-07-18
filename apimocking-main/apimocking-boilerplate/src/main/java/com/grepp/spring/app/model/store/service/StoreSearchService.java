@@ -1,7 +1,11 @@
 package com.grepp.spring.app.model.store.service;
 
+import com.grepp.spring.app.model.festival.model.DetailFestivalPlaceResponse;
 import com.grepp.spring.app.model.festival.repos.FestivalRepository;
+import com.grepp.spring.app.model.library.model.DetailLibraryPlaceResponse;
 import com.grepp.spring.app.model.library.repos.LibraryRepository;
+import com.grepp.spring.app.model.store.dto.DetailPlaceResponse;
+import com.grepp.spring.app.model.store.dto.DetailStorePlaceResponse;
 import com.grepp.spring.app.model.store.dto.PlaceResponse;
 import com.grepp.spring.app.model.store.dto.RegionResponse;
 import com.grepp.spring.app.model.store.repos.StoreRepository;
@@ -51,5 +55,18 @@ public class StoreSearchService {
                 .orElse(Set.of()).stream()
                 .map(RegionResponse::new) // 혹은 keyword -> new RegionResponse(keyword)
                 .toList();
+    }
+
+
+    public DetailPlaceResponse getDetailPlaces(String type, Long id) {
+        if (type.equalsIgnoreCase("store")) {
+            return storeRepository.getDetailStoreSearch(id);
+        } else if (type.equalsIgnoreCase("festival")) {
+            return festivalRepository.getDetailFestivalSearch(id);
+        } else if (type.equalsIgnoreCase("library")) {
+            return libraryRepository.getDetailLibrarySearch(id);
+        } else {
+            throw new IllegalArgumentException("해당하는 type이 없습니다.");
+        }
     }
 }

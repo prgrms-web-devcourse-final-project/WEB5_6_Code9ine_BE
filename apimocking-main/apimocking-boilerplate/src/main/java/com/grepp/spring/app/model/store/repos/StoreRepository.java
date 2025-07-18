@@ -21,10 +21,10 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     List<PlaceResponse> search(@Param("location") String location,
                                @Param("categories") List<String> categories);
 
-    @Query("SELECT new com.grepp.spring.app.model.store.dto.DetailStorePlaceResponse( +" +
-            "s.storeId, s.name , s.address, s.category, s.contact, s.firstMenu, s.firstPrice, s.secondMenu, s.secondPrice, s.thirdMenu, s.thirdPrice, s.longitude, s.latitude) " +
-            "FROM Store s " +
-            "WHERE s.storeId = :storeId"
-    )
-    List<DetailStorePlaceResponse> getDetailStoreSearch (Long storeId);
+    @Query("SELECT new com.grepp.spring.app.model.store.dto.DetailStorePlaceResponse(" +
+            "s.storeId, s.name, s.address, s.category, s.contact, " +
+            "s.firstMenu, s.firstPrice, s.secondMenu, s.secondPrice, " +
+            "s.thirdMenu, s.thirdPrice, s.longitude, s.latitude) " +
+            "FROM Store s WHERE s.storeId = :storeId")
+    DetailStorePlaceResponse getDetailStoreSearch (@Param("storeId") Long storeId);
 }

@@ -1,5 +1,7 @@
 package com.grepp.spring.app.controller.api.search;
 
+import com.grepp.spring.app.model.festival.model.DetailFestivalPlaceResponse;
+import com.grepp.spring.app.model.store.dto.DetailPlaceResponse;
 import com.grepp.spring.app.model.store.dto.PlaceResponse;
 import com.grepp.spring.app.model.store.dto.RegionResponse;
 import com.grepp.spring.app.model.store.service.StoreSearchService;
@@ -65,6 +67,20 @@ public class SearchController {
         try {
             List<RegionResponse> keywords = storeSearchService.getTopKeywords();
             return ResponseEntity.ok(ApiResponse.success(keywords));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND));
+        }
+    }
+
+    @GetMapping("detail")
+    public ResponseEntity<ApiResponse<DetailPlaceResponse>> getDetailFestivalPlace(
+            @RequestParam String type,
+            @RequestParam Long id
+    ) {
+        try {
+            DetailPlaceResponse result = storeSearchService.getDetailPlaces(type, id);
+            return ResponseEntity.ok(ApiResponse.success(result));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.error(ResponseCode.NOT_FOUND));

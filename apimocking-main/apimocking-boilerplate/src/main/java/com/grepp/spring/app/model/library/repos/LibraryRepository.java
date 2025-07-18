@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.library.repos;
 
 import com.grepp.spring.app.model.library.domain.Library;
+import com.grepp.spring.app.model.library.model.DetailLibraryPlaceResponse;
 import com.grepp.spring.app.model.store.dto.PlaceResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,4 +19,10 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
             "FROM Library l " +
             "WHERE l.location = :location")
     List<PlaceResponse> search(@Param("location") String location);
+
+    @Query("SELECT new com.grepp.spring.app.model.library.model.DetailLibraryPlaceResponse(" +
+            "l.libraryId, l.name, l.address, l.url, l.latitude, l.longitude) " +
+            "FROM Library l " +
+            "WHERE l.libraryId = :libraryId")
+    DetailLibraryPlaceResponse getDetailLibrarySearch(@Param("libraryId") Long libraryId);
 }

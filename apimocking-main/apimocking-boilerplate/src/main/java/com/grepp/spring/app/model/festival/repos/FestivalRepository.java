@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.festival.repos;
 
 import com.grepp.spring.app.model.festival.domain.Festival;
+import com.grepp.spring.app.model.festival.model.DetailFestivalPlaceResponse;
 import com.grepp.spring.app.model.store.dto.PlaceResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,5 +18,11 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
             "FROM Festival f " +
             "WHERE f.location = :location")
     List<PlaceResponse> search(@Param("location") String location);
+
+    @Query("SELECT new com.grepp.spring.app.model.festival.model.DetailFestivalPlaceResponse(" +
+            "f.festivalId, f.name, f.category, f.target, f.url, f.startAt, f.endAt, f.latitude, f.longitude) " +
+            "FROM Festival f " +
+            "WHERE f.festivalId = :festivalId")
+    DetailFestivalPlaceResponse getDetailFestivalSearch(@Param("festivalId") Long festivalId);
 
 }

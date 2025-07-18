@@ -10,6 +10,7 @@ import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.achieved_title.service.AchievedTitleService;
 import com.grepp.spring.app.model.achieved_title.domain.AchievedTitle;
 import com.grepp.spring.app.model.achieved_title.repos.AchievedTitleRepository;
+import com.grepp.spring.app.model.invite_code.service.InviteCodeService;
 import java.math.BigDecimal;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
@@ -66,8 +67,9 @@ public class MemberController {
     private final BudgetService budgetService;
     private final AchievedTitleService achievedTitleService;
     private final AchievedTitleRepository achievedTitleRepository;
+    private final InviteCodeService inviteCodeService;
 
-    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService, CommunityService communityService, BudgetService budgetService, AchievedTitleService achievedTitleService, AchievedTitleRepository achievedTitleRepository) {
+    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService, CommunityService communityService, BudgetService budgetService, AchievedTitleService achievedTitleService, AchievedTitleRepository achievedTitleRepository, InviteCodeService inviteCodeService) {
         this.memberService = memberService;
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
@@ -82,6 +84,7 @@ public class MemberController {
         this.budgetService = budgetService;
         this.achievedTitleService = achievedTitleService;
         this.achievedTitleRepository = achievedTitleRepository;
+        this.inviteCodeService = inviteCodeService;
     }
 
     // 회원가입
@@ -107,6 +110,14 @@ public class MemberController {
                     .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이메일 인증이 필요합니다.", null));
         }
         
+        // 초대코드 검증 (입력된 경우)
+        if (request.getInviteCode() != null && !request.getInviteCode().isBlank()) {
+            if (!inviteCodeService.isValidInviteCode(request.getInviteCode())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "유효하지 않은 초대코드입니다.", null));
+            }
+        }
+        
         // 회원 생성
         Member member = new Member();
         member.setEmail(request.getEmail());
@@ -117,6 +128,12 @@ public class MemberController {
         member.setRole("ROLE_USER");
         member.setActivated(true);
         Long userId = memberService.create(memberService.mapToDTO(member, new com.grepp.spring.app.model.member.model.MemberDTO()));
+        
+        // 초대코드 사용 처리 (입력된 경우)
+        if (request.getInviteCode() != null && !request.getInviteCode().isBlank()) {
+            inviteCodeService.useInviteCode(request.getInviteCode());
+        }
+        
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.successToCreate(new SignupResponse(userId)));
     }
@@ -408,6 +425,22 @@ public class MemberController {
         memberService.updateProfile(memberId, request);
         
         return ResponseEntity.ok(ApiResponse.success(Map.of()));
+    }
+
+    @GetMapping("/invite-code")
+    @Operation(summary = "내 초대 코드 복사", description = "현재 로그인한 사용자의 초대 코드를 생성합니다.")
+    public ResponseEntity<ApiResponse<InviteCodeResponse>> getInviteCode() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Principal principal = (Principal) authentication.getPrincipal();
+        Long memberId = principal.getMemberId();
+        
+        try {
+            String inviteCode = inviteCodeService.createInviteCode(memberId);
+            return ResponseEntity.ok(ApiResponse.success(new InviteCodeResponse(inviteCode)));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), e.getMessage(), null));
+        }
     }
 
     @PatchMapping("/withdraw")
@@ -799,33 +832,36 @@ public class MemberController {
     }
 
     // ===== 내부 DTO 클래스들 =====
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+        @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class SignupRequest {
         @Schema(description = "이메일", example = "test@test.com")
         @NotBlank(message = "이메일은 필수입니다.")
         @Email(message = "이메일 형식이 올바르지 않습니다.")
         private String email;
-        
+
         @Schema(description = "비밀번호", example = "password123!")
         @NotBlank(message = "비밀번호는 필수입니다.")
         private String password;
-        
+
         @Schema(description = "비밀번호 확인", example = "password123!")
         @NotBlank(message = "비밀번호 확인은 필수입니다.")
         private String passwordCheck;
-        
+
         @Schema(description = "이름", example = "홍길동")
         @NotBlank(message = "이름은 필수입니다.")
         private String name;
-        
+
         @Schema(description = "닉네임", example = "길동이")
         @NotBlank(message = "닉네임은 필수입니다.")
         private String nickname;
-        
+
         @Schema(description = "휴대폰번호", example = "01012345678")
         @NotBlank(message = "휴대폰번호는 필수입니다.")
         @Pattern(regexp = "^01[016789]\\d{7,8}$", message = "휴대폰번호 형식이 올바르지 않습니다.")
         private String phoneNumber;
+
+        @Schema(description = "초대 코드 (선택사항)", example = "ABCD1234")
+        private String inviteCode;
     }
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class SignupResponse {
@@ -922,6 +958,13 @@ public class MemberController {
         
         @Schema(description = "새 비밀번호 확인", example = "newpassword123!")
         private String passwordCheck;
+    }
+
+    // 초대코드 응답 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class InviteCodeResponse {
+        @Schema(description = "초대 코드", example = "ABCD1234")
+        private String inviteCode;
     }
 
     // 로그아웃 관련 DTO

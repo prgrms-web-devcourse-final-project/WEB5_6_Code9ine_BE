@@ -13,6 +13,7 @@ public class DetailFestivalPlaceResponse extends DetailPlaceResponse {
 
     private Long festivalId;
     private String name;
+    private String address;
     private String category;
     private String target;
     private String url;
@@ -31,7 +32,7 @@ public class DetailFestivalPlaceResponse extends DetailPlaceResponse {
 
     @Override
     public String getAddress() {
-        return "";
+        return address;
     }
 
 
@@ -45,12 +46,13 @@ public class DetailFestivalPlaceResponse extends DetailPlaceResponse {
         return longitude;
     }
 
-    public DetailFestivalPlaceResponse(Long festivalId, String name, String category, String target,
+    public DetailFestivalPlaceResponse(Long festivalId, String name,String address, String category, String target,
                                        String url, LocalDate startAt, LocalDate endAt,
                                        Double latitude, Double longitude) {
         super();
         this.festivalId = festivalId;
         this.name = name;
+        this.address = address;
         this.category = category;
         this.target = target;
         this.url = url;

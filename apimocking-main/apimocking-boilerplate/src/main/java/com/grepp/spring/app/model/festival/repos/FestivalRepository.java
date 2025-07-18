@@ -20,7 +20,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
     List<PlaceResponse> search(@Param("location") String location);
 
     @Query("SELECT new com.grepp.spring.app.model.festival.model.DetailFestivalPlaceResponse(" +
-            "f.festivalId, f.name, f.category, f.target, f.url, f.startAt, f.endAt, f.latitude, f.longitude) " +
+            "f.festivalId, f.name,f.address, f.category, f.target, f.url, f.startAt, f.endAt, f.latitude, f.longitude) " +
             "FROM Festival f " +
             "WHERE f.festivalId = :festivalId")
     DetailFestivalPlaceResponse getDetailFestivalSearch(@Param("festivalId") Long festivalId);

@@ -20,6 +20,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -109,4 +110,6 @@ public class Member extends BaseEntity {
     private String socialEmail; // 소셜 계정의 이메일 (있을 때만)
     // ---------------------------------
 
+    @Column
+    private LocalDate lastLoginedAt;
 }

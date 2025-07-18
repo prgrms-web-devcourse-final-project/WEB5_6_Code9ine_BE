@@ -14,6 +14,7 @@ import com.grepp.spring.app.model.place_bookmark.repos.PlaceBookmarkRepository;
 import com.grepp.spring.app.model.store.domain.Store;
 import com.grepp.spring.app.model.store.repos.StoreRepository;
 import com.grepp.spring.util.NotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -32,15 +33,6 @@ public class PlaceBookmarkService {
     private final StoreRepository storeRepository;
     private final LibraryRepository libraryRepository;
 
-    public PlaceBookmarkService(final PlaceBookmarkRepository placeBookmarkRepository,
-            final MemberRepository memberRepository, final FestivalRepository festivalRepository,
-            final StoreRepository storeRepository, final LibraryRepository libraryRepository) {
-        this.placeBookmarkRepository = placeBookmarkRepository;
-        this.memberRepository = memberRepository;
-        this.festivalRepository = festivalRepository;
-        this.storeRepository = storeRepository;
-        this.libraryRepository = libraryRepository;
-    }
 
     public List<PlaceBookmarkDTO> findAll() {
         final List<PlaceBookmark> placeBookmarks = placeBookmarkRepository.findAll(Sort.by("pBookmarkId"));

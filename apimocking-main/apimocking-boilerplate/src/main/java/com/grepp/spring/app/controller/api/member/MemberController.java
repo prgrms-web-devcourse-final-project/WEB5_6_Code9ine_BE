@@ -90,7 +90,6 @@ public class MemberController {
         member.setNickname(request.getNickname());
         member.setPhoneNumber(request.getPhoneNumber());
         member.setRole("ROLE_USER");
-        member.setActivated(true);
         Long userId = memberService.create(memberService.mapToDTO(member, new com.grepp.spring.app.model.member.model.MemberDTO()));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.successToCreate(new SignupResponse(userId)));

@@ -53,4 +53,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     // 관리자 유저 닉네임으로 검색
     Optional<Member> findByNicknameAndRole(String nickname, String role);
+
+    // 관리자 유저 차단
+    Optional<Member> findByMemberIdAndRole(Long memberId, String role);
 }

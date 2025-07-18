@@ -8,6 +8,7 @@ import com.grepp.spring.app.model.community.domain.CommunityPost;
 import com.grepp.spring.app.model.notification.domain.Notification;
 import com.grepp.spring.app.model.place_bookmark.domain.PlaceBookmark;
 import com.grepp.spring.app.model.achieved_title.domain.AchievedTitle;
+import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,7 +30,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Member {
+public class Member extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)
@@ -59,15 +60,6 @@ public class Member {
 
     @Column
     private String phoneNumber;
-
-    @Column
-    private Boolean activated;
-
-    @Column
-    private LocalDateTime createdAt;
-
-    @Column
-    private LocalDateTime modifiedAt;
 
     @Column(nullable = false)
     private String nickname;

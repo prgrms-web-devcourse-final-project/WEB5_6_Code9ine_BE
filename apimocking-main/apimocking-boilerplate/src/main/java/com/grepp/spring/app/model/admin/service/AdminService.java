@@ -16,4 +16,7 @@ public interface AdminService {
 
     // 관리자 유저 닉네임으로 검색
     AdminUserResponse getUserByNickname(String nickname);
+
+    // 관리자 유저 차단
+    void blockUser(Long memberId);
 }

@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.admin.service;
 
 import com.grepp.spring.app.model.admin.dto.AdminUserResponse;
+import com.grepp.spring.app.model.community.domain.CommunityPost;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.infra.payload.PageParam;
@@ -49,4 +50,15 @@ public class AdminUserServiceImpl implements AdminService {
             member.getActivated()
         );
     }
+
+    // 관리자 유저 차단
+    @Transactional
+    @Override
+    public void blockUser(Long memberId) {
+        Member member = memberRepository.findByMemberIdAndRole(memberId, "ROLE_USER")
+            .orElseThrow(() -> new NotFoundException("유저를 찾을 수 없습니다."));
+
+        member.unActivated();
+    }
+
 }

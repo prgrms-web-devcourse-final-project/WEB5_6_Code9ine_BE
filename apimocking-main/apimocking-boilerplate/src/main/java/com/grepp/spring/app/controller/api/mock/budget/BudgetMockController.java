@@ -41,13 +41,11 @@ public class BudgetMockController {
         return ApiResponse.success(response);
     }
 
-    @Operation(summary = "가계부 분석 페이지")
+    /*@Operation(summary = "가계부 분석 페이지")
     @GetMapping("/analyze")
     public ApiResponse<BudgetAnalyzeResponseDto>  getDashboard() {
 
-        BudgetGoal goal = new BudgetGoal(
-            "아이패드 에어", "https://example.com/ipad.png", BigDecimal.valueOf(890000)
-        );
+
 
         List<BudgetMonthlyExpense> monthlyExpenses = List.of(
             new BudgetMonthlyExpense("2025-02", BigDecimal.valueOf(1410000)),
@@ -77,5 +75,5 @@ public class BudgetMockController {
         );
 
         return ApiResponse.success(response);
-    }
+    }*/
 }

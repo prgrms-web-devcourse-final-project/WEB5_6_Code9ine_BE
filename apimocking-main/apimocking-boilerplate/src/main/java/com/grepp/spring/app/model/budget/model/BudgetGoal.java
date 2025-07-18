@@ -1,7 +1,6 @@
 package com.grepp.spring.app.model.budget.model;
 
 
-import com.google.type.Decimal;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,7 +14,6 @@ import lombok.Setter;
 public class BudgetGoal {
 
     private String itemName;
-    private String itemImage;
     private BigDecimal itemPrice;
 
 }

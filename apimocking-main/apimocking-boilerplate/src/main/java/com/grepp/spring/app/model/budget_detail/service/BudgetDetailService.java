@@ -152,4 +152,23 @@ public class BudgetDetailService {
             .findAllBeforeTodayByMemberIdOrderByDateAndCreatedAt(memberId, today, pageable)
             .map(BudgetDetailDto::from);
     }
+
+    @Transactional
+    public void registerNoExpense(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+        LocalDate today = LocalDate.now();
+
+        Budget budget = budgetRepository.findByMemberAndDate(member, today)
+            .orElseGet(() -> {
+                Budget newBudget = new Budget();
+                newBudget.setMember(member);
+                newBudget.setDate(today);
+                newBudget.setTotalIncome(BigDecimal.ZERO);
+                newBudget.setTotalExpense(BigDecimal.ZERO);
+                return budgetRepository.save(newBudget);
+            });
+
+    }
 }

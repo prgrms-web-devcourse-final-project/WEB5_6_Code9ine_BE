@@ -3,10 +3,6 @@ package com.grepp.spring.app.controller.api.member;
 import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.member.domain.Member;
-import com.grepp.spring.app.model.place_bookmark.service.PlaceBookmarkService;
-import com.grepp.spring.app.model.community.service.CommunityService;
-import com.grepp.spring.app.model.budget.service.BudgetService;
-import java.math.BigDecimal;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import jakarta.validation.Valid;
@@ -37,18 +33,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.math.BigDecimal;
-
 
 @RestController
 @RequestMapping("/api/members")
-@Tag(name = "멤버 API", description = "멤버 관련 API")
 public class MemberController {
     private final MemberService memberService;
     private final MemberRepository memberRepository;
@@ -59,11 +46,8 @@ public class MemberController {
     private final UserBlackListRepository userBlackListRepository;
     private final RefreshTokenService refreshTokenService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final PlaceBookmarkService placeBookmarkService;
-    private final CommunityService communityService;
-    private final BudgetService budgetService;
 
-    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService, CommunityService communityService, BudgetService budgetService) {
+    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider) {
         this.memberService = memberService;
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
@@ -73,9 +57,6 @@ public class MemberController {
         this.userBlackListRepository = userBlackListRepository;
         this.refreshTokenService = refreshTokenService;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.placeBookmarkService = placeBookmarkService;
-        this.communityService = communityService;
-        this.budgetService = budgetService;
     }
 
     // 회원가입
@@ -286,201 +267,6 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(logoutResponse));
     }
 
-    // 장소 북마크 조회
-    @GetMapping("/bookmarks/places")
-    @Operation(summary = "장소 북마크 조회", description = "현재 로그인한 사용자의 장소 북마크 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getPlaceBookmarks() {
-        // JWT에서 현재 사용자 ID 추출
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = auth != null ? auth.getName() : null;
-        
-        if (currentEmail == null || currentEmail.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
-        }
-        
-        // 이메일로 멤버 조회
-        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
-                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
-        
-        List<Map<String, Object>> bookmarks = placeBookmarkService.getMemberPlaceBookmarks(member.getMemberId());
-        return ResponseEntity.ok(ApiResponse.success(bookmarks));
-    }
-
-    // 장소 북마크 해제
-    @PatchMapping("/bookmarks/places/{place-id}")
-    @Operation(summary = "장소 북마크 해제", description = "특정 장소의 북마크를 해제합니다.")
-    public ResponseEntity<ApiResponse<UnbookmarkResponse>> unbookmarkPlace(
-            @PathVariable("place-id") Long placeId,
-            @RequestBody UnbookmarkRequest request) {
-        // JWT에서 현재 사용자 ID 추출
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = auth != null ? auth.getName() : null;
-        
-        if (currentEmail == null || currentEmail.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
-        }
-        
-        // 이메일로 멤버 조회
-        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
-                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
-        
-        placeBookmarkService.unbookmarkPlace(member.getMemberId(), placeId, request.getPlaceType());
-        
-        UnbookmarkResponse response = new UnbookmarkResponse();
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    // 마이페이지 조회
-    @GetMapping("/mypage")
-    @Operation(summary = "마이페이지 조회", description = "현재 로그인한 사용자의 마이페이지 정보를 조회합니다.")
-    public ResponseEntity<ApiResponse<MypageResponse>> getMypage() {
-        // JWT에서 현재 사용자 ID 추출
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = auth != null ? auth.getName() : null;
-        
-        if (currentEmail == null || currentEmail.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
-        }
-        
-        // 이메일로 멤버 조회
-        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
-                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
-        
-        // 레벨/경험치 계산
-        int level = member.getLevel();
-        int currentExp = member.getTotalExp() % 100; // 현재 레벨에서의 경험치
-        int nextLevelExp = 100; // 고정값
-        int expProgress = (int) ((double) currentExp / nextLevelExp * 100);
-        
-        // 실제 데이터 조회
-        List<Map<String, Object>> myPosts = communityService.getMyPosts(member.getMemberId());
-        List<Map<String, Object>> bookmarkedPosts = communityService.getBookmarkedPosts(member.getMemberId());
-        List<Map<String, Object>> bookmarkedPlaces = placeBookmarkService.getMemberPlaceBookmarks(member.getMemberId());
-        
-        // 목표 정보 (실제 데이터 사용)
-        String goalStuff = member.getGoalStuff();
-        BigDecimal remainPrice = null;
-        
-        if (member.getGoalAmount() != null && member.getGoalStuff() != null) {
-            // 현재 달의 총 수입과 총 지출 조회
-            BigDecimal[] currentMonthTotal = budgetService.getCurrentMonthTotal(member.getMemberId());
-            BigDecimal totalIncome = currentMonthTotal[0];
-            BigDecimal totalExpense = currentMonthTotal[1];
-            
-            // 목표 달성까지 남은 금액 계산: goalAmount - (totalIncome - totalExpense)
-            BigDecimal savedAmount = totalIncome.subtract(totalExpense);
-            BigDecimal goalAmount = member.getGoalAmount();
-            remainPrice = goalAmount.subtract(savedAmount);
-            
-            // 남은 금액이 음수면 0으로 설정 (목표 달성 완료)
-            if (remainPrice.compareTo(BigDecimal.ZERO) < 0) {
-                remainPrice = BigDecimal.ZERO;
-            }
-        }
-        
-        // 임시 칭호 정보 (칭호 API 구현 후 교체)
-        Map<String, Object> equippedTitle = null;
-        List<Map<String, Object>> achievedTitles = List.of(
-            Map.of(
-                "titleId", 1,
-                "name", "개근왕",
-                "description", "30일 연속 출석",
-                "minCount", 30,
-                "achieved", true
-            ),
-            Map.of(
-                "titleId", 2,
-                "name", "절약왕", 
-                "description", "한 달 동안 지출을 10만원 이하로!",
-                "minCount", 1,
-                "achieved", true
-            ),
-            Map.of(
-                "titleId", 3,
-                "name", "인싸왕",
-                "description", "친구 5명 초대",
-                "minCount", 5,
-                "achieved", true
-            )
-        );
-        
-        MypageResponse.Data data = new MypageResponse.Data(
-            member.getMemberId(),
-            member.getEmail(),
-            member.getName(),
-            member.getProfileImage(),
-            level,
-            currentExp,
-            nextLevelExp,
-            expProgress,
-            myPosts,
-            goalStuff,
-            remainPrice,
-            bookmarkedPosts,
-            bookmarkedPlaces,
-            equippedTitle,
-            achievedTitles
-        );
-        
-        MypageResponse response = new MypageResponse(data);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    // 목표 금액/항목 설정
-    @PatchMapping("/mypage/goal")
-    @Operation(summary = "목표 금액/항목 설정", description = "사용자의 목표 금액과 항목을 설정합니다.")
-    public ResponseEntity<ApiResponse<GoalResponse>> setGoal(@RequestBody @Valid GoalRequest request) {
-        // JWT에서 현재 사용자 ID 추출
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = auth != null ? auth.getName() : null;
-        
-        if (currentEmail == null || currentEmail.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
-        }
-        
-        // 이메일로 멤버 조회
-        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
-                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
-        
-        // 목표 정보 업데이트
-        if (request.getGoalAmount() != null) {
-            member.setGoalAmount(request.getGoalAmount());
-        } else {
-            member.setGoalAmount(null);
-        }
-        member.setGoalStuff(request.getGoalStuff());
-        memberRepository.save(member);
-        
-        GoalResponse response = new GoalResponse(request.getGoalAmount(), request.getGoalStuff());
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    // 목표 금액/항목 조회
-    @GetMapping("/mypage/goal")
-    @Operation(summary = "목표 금액/항목 조회", description = "사용자의 목표 금액과 항목을 조회합니다.")
-    public ResponseEntity<ApiResponse<GoalResponse>> getGoal() {
-        // JWT에서 현재 사용자 ID 추출
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = auth != null ? auth.getName() : null;
-        
-        if (currentEmail == null || currentEmail.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
-        }
-        
-        // 이메일로 멤버 조회
-        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
-                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
-        
-        BigDecimal goalAmount = member.getGoalAmount();
-        GoalResponse response = new GoalResponse(goalAmount, member.getGoalStuff());
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
     // ===== 유틸리티 메서드 =====
     
     // 이메일 마스킹 처리
@@ -554,13 +340,9 @@ public class MemberController {
         @Pattern(regexp = "^01[016789]\\d{7,8}$", message = "휴대폰번호 형식이 올바르지 않습니다.")
         private String phoneNumber;
     }
-    @Getter @Setter @NoArgsConstructor
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class SignupResponse {
         private Long userId;
-        
-        public SignupResponse(Long userId) {
-            this.userId = userId;
-        }
     }
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class CheckEmailRequest {
@@ -570,13 +352,9 @@ public class MemberController {
     public static class CheckNicknameRequest {
         private String nickname;
     }
-    @Getter @Setter @NoArgsConstructor
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class CheckResponse {
         private boolean available;
-        
-        public CheckResponse(boolean available) {
-            this.available = available;
-        }
     }
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class LoginRequest {
@@ -585,14 +363,9 @@ public class MemberController {
         @Schema(description = "비밀번호", example = "string")
         private String password;
     }
-    @Getter @Setter @NoArgsConstructor
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class LoginResponse {
         private Data data;
-        
-        public LoginResponse(Data data) {
-            this.data = data;
-        }
-        
         @Getter @Setter @NoArgsConstructor @AllArgsConstructor
         public static class Data {
             private String accessToken;
@@ -615,14 +388,10 @@ public class MemberController {
         private String phoneNumber;
     }
 
-    @Getter @Setter @NoArgsConstructor
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class FindEmailResponse {
         @Schema(description = "마스킹된 이메일 목록", example = "[\"te****@test.com\", \"an****@test.com\"]")
         private java.util.List<String> emails;
-        
-        public FindEmailResponse(java.util.List<String> emails) {
-            this.emails = emails;
-        }
     }
 
     // 비밀번호 찾기 관련 DTO
@@ -659,64 +428,5 @@ public class MemberController {
     @Getter @Setter @NoArgsConstructor
     public static class LogoutResponse {
         // 응답 데이터 없음 (성공 메시지만 반환)
-    }
-
-    // 장소 북마크 해제 요청 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class UnbookmarkRequest {
-        @Schema(description = "장소 타입", example = "store|festival|library")
-        private String placeType;
-    }
-
-    // 장소 북마크 해제 응답 DTO
-    @Getter @Setter @NoArgsConstructor
-    public static class UnbookmarkResponse {
-        // 응답 데이터 없음 (성공 메시지만 반환)
-    }
-
-    // 마이페이지 조회 응답 DTO
-    @Getter @Setter @NoArgsConstructor
-    public static class MypageResponse {
-        private Data data;
-        
-        public MypageResponse(Data data) {
-            this.data = data;
-        }
-        
-        @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-        public static class Data {
-            private Long memberId;
-            private String email;
-            private String name;
-            private String profileImage;
-            private int level;
-            private int currentExp;
-            private int nextLevelExp;
-            private int expProgress;
-            private List<Map<String, Object>> myPosts;
-            private String goalStuff;
-            private BigDecimal remainPrice;
-            private List<Map<String, Object>> bookmarkedPosts;
-            private List<Map<String, Object>> bookmarkedPlaces;
-            private Map<String, Object> equippedTitle;
-            private List<Map<String, Object>> achievedTitles;
-        }
-    }
-
-    // 목표 설정 요청 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class GoalRequest {
-        @Schema(description = "목표 금액", example = "200000")
-        private BigDecimal goalAmount;
-        
-        @Schema(description = "목표 항목", example = "자동차")
-        private String goalStuff;
-    }
-
-    // 목표 설정/조회 응답 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class GoalResponse {
-        private BigDecimal goalAmount;
-        private String goalStuff;
     }
 } 

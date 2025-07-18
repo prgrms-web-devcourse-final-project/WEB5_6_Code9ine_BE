@@ -63,6 +63,11 @@ public class InviteCodeService {
         return code;
     }
 
+    // 초대코드 생성 (generateInviteCode 메서드 추가)
+    public String generateInviteCode(Long memberId) {
+        return createInviteCode(memberId);
+    }
+
     // 초대코드 유효성 검사
     @Transactional(readOnly = true)
     public boolean isValidInviteCode(String code) {

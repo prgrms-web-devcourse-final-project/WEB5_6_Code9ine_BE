@@ -760,6 +760,109 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(titleResponse));
     }
 
+    // 내 초대 코드 복사
+    @GetMapping("/invite-code")
+    @Operation(summary = "내 초대 코드 복사", description = "현재 로그인한 사용자의 초대 코드를 조회합니다.")
+    public ResponseEntity<ApiResponse<InviteCodeResponse>> getInviteCode() {
+        // JWT에서 현재 사용자 이메일 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 이메일로 멤버 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
+        // 초대 코드 생성 (멤버 ID 기반)
+        String inviteCode = inviteCodeService.generateInviteCode(member.getMemberId());
+        
+        InviteCodeResponse response = new InviteCodeResponse(inviteCode);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // 회원 탈퇴
+    @PatchMapping("/withdraw")
+    @Operation(summary = "회원 탈퇴", description = "현재 로그인한 사용자의 회원 탈퇴를 처리합니다.")
+    public ResponseEntity<ApiResponse<WithdrawResponse>> withdrawMember() {
+        // JWT에서 현재 사용자 이메일 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 이메일로 멤버 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
+        // 회원 탈퇴 처리
+        memberService.withdrawMember(member.getMemberId());
+        
+        // SecurityContext 클리어
+        SecurityContextHolder.clearContext();
+        
+        WithdrawResponse response = new WithdrawResponse();
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // 프로필 이미지 변경
+    @PatchMapping("/mypage/profile-image")
+    @Operation(summary = "프로필 이미지 변경", description = "현재 로그인한 사용자의 프로필 이미지를 변경합니다.")
+    public ResponseEntity<ApiResponse<ProfileImageResponse>> updateProfileImage(@RequestBody @Valid ProfileImageRequest request) {
+        // JWT에서 현재 사용자 이메일 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 이메일로 멤버 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
+        // 프로필 이미지 업데이트
+        member.setProfileImage(request.getProfileImage());
+        memberRepository.save(member);
+        
+        ProfileImageResponse response = new ProfileImageResponse(request.getProfileImage());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // 챌린지 대시보드 조회
+    @GetMapping("/mypage/challenges/dashboard")
+    @Operation(summary = "챌린지 대시보드 조회", description = "현재 로그인한 사용자의 챌린지 대시보드 정보를 조회합니다.")
+    public ResponseEntity<ApiResponse<ChallengeDashboardResponse>> getChallengeDashboard() {
+        // JWT에서 현재 사용자 이메일 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 이메일로 멤버 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
+        // 챌린지 대시보드 데이터 조회 (실제 구현에서는 챌린지 서비스에서 가져와야 함)
+        List<ChallengeDashboardResponse.ChallengeData> challenges = List.of(
+            new ChallengeDashboardResponse.ChallengeData(1L, "만원의 행복", "일일", "만원으로 하루 살아보기", 1, 0, "moneyIcon"),
+            new ChallengeDashboardResponse.ChallengeData(2L, "영수증 인증하기", "일일", "오늘 사용한 영수증 인증하기", 1, 0, "receipt")
+        );
+        
+        ChallengeDashboardResponse response = new ChallengeDashboardResponse(challenges);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     // ===== 유틸리티 메서드 =====
     
     // 이메일 마스킹 처리
@@ -1051,5 +1154,63 @@ public class MemberController {
         
         @Schema(description = "새 비밀번호", example = "newpassword123!")
         private String newPassword;
+    }
+
+    // 초대 코드 관련 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class InviteCodeResponse {
+        @Schema(description = "초대 코드", example = "ABC123")
+        private String inviteCode;
+    }
+
+    // 회원 탈퇴 관련 DTO
+    @Getter @Setter @NoArgsConstructor
+    public static class WithdrawResponse {
+        // 응답 데이터 없음 (성공 메시지만 반환)
+    }
+
+    // 프로필 이미지 변경 관련 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class ProfileImageRequest {
+        @Schema(description = "프로필 이미지 URL", example = "https://example.com/image.jpg")
+        @NotBlank(message = "프로필 이미지 URL은 필수입니다.")
+        private String profileImage;
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class ProfileImageResponse {
+        @Schema(description = "변경된 프로필 이미지 URL", example = "https://example.com/image.jpg")
+        private String profileImage;
+    }
+
+    // 챌린지 대시보드 관련 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class ChallengeDashboardResponse {
+        @Schema(description = "챌린지 목록")
+        private List<ChallengeData> challenges;
+        
+        @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+        public static class ChallengeData {
+            @Schema(description = "챌린지 ID", example = "1")
+            private Long challengeId;
+            
+            @Schema(description = "챌린지 제목", example = "만원의 행복")
+            private String title;
+            
+            @Schema(description = "챌린지 타입", example = "일일")
+            private String type;
+            
+            @Schema(description = "챌린지 설명", example = "만원으로 하루 살아보기")
+            private String description;
+            
+            @Schema(description = "총 목표", example = "1")
+            private Integer total;
+            
+            @Schema(description = "진행률", example = "0")
+            private Integer progress;
+            
+            @Schema(description = "아이콘", example = "moneyIcon")
+            private String icon;
+        }
     }
 } 

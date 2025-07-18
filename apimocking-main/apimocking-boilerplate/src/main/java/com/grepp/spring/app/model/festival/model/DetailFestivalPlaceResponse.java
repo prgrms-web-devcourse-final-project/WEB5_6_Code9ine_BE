@@ -1,7 +1,6 @@
 package com.grepp.spring.app.model.festival.model;
 
 import com.grepp.spring.app.model.store.dto.DetailPlaceResponse;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +14,7 @@ public class DetailFestivalPlaceResponse extends DetailPlaceResponse {
     private String name;
     private String address;
     private String category;
+    private String type;
     private String target;
     private String url;
 
@@ -24,6 +24,10 @@ public class DetailFestivalPlaceResponse extends DetailPlaceResponse {
     private Double latitude;
     private Double longitude;
 
+    @Override
+    public String getType() {
+        return type;
+    }
 
     @Override
     public String getName() {
@@ -46,7 +50,7 @@ public class DetailFestivalPlaceResponse extends DetailPlaceResponse {
         return longitude;
     }
 
-    public DetailFestivalPlaceResponse(Long festivalId, String name,String address, String category, String target,
+    public DetailFestivalPlaceResponse(Long festivalId, String name,String address, String category,String type, String target,
                                        String url, LocalDate startAt, LocalDate endAt,
                                        Double latitude, Double longitude) {
         super();
@@ -54,6 +58,7 @@ public class DetailFestivalPlaceResponse extends DetailPlaceResponse {
         this.name = name;
         this.address = address;
         this.category = category;
+        this.type = type;
         this.target = target;
         this.url = url;
         this.startAt = startAt;

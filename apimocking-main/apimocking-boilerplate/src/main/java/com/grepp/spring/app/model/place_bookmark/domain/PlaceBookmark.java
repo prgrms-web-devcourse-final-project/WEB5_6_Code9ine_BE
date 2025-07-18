@@ -4,6 +4,7 @@ import com.grepp.spring.app.model.festival.domain.Festival;
 import com.grepp.spring.app.model.library.domain.Library;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.store.domain.Store;
+import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -21,18 +22,12 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class PlaceBookmark {
+public class PlaceBookmark extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long pBookmarkId;
-
-    @Column
-    private LocalDateTime createdAt;
-
-    @Column
-    private Boolean activatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "memberId", nullable = false)

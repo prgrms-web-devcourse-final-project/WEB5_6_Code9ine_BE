@@ -3,11 +3,13 @@ package com.grepp.spring.app.model.store.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.context.annotation.Profile;
 
 @Getter
 @Setter
 @Schema(description = "북마크 요청 DTO")
-public class BookmarkToggleRequest {
+@Profile("mock")
+public class BookmarkToggleMockRequest {
 
     @Schema(description = "식당 ID (store 북마크 시 사용)", example = "1", nullable = true)
     private Long storeId;

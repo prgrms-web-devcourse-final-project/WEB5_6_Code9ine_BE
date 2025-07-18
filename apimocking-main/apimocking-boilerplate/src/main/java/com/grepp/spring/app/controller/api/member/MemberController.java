@@ -554,9 +554,13 @@ public class MemberController {
         @Pattern(regexp = "^01[016789]\\d{7,8}$", message = "휴대폰번호 형식이 올바르지 않습니다.")
         private String phoneNumber;
     }
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    @Getter @Setter @NoArgsConstructor
     public static class SignupResponse {
         private Long userId;
+        
+        public SignupResponse(Long userId) {
+            this.userId = userId;
+        }
     }
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class CheckEmailRequest {
@@ -566,9 +570,13 @@ public class MemberController {
     public static class CheckNicknameRequest {
         private String nickname;
     }
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    @Getter @Setter @NoArgsConstructor
     public static class CheckResponse {
         private boolean available;
+        
+        public CheckResponse(boolean available) {
+            this.available = available;
+        }
     }
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class LoginRequest {
@@ -577,9 +585,14 @@ public class MemberController {
         @Schema(description = "비밀번호", example = "string")
         private String password;
     }
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    @Getter @Setter @NoArgsConstructor
     public static class LoginResponse {
         private Data data;
+        
+        public LoginResponse(Data data) {
+            this.data = data;
+        }
+        
         @Getter @Setter @NoArgsConstructor @AllArgsConstructor
         public static class Data {
             private String accessToken;
@@ -602,10 +615,14 @@ public class MemberController {
         private String phoneNumber;
     }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    @Getter @Setter @NoArgsConstructor
     public static class FindEmailResponse {
         @Schema(description = "마스킹된 이메일 목록", example = "[\"te****@test.com\", \"an****@test.com\"]")
         private java.util.List<String> emails;
+        
+        public FindEmailResponse(java.util.List<String> emails) {
+            this.emails = emails;
+        }
     }
 
     // 비밀번호 찾기 관련 DTO
@@ -658,9 +675,14 @@ public class MemberController {
     }
 
     // 마이페이지 조회 응답 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    @Getter @Setter @NoArgsConstructor
     public static class MypageResponse {
         private Data data;
+        
+        public MypageResponse(Data data) {
+            this.data = data;
+        }
+        
         @Getter @Setter @NoArgsConstructor @AllArgsConstructor
         public static class Data {
             private Long memberId;

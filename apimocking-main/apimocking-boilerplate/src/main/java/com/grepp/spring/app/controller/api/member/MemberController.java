@@ -5,6 +5,8 @@ import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.place_bookmark.service.PlaceBookmarkService;
 import com.grepp.spring.app.model.community.service.CommunityService;
+import com.grepp.spring.app.model.budget.service.BudgetService;
+import java.math.BigDecimal;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import jakarta.validation.Valid;
@@ -42,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.math.BigDecimal;
-import com.google.type.Decimal;
+
 
 @RestController
 @RequestMapping("/api/members")
@@ -59,8 +61,9 @@ public class MemberController {
     private final JwtTokenProvider jwtTokenProvider;
     private final PlaceBookmarkService placeBookmarkService;
     private final CommunityService communityService;
+    private final BudgetService budgetService;
 
-    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService, CommunityService communityService) {
+    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService, CommunityService communityService, BudgetService budgetService) {
         this.memberService = memberService;
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
@@ -72,6 +75,7 @@ public class MemberController {
         this.jwtTokenProvider = jwtTokenProvider;
         this.placeBookmarkService = placeBookmarkService;
         this.communityService = communityService;
+        this.budgetService = budgetService;
     }
 
     // 회원가입
@@ -358,7 +362,24 @@ public class MemberController {
         
         // 목표 정보 (실제 데이터 사용)
         String goalStuff = member.getGoalStuff();
-        BigDecimal remainPrice = member.getGoalAmount() != null ? new BigDecimal(member.getGoalAmount().getValue()) : null;
+        BigDecimal remainPrice = null;
+        
+        if (member.getGoalAmount() != null && member.getGoalStuff() != null) {
+            // 현재 달의 총 수입과 총 지출 조회
+            BigDecimal[] currentMonthTotal = budgetService.getCurrentMonthTotal(member.getMemberId());
+            BigDecimal totalIncome = currentMonthTotal[0];
+            BigDecimal totalExpense = currentMonthTotal[1];
+            
+            // 목표 달성까지 남은 금액 계산: goalAmount - (totalIncome - totalExpense)
+            BigDecimal savedAmount = totalIncome.subtract(totalExpense);
+            BigDecimal goalAmount = member.getGoalAmount();
+            remainPrice = goalAmount.subtract(savedAmount);
+            
+            // 남은 금액이 음수면 0으로 설정 (목표 달성 완료)
+            if (remainPrice.compareTo(BigDecimal.ZERO) < 0) {
+                remainPrice = BigDecimal.ZERO;
+            }
+        }
         
         // 임시 칭호 정보 (칭호 API 구현 후 교체)
         Map<String, Object> equippedTitle = null;
@@ -427,8 +448,7 @@ public class MemberController {
         
         // 목표 정보 업데이트
         if (request.getGoalAmount() != null) {
-            Decimal goalAmount = Decimal.newBuilder().setValue(request.getGoalAmount().toString()).build();
-            member.setGoalAmount(goalAmount);
+            member.setGoalAmount(request.getGoalAmount());
         } else {
             member.setGoalAmount(null);
         }
@@ -456,7 +476,7 @@ public class MemberController {
         Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
                 .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
         
-        BigDecimal goalAmount = member.getGoalAmount() != null ? new BigDecimal(member.getGoalAmount().getValue()) : null;
+        BigDecimal goalAmount = member.getGoalAmount();
         GoalResponse response = new GoalResponse(goalAmount, member.getGoalStuff());
         return ResponseEntity.ok(ApiResponse.success(response));
     }

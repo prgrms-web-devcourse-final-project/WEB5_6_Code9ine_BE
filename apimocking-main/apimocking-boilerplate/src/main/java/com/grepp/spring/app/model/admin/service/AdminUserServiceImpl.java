@@ -27,7 +27,7 @@ public class AdminUserServiceImpl implements AdminService {
 
         return memberRepository.findByRoleEquals("ROLE_USER", pageable)
             .map(member -> new AdminUserResponse(
-                member.getMemberId().intValue(),
+                member.getMemberId(),
                 member.getNickname(),
                 member.getEmail(),
                 member.getActivated()
@@ -43,7 +43,7 @@ public class AdminUserServiceImpl implements AdminService {
             .orElseThrow(() -> new NotFoundException("해당 닉네임의 유저를 찾을 수 없습니다."));
 
         return new AdminUserResponse(
-            member.getMemberId().intValue(),
+            member.getMemberId(),
             member.getNickname(),
             member.getEmail(),
             member.getActivated()

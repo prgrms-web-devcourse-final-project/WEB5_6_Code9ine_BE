@@ -357,6 +357,7 @@ public class CommunityServiceImpl implements CommunityService {
 
         return posts.stream().map(post -> new CommunityTopPostResponse(
             post.getPostId(),
+            post.getMember().getMemberId(),
             post.getMember().getNickname(),
             post.getMember().getEquippedTitle() != null ? post.getMember().getEquippedTitle().getName() : null,
             post.getMember().getLevel(),

@@ -9,6 +9,7 @@ import com.grepp.spring.app.model.budget.service.BudgetService;
 import com.grepp.spring.app.model.achieved_title.service.AchievedTitleService;
 import com.grepp.spring.app.model.achieved_title.domain.AchievedTitle;
 import com.grepp.spring.app.model.achieved_title.repos.AchievedTitleRepository;
+import com.grepp.spring.app.model.invite_code.service.InviteCodeService;
 import java.math.BigDecimal;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
@@ -65,8 +66,9 @@ public class MemberController {
     private final BudgetService budgetService;
     private final AchievedTitleService achievedTitleService;
     private final AchievedTitleRepository achievedTitleRepository;
+    private final InviteCodeService inviteCodeService;
 
-    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService, CommunityService communityService, BudgetService budgetService, AchievedTitleService achievedTitleService, AchievedTitleRepository achievedTitleRepository) {
+    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService, CommunityService communityService, BudgetService budgetService, AchievedTitleService achievedTitleService, AchievedTitleRepository achievedTitleRepository, InviteCodeService inviteCodeService) {
         this.memberService = memberService;
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
@@ -81,6 +83,7 @@ public class MemberController {
         this.budgetService = budgetService;
         this.achievedTitleService = achievedTitleService;
         this.achievedTitleRepository = achievedTitleRepository;
+        this.inviteCodeService = inviteCodeService;
     }
 
     // 회원가입
@@ -106,6 +109,12 @@ public class MemberController {
                     .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이메일 인증이 필요합니다.", null));
         }
         
+        // 초대코드 검증
+        if (!inviteCodeService.isValidInviteCode(request.getInviteCode())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "유효하지 않은 초대코드입니다.", null));
+        }
+        
         // 회원 생성
         Member member = new Member();
         member.setEmail(request.getEmail());
@@ -116,6 +125,10 @@ public class MemberController {
         member.setRole("ROLE_USER");
         member.setActivated(true);
         Long userId = memberService.create(memberService.mapToDTO(member, new com.grepp.spring.app.model.member.model.MemberDTO()));
+        
+        // 초대코드 사용 처리
+        inviteCodeService.useInviteCode(request.getInviteCode());
+        
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.successToCreate(new SignupResponse(userId)));
     }
@@ -333,6 +346,28 @@ public class MemberController {
         
         List<Map<String, Object>> bookmarks = placeBookmarkService.getMemberPlaceBookmarks(member.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(bookmarks));
+    }
+    
+    @GetMapping("/bookmarks/posts")
+    @Operation(summary = "게시글 북마크 조회", description = "현재 로그인한 사용자의 게시글 북마크 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getBookmarkedPosts() {
+        // JWT에서 현재 사용자 ID 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 이메일로 멤버 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
+        // 게시글 북마크 조회
+        List<Map<String, Object>> bookmarkedPosts = communityService.getBookmarkedPosts(member.getMemberId());
+        
+        return ResponseEntity.ok(ApiResponse.success(bookmarkedPosts));
     }
 
     // 장소 북마크 해제
@@ -797,6 +832,10 @@ public class MemberController {
         @NotBlank(message = "휴대폰번호는 필수입니다.")
         @Pattern(regexp = "^01[016789]\\d{7,8}$", message = "휴대폰번호 형식이 올바르지 않습니다.")
         private String phoneNumber;
+        
+        @Schema(description = "초대코드", example = "ABC123")
+        @NotBlank(message = "초대코드는 필수입니다.")
+        private String inviteCode;
     }
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class SignupResponse {

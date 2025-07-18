@@ -49,8 +49,6 @@ public class BudgetController {
     @Operation(summary = "가계부 분석 페이지")
     @GetMapping("/analyze")
     public ApiResponse<BudgetAnalyzeResponseDto>  getDashboard(@AuthenticationPrincipal Principal principal) {
-        LocalDate today = LocalDate.now();
-        YearMonth yearMonth = YearMonth.from(today);
 
         BudgetGoal goal = budgetAnalyzeService.getMemberGoal(principal.getMemberId());
         Map<String, BigDecimal> totals = budgetCalendarService.getMonthlySummaryUpToToday(
@@ -62,22 +60,16 @@ public class BudgetController {
         List<BudgetCategorySummary> categorySummary = budgetAnalyzeService.getThisMonthCategoryExpense(
             principal.getMemberId());
 
-        int size = monthlyExpenses.size();
-        BigDecimal recentmonth = monthlyExpenses.get(size - 1).getAmount();
-        BigDecimal beforemonth= monthlyExpenses.get(size - 2).getAmount();
-
-
+        BigDecimal totalsavedAmount = budgetAnalyzeService.getTotalExpenseUntilToday(
+            principal.getMemberId());
 
         BudgetAnalyzeResponseDto response = new BudgetAnalyzeResponseDto(
-            String.valueOf(yearMonth),
             totals.get("totalIncome"),
             totals.get("totalExpense"),
             goal,
-            BigDecimal.valueOf(1250000),
             monthlyExpenses,
             categorySummary,
-            beforemonth.subtract(recentmonth),
-            BigDecimal.valueOf(1500000)
+            totalsavedAmount
         );
 
         return ApiResponse.success(response);

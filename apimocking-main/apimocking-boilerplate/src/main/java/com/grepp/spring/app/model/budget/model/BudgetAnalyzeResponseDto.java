@@ -13,14 +13,11 @@ import lombok.Setter;
 @AllArgsConstructor
 public class BudgetAnalyzeResponseDto {
 
-    private String yearMonth;
     private BigDecimal totalIncome;
     private BigDecimal totalExpense;
     private BudgetGoal goal;
-    private BigDecimal currentMonthExpense;
     private List<BudgetMonthlyExpense> monthlyExpenses;
     private List<BudgetCategorySummary> categorySummary;
-    private BigDecimal savedComparedToLastMonth;
     private BigDecimal totalsavedAmount;
 
 }

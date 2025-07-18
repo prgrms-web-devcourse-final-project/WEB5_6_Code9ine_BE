@@ -85,4 +85,16 @@ public class BudgetAnalyzeService {
         );
     }
 
+    public BigDecimal getTotalExpenseUntilToday(Long memberId) {
+        LocalDate today = LocalDate.now();
+
+        BigDecimal income = budgetRepository.sumTotalIncomeByMemberUntilToday(memberId, today)
+            .orElse(BigDecimal.ZERO);
+
+        BigDecimal expense = budgetRepository.sumTotalExpenseByMemberUntilToday(memberId, today)
+            .orElse(BigDecimal.ZERO);
+
+        return income.subtract(expense);
+    }
+
 }

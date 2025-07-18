@@ -1,15 +1,14 @@
 package com.grepp.spring.app.model.budget.repos;
 
 import com.grepp.spring.app.model.budget.domain.Budget;
-import com.grepp.spring.app.model.budget.model.BudgetMonthlyExpense;
 import com.grepp.spring.app.model.member.domain.Member;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import java.time.LocalDate;
-import java.util.Optional;
-import java.math.BigDecimal;
 
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
 
@@ -45,5 +44,19 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
         @Param("start") LocalDate start,
         @Param("end") LocalDate end
     );
+
+    @Query("SELECT SUM(b.totalIncome) " +
+        "FROM Budget b " +
+        "WHERE b.member.memberId = :memberId AND b.date <= :today")
+    Optional<BigDecimal> sumTotalIncomeByMemberUntilToday(
+        @Param("memberId") Long memberId,
+        @Param("today") LocalDate today);
+
+    @Query("SELECT SUM(b.totalExpense) " +
+        "FROM Budget b " +
+        "WHERE b.member.memberId = :memberId AND b.date <= :today")
+    Optional<BigDecimal> sumTotalExpenseByMemberUntilToday(
+        @Param("memberId") Long memberId,
+        @Param("today") LocalDate today);
 }
 

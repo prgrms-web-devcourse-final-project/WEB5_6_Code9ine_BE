@@ -24,7 +24,7 @@ public interface PlaceBookmarkRepository extends JpaRepository<PlaceBookmark, Lo
     PlaceBookmark findFirstByLibrary(Library library);
 
     // 멤버별 활성화된 장소 북마크 목록 조회
-    List<PlaceBookmark> findByMemberAndActivatedAtTrue(Member member);
+    List<PlaceBookmark> findByMemberAndActivatedTrue(Member member);
 
     // 특정 멤버의 특정 스토어 북마크 조회
     Optional<PlaceBookmark> findByMemberAndStore(Member member, Store store);

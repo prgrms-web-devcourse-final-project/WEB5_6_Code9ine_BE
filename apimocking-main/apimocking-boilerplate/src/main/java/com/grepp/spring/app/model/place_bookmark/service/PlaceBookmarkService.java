@@ -74,7 +74,7 @@ public class PlaceBookmarkService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException("멤버를 찾을 수 없습니다."));
 
-        List<PlaceBookmark> bookmarks = placeBookmarkRepository.findByMemberAndActivatedAtTrue(member);
+        List<PlaceBookmark> bookmarks = placeBookmarkRepository.findByMemberAndActivatedTrue(member);
         
         return bookmarks.stream()
                 .map(this::convertToResponseMap)
@@ -111,7 +111,7 @@ public class PlaceBookmarkService {
         }
 
         // 북마크 비활성화 (삭제 대신 비활성화)
-        bookmark.setActivatedAt(false);
+        bookmark.setActivated(false);
         placeBookmarkRepository.save(bookmark);
     }
 
@@ -164,7 +164,7 @@ public class PlaceBookmarkService {
             final PlaceBookmarkDTO placeBookmarkDTO) {
         placeBookmarkDTO.setPBookmarkId(placeBookmark.getPBookmarkId());
         placeBookmarkDTO.setCreatedAt(placeBookmark.getCreatedAt());
-        placeBookmarkDTO.setActivatedAt(placeBookmark.getActivatedAt());
+        placeBookmarkDTO.setActivatedAt(placeBookmark.getActivated());
         placeBookmarkDTO.setMember(placeBookmark.getMember() == null ? null : placeBookmark.getMember().getMemberId());
         placeBookmarkDTO.setFestival(placeBookmark.getFestival() == null ? null : placeBookmark.getFestival().getFestivalId());
         placeBookmarkDTO.setStore(placeBookmark.getStore() == null ? null : placeBookmark.getStore().getStoreId());
@@ -175,7 +175,7 @@ public class PlaceBookmarkService {
     private PlaceBookmark mapToEntity(final PlaceBookmarkDTO placeBookmarkDTO,
             final PlaceBookmark placeBookmark) {
         placeBookmark.setCreatedAt(placeBookmarkDTO.getCreatedAt());
-        placeBookmark.setActivatedAt(placeBookmarkDTO.getActivatedAt());
+        placeBookmark.setActivated(placeBookmarkDTO.getActivatedAt());
         final Member member = placeBookmarkDTO.getMember() == null ? null : memberRepository.findById(placeBookmarkDTO.getMember())
                 .orElseThrow(() -> new NotFoundException("member not found"));
         placeBookmark.setMember(member);

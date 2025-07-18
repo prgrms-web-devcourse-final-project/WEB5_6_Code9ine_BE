@@ -18,6 +18,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -81,7 +82,7 @@ public class Member {
     private Integer totalExp = 0;
 
     @Column
-    private Decimal goalAmount;
+    private BigDecimal goalAmount;
 
     @Column
     private String goalStuff;

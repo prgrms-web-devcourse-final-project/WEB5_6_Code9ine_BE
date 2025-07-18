@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.math.BigDecimal;
+import com.google.type.Decimal;
 
 @RestController
 @RequestMapping("/api/members")
@@ -355,9 +356,9 @@ public class MemberController {
         List<Map<String, Object>> bookmarkedPosts = communityService.getBookmarkedPosts(member.getMemberId());
         List<Map<String, Object>> bookmarkedPlaces = placeBookmarkService.getMemberPlaceBookmarks(member.getMemberId());
         
-        // 목표 정보 (목표 설정 API 구현 후 교체)
+        // 목표 정보 (실제 데이터 사용)
         String goalStuff = member.getGoalStuff();
-        BigDecimal remainPrice = member.getGoalAmount() != null ? new BigDecimal(member.getGoalAmount().toString()) : null;
+        BigDecimal remainPrice = member.getGoalAmount() != null ? new BigDecimal(member.getGoalAmount().getValue()) : null;
         
         // 임시 칭호 정보 (칭호 API 구현 후 교체)
         Map<String, Object> equippedTitle = null;
@@ -404,6 +405,59 @@ public class MemberController {
         );
         
         MypageResponse response = new MypageResponse(data);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // 목표 금액/항목 설정
+    @PatchMapping("/mypage/goal")
+    @Operation(summary = "목표 금액/항목 설정", description = "사용자의 목표 금액과 항목을 설정합니다.")
+    public ResponseEntity<ApiResponse<GoalResponse>> setGoal(@RequestBody @Valid GoalRequest request) {
+        // JWT에서 현재 사용자 ID 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 이메일로 멤버 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
+        // 목표 정보 업데이트
+        if (request.getGoalAmount() != null) {
+            Decimal goalAmount = Decimal.newBuilder().setValue(request.getGoalAmount().toString()).build();
+            member.setGoalAmount(goalAmount);
+        } else {
+            member.setGoalAmount(null);
+        }
+        member.setGoalStuff(request.getGoalStuff());
+        memberRepository.save(member);
+        
+        GoalResponse response = new GoalResponse(request.getGoalAmount(), request.getGoalStuff());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // 목표 금액/항목 조회
+    @GetMapping("/mypage/goal")
+    @Operation(summary = "목표 금액/항목 조회", description = "사용자의 목표 금액과 항목을 조회합니다.")
+    public ResponseEntity<ApiResponse<GoalResponse>> getGoal() {
+        // JWT에서 현재 사용자 ID 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 이메일로 멤버 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
+        BigDecimal goalAmount = member.getGoalAmount() != null ? new BigDecimal(member.getGoalAmount().getValue()) : null;
+        GoalResponse response = new GoalResponse(goalAmount, member.getGoalStuff());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -605,5 +659,22 @@ public class MemberController {
             private Map<String, Object> equippedTitle;
             private List<Map<String, Object>> achievedTitles;
         }
+    }
+
+    // 목표 설정 요청 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class GoalRequest {
+        @Schema(description = "목표 금액", example = "200000")
+        private BigDecimal goalAmount;
+        
+        @Schema(description = "목표 항목", example = "자동차")
+        private String goalStuff;
+    }
+
+    // 목표 설정/조회 응답 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class GoalResponse {
+        private BigDecimal goalAmount;
+        private String goalStuff;
     }
 } 

@@ -31,7 +31,7 @@ public class BudgetAnalyzeService {
 
         LocalDate now = LocalDate.now();
         LocalDate start = now.minusMonths(5).withDayOfMonth(1);  // 6개월 전 첫날
-        LocalDate end = now.withDayOfMonth(now.lengthOfMonth()); // 이번달 마지막날
+        LocalDate end = now; // 오늘
 
         // 1. 최근 6개월 문자열 리스트 생성
         List<String> last6Months = IntStream.rangeClosed(0, 5)
@@ -59,7 +59,7 @@ public class BudgetAnalyzeService {
         List<String> categories = List.of("식비","교통","여가","경조사","쇼핑","교육","건강","기타","생활","주거/통신");
         LocalDate today = LocalDate.now();
         LocalDate start = today.withDayOfMonth(1);
-        LocalDate end = today.withDayOfMonth(today.lengthOfMonth());
+        LocalDate end = today;
 
         List<BudgetCategorySummary> dbResults = budgetDetailRepository.findMonthlyCategoryExpense(memberId, start, end);
         Map<String, BigDecimal> dbMap = dbResults.stream()

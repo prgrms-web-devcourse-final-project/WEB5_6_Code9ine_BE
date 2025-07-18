@@ -1,5 +1,6 @@
 package com.grepp.spring.app.controller.api.mainpage;
 
+import com.grepp.spring.app.model.budget.model.AllSavingResponse;
 import com.grepp.spring.app.model.budget.model.AverageSavingResponse;
 import com.grepp.spring.app.model.budget.service.MainPageBudgetService;
 import com.grepp.spring.app.model.challenge_count.model.ChallengeTopResponse;
@@ -61,4 +62,16 @@ public class MainController {
                     .body(ApiResponse.error(ResponseCode.NOT_FOUND));
         }
     }
+
+    @GetMapping("/all-saving")
+    public ResponseEntity<ApiResponse<AllSavingResponse>> getAllSaving() {
+        try {
+            AllSavingResponse result = mainPageBudgetService.getAllSaving();
+            return ResponseEntity.ok(ApiResponse.success(result));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND));
+        }
+    }
+
 }

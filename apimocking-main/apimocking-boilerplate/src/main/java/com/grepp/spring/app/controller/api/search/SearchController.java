@@ -21,13 +21,13 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/places")
+@RequestMapping("/api")
 @Slf4j
 public class SearchController {
 
     private final StoreSearchService storeSearchService;
 
-    @GetMapping("/search")
+    @GetMapping("/places/search")
     public ResponseEntity<ApiResponse<List<PlaceResponse>>> searchPlace(
             @RequestParam String location,
             @RequestParam (required = false) List<String> type,
@@ -62,7 +62,7 @@ public class SearchController {
         }
     }
 
-    @GetMapping("/top")
+    @GetMapping("searches/top")
     public ResponseEntity<ApiResponse<List<RegionResponse>>> getTopKeywords() {
         try {
             List<RegionResponse> keywords = storeSearchService.getTopKeywords();
@@ -73,7 +73,7 @@ public class SearchController {
         }
     }
 
-    @GetMapping("detail")
+    @GetMapping("/places/detail")
     public ResponseEntity<ApiResponse<DetailPlaceResponse>> getDetailFestivalPlace(
             @RequestParam String type,
             @RequestParam Long id

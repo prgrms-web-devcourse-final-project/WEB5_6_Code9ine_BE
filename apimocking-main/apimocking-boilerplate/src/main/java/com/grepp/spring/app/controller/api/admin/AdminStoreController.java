@@ -2,8 +2,8 @@ package com.grepp.spring.app.controller.api.admin;
 
 import com.grepp.spring.app.model.admin.dto.AdminStoreCreateRequest;
 import com.grepp.spring.app.model.admin.dto.AdminStoreResponse;
+import com.grepp.spring.app.model.admin.dto.AdminStoreUpdateRequest;
 import com.grepp.spring.app.model.admin.service.AdminStoreService;
-import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
@@ -17,6 +17,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,12 +52,6 @@ public class AdminStoreController {
         @RequestParam String category,
         @ParameterObject PageParam pageParam
     ) {
-        List<String> categories = List.of("한식", "중식", "일식", "양식", "미용업", "세탁업", "숙박업");
-
-        if (!categories.contains(category)) {
-            throw new BadRequestException("유효하지 않은 카테고리입니다.");
-        }
-
         List<AdminStoreResponse> result = adminStoreService.getStoreByCategory(category, pageParam);
 
         return ResponseEntity
@@ -73,6 +69,19 @@ public class AdminStoreController {
         return ResponseEntity
             .status(ResponseCode.OK.status())
             .body(ApiResponse.success(Map.of("message", "장소 등록이 완료되었습니다.")));
+    }
+
+    @PatchMapping("/{store-id}")
+    @Operation(summary = "관리자 장소 수정", description = "카테고리 : 한식, 중식, 일식, 양식, 미용업, 세탁업, 숙박업")
+    public ResponseEntity<ApiResponse<Map<String, String>>> updateStore(
+        @PathVariable("store-id") Long id,
+        @RequestBody @Valid AdminStoreUpdateRequest request
+    ) {
+        adminStoreService.updateStore(id, request);
+
+        return ResponseEntity
+            .status(ResponseCode.OK.status())
+            .body(ApiResponse.success(Map.of("message", "장소가 수정되었습니다.")));
     }
 
 }

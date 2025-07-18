@@ -126,26 +126,92 @@ public class NotificationService {
                 .toList();
     }
 
+    // 알림 생성 요청 DTO
+    public static class NotificationCreateRequest {
+        private final Long receiverId;
+        private final Long senderId;
+        private final String type;
+        private final String customMessage;
+        private final String senderName;
+        private final String title;
+
+        public NotificationCreateRequest(Long receiverId, Long senderId, String type, 
+                                       String customMessage, String senderName, String title) {
+            this.receiverId = receiverId;
+            this.senderId = senderId;
+            this.type = type;
+            this.customMessage = customMessage;
+            this.senderName = senderName;
+            this.title = title;
+        }
+
+        // 빌더 패턴을 위한 정적 메서드들
+        public static NotificationCreateRequest of(Long receiverId, Long senderId, String type) {
+            return new NotificationCreateRequest(receiverId, senderId, type, null, null, null);
+        }
+
+        public static NotificationCreateRequest of(Long receiverId, Long senderId, String type, String customMessage) {
+            return new NotificationCreateRequest(receiverId, senderId, type, customMessage, null, null);
+        }
+
+        public static NotificationCreateRequest of(Long receiverId, Long senderId, String type, String customMessage, String senderName) {
+            return new NotificationCreateRequest(receiverId, senderId, type, customMessage, senderName, null);
+        }
+
+        // Getter 메서드들
+        public Long getReceiverId() { return receiverId; }
+        public Long getSenderId() { return senderId; }
+        public String getType() { return type; }
+        public String getCustomMessage() { return customMessage; }
+        public String getSenderName() { return senderName; }
+        public String getTitle() { return title; }
+    }
+
     // 알림 생성 (팀원들이 호출할 메서드)
-    public Long createNotification(Long receiverId, Long senderId, String type) {
-        if (senderId != null && senderId.equals(receiverId)) {
+    public Long createNotification(NotificationCreateRequest request) {
+        if (request.getSenderId() != null && request.getSenderId().equals(request.getReceiverId())) {
             // 자기 자신에게는 알림 생성하지 않음
             return null;
         }
-        Member receiver = memberRepository.findById(receiverId)
+        Member receiver = memberRepository.findById(request.getReceiverId())
                 .orElseThrow(() -> new NotFoundException("수신자를 찾을 수 없습니다."));
         
+        // 메시지 생성 로직
+        String message = request.getCustomMessage();
+        if (message == null || message.isBlank()) {
+            // senderName이 없으면 senderId로 조회
+            String finalSenderName = request.getSenderName();
+            if ((finalSenderName == null || finalSenderName.isBlank()) && request.getSenderId() != null) {
+                finalSenderName = memberRepository.findById(request.getSenderId())
+                        .map(Member::getNickname)
+                        .orElse("알 수 없음");
+            }
+            
+            // type에 따라 동적으로 메시지 생성
+            switch (request.getType().toUpperCase()) {
+                case "LIKE" -> message = String.format("%s님이 회원님의 게시글에 좋아요를 눌렀어요!", finalSenderName != null ? finalSenderName : "알 수 없음");
+                case "COMMENT" -> message = String.format("%s님이 회원님의 게시글에 댓글을 달았어요!", finalSenderName != null ? finalSenderName : "알 수 없음");
+                case "TITLE" -> message = String.format("%s 칭호를 획득했어요!", request.getTitle() != null ? request.getTitle() : "칭호");
+                default -> message = "새로운 알림이 도착했습니다.";
+            }
+        }
+        
         Notification notification = new Notification();
-        // message는 컨트롤러에서 생성해서 setMessage로 주입
+        notification.setMessage(message); // 메시지 설정
         notification.setIsRead(false);
-        notification.setSenderId(senderId);
-        notification.setType(type);
+        notification.setSenderId(request.getSenderId());
+        notification.setType(request.getType());
         notification.setCreatedAt(LocalDateTime.now());
         notification.setModifiedAt(LocalDateTime.now());
         notification.setActivated(true);
         notification.setMember(receiver);
         
         return notificationRepository.save(notification).getNotificationId();
+    }
+
+    // 기존 메서드 호환성을 위한 오버로드
+    public Long createNotification(Long receiverId, Long senderId, String type) {
+        return createNotification(NotificationCreateRequest.of(receiverId, senderId, type));
     }
 
     // 알림 읽음 처리

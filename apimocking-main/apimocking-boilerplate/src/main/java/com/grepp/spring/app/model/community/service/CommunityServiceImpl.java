@@ -81,21 +81,10 @@ public class CommunityServiceImpl implements CommunityService {
 
         communityRepository.save(post);
 
-        List<String> imgUrls = request.imageUrls();
-        if (imgUrls != null && imgUrls.size() > 8) {
-            throw new BadRequestException("이미지는 최대 8개까지 등록할 수 있습니다.");
-        }
-
-        if (imgUrls != null && !imgUrls.isEmpty()) {
-            List<PostImage> images = new ArrayList<>();
-            for (int i = 0; i < imgUrls.size(); i++) {
-                images.add(PostImage.builder()
-                    .post(post)
-                    .imageUrl(imgUrls.get(i))
-                    .sortOrder(i)
                     .build());
-            }
-            postImageRepository.saveAll(images);
+        List<String> imageUrls = request.imageUrls();
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            postImageService.addPostImages(post, imageUrls);
         }
     }
 

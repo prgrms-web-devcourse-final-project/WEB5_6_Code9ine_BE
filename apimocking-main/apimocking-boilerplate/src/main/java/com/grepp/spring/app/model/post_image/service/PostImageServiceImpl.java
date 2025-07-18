@@ -62,4 +62,27 @@ public class PostImageServiceImpl implements PostImageService{
             postImageRepository.saveAll(toAdd);
         }
     }
+
+    @Transactional
+    @Override
+    public void addPostImages(CommunityPost post, List<String> imageUrls) {
+
+        if (imageUrls.size() > 8) {
+            throw new BadRequestException("이미지는 최대 8개까지 등록할 수 있습니다.");
+        }
+
+        // 새로운 이미지
+        List<PostImage> images = new ArrayList<>();
+        for (int i = 0; i < imageUrls.size(); i++) {
+            images.add(PostImage.builder()
+                .post(post)
+                .imageUrl(imageUrls.get(i))
+                .sortOrder(i)
+                .build());
+        }
+
+        postImageRepository.saveAll(images);
+    }
+
+
 }

@@ -43,139 +43,127 @@ public class MockAdminStoreController {
             "서울 송파구 천호대로152길 11-1",
             "한식",
             List.of(
-                new AdminStoreMenuResponse("삼겹살(100g)", BigDecimal.valueOf(4500)),
-                new AdminStoreMenuResponse("우삼겹(100g)", BigDecimal.valueOf(4500)),
-                new AdminStoreMenuResponse("대패삼겹살(100g)", BigDecimal.valueOf(4500))
+                new AdminStoreMenuResponse("삼겹살(100g)", 4500),
+                new AdminStoreMenuResponse("우삼겹(100g)", 4500),
+                new AdminStoreMenuResponse("대패삼겹살(100g)", 4500)
             )
         ),
-
         new AdminStoreResponse(
             1L,
             "고덕옛날손짜장",
             "서울특별시 서울 강동구 동남로85길 36, 1층",
             "중식",
             List.of(
-                new AdminStoreMenuResponse("대패삼겹살", BigDecimal.valueOf(4500)),
-                new AdminStoreMenuResponse("우삼겹", BigDecimal.valueOf(4500))
+                new AdminStoreMenuResponse("대패삼겹살", 4500),
+                new AdminStoreMenuResponse("우삼겹", 4500)
             )
         ),
-
         new AdminStoreResponse(
             2L,
             "하늘정원 수제왕돈까스",
             "서울특별시 서대문구 거북골로 53-6, 1층(남가좌동)",
             "일식",
             List.of(
-                new AdminStoreMenuResponse("기계짜장", BigDecimal.valueOf(5000))
+                new AdminStoreMenuResponse("기계짜장", 5000)
             )
         ),
-
         new AdminStoreResponse(
             3L,
-                "하이얀미용실",
-                "서울특별시 서울 양천구 은행정로5길 48-3",
-                "미용업",
-        List.of(
-            new AdminStoreMenuResponse("커트", BigDecimal.valueOf(6000)),
-            new AdminStoreMenuResponse("염색", BigDecimal.valueOf(15000))
+            "하이얀미용실",
+            "서울특별시 서울 양천구 은행정로5길 48-3",
+            "미용업",
+            List.of(
+                new AdminStoreMenuResponse("커트", 6000),
+                new AdminStoreMenuResponse("염색", 15000)
             )
         ),
-
         new AdminStoreResponse(
             4L,
             "긴밀",
             "서울특별시 서울 송파구 삼전로9길 19. 1층 102호",
             "양식",
             List.of(
-                new AdminStoreMenuResponse("크림파스타", BigDecimal.valueOf(14000)),
-                new AdminStoreMenuResponse("오일파스타", BigDecimal.valueOf(13000))
+                new AdminStoreMenuResponse("크림파스타", 14000),
+                new AdminStoreMenuResponse("오일파스타", 13000)
             )
         ),
-
         new AdminStoreResponse(
             5L,
             "국수가",
             "서울특별시 서울 동작구 사당로16가길 18",
             "양식",
             List.of(
-                new AdminStoreMenuResponse("칼국수", BigDecimal.valueOf(7000))
+                new AdminStoreMenuResponse("칼국수", 7000)
             )
         ),
-
         new AdminStoreResponse(
             6L,
             "소오",
             "서울특별시 서울 서대문구 이화여대길 50-10",
             "한식",
             List.of(
-                new AdminStoreMenuResponse("제육덮밥", BigDecimal.valueOf(85000)),
-                new AdminStoreMenuResponse("카레라이스", BigDecimal.valueOf(85000))
+                new AdminStoreMenuResponse("제육덮밥", 8500),
+                new AdminStoreMenuResponse("카레라이스", 8500)
             )
         ),
-
         new AdminStoreResponse(
             7L,
             "짜앤짬",
             "서울특별시 서울 중랑구 겸재로 130,1층",
             "중식",
             List.of(
-                new AdminStoreMenuResponse("짬뽕", BigDecimal.valueOf(5000)),
-                new AdminStoreMenuResponse("자장면", BigDecimal.valueOf(4000))
+                new AdminStoreMenuResponse("짬뽕", 5000),
+                new AdminStoreMenuResponse("자장면", 4000)
             )
         ),
-
         new AdminStoreResponse(
             8L,
             "도깨비칼국수",
             "서울특별시 강북구 도봉로 183",
             "한식",
             List.of(
-                new AdminStoreMenuResponse("비빔냉면", BigDecimal.valueOf(6000)),
-                new AdminStoreMenuResponse("칼국수", BigDecimal.valueOf(4000)),
-                new AdminStoreMenuResponse("물냉면", BigDecimal.valueOf(6000))
+                new AdminStoreMenuResponse("비빔냉면", 6000),
+                new AdminStoreMenuResponse("칼국수", 4000),
+                new AdminStoreMenuResponse("물냉면", 6000)
             )
         ),
-
         new AdminStoreResponse(
             9L,
             "칸스KANS",
             "서울특별시 서울 강서구 방화동로5길 12-1",
             "양식",
             List.of(
-                new AdminStoreMenuResponse("치킨브리또", BigDecimal.valueOf(6500)),
-                new AdminStoreMenuResponse("치미창가", BigDecimal.valueOf(9500)),
-                new AdminStoreMenuResponse("(칸스)브리또", BigDecimal.valueOf(4900))
+                new AdminStoreMenuResponse("치킨브리또", 6500),
+                new AdminStoreMenuResponse("치미창가", 9500),
+                new AdminStoreMenuResponse("(칸스)브리또", 4900)
             )
         ),
-
         new AdminStoreResponse(
             10L,
             "신데렐라미용실",
             "서울특별시 서울 동작구 신대방길 95",
             "미용업",
             List.of(
-                new AdminStoreMenuResponse("커트", BigDecimal.valueOf(12000)),
-                new AdminStoreMenuResponse("염색", BigDecimal.valueOf(35000))
+                new AdminStoreMenuResponse("커트", 12000),
+                new AdminStoreMenuResponse("염색", 35000)
             )
         ),
-
         new AdminStoreResponse(
             11L,
             "대광사",
             "서울특별시 서울 동작구 상도로15길 115",
             "세탁업",
             List.of(
-                new AdminStoreMenuResponse("양복1벌", BigDecimal.valueOf(8000))
+                new AdminStoreMenuResponse("양복1벌", 8000)
             )
         ),
-
         new AdminStoreResponse(
             12L,
             "더샵명품세탁",
             "서울특별시 서울 동작구 장승배기로4길 9 비동 101호",
             "세탁업",
             List.of(
-                new AdminStoreMenuResponse("바지", BigDecimal.valueOf(4000))
+                new AdminStoreMenuResponse("바지", 4000)
             )
         )
     );

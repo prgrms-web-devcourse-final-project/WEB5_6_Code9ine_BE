@@ -1,8 +1,7 @@
 package com.grepp.spring.app.controller.api.admin;
 
 import com.grepp.spring.app.model.admin.dto.AdminUserResponse;
-import com.grepp.spring.app.model.admin.service.AdminService;
-import com.grepp.spring.app.model.community.dto.CommunityPostDetailResponse;
+import com.grepp.spring.app.model.admin.service.AdminUserService;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
@@ -12,7 +11,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,14 +27,14 @@ import org.springframework.web.bind.annotation.RestController;
 @Profile("!mock")
 public class AdminUserController {
 
-    private final AdminService adminService;
+    private final AdminUserService adminUserService;
 
     @GetMapping
     @Operation(summary = "관리자 모든 유저 조회")
     public ResponseEntity<ApiResponse<List<AdminUserResponse>>> getAllUsers(
         @ParameterObject PageParam pageParam
     ) {
-        List<AdminUserResponse> result = adminService.getAllUsers(pageParam);
+        List<AdminUserResponse> result = adminUserService.getAllUsers(pageParam);
 
         return ResponseEntity
             .status(ResponseCode.OK.status())
@@ -48,7 +46,7 @@ public class AdminUserController {
     public ResponseEntity<ApiResponse<AdminUserResponse>> getUserByNickname(
         @RequestParam String nickname
     ) {
-        AdminUserResponse result = adminService.getUserByNickname(nickname);
+        AdminUserResponse result = adminUserService.getUserByNickname(nickname);
 
         return ResponseEntity
             .status(ResponseCode.OK.status())
@@ -60,7 +58,7 @@ public class AdminUserController {
     public ResponseEntity<ApiResponse<Map<String, String>>> blockUser(
         @PathVariable("member-id") Long id
     ) {
-        adminService.blockUser(id);
+        adminUserService.blockUser(id);
 
         Map<String, String> response = Map.of("message", "유저가 차단되었습니다.");
 

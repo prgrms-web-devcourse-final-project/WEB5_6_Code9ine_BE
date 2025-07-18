@@ -10,7 +10,7 @@ public record AdminStoreMenuResponse(
     String name,
 
     @Schema(description = "메뉴 가격", example = "4500")
-    BigDecimal price
+    int price
 
     ) {
 

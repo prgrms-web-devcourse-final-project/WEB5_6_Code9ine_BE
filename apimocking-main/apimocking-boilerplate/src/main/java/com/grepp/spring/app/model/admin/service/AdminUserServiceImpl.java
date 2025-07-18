@@ -1,14 +1,13 @@
 package com.grepp.spring.app.model.admin.service;
 
 import com.grepp.spring.app.model.admin.dto.AdminUserResponse;
-import com.grepp.spring.app.model.community.domain.CommunityPost;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
+import com.grepp.spring.app.model.store.repos.StoreRepository;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.util.NotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class AdminUserServiceImpl implements AdminService {
+public class AdminUserServiceImpl implements AdminUserService {
 
     private final MemberRepository memberRepository;
 

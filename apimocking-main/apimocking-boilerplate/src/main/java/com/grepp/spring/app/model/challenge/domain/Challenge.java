@@ -20,18 +20,8 @@ import lombok.Setter;
 @Setter
 public class Challenge {
 
-    @Id
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, updatable = false)
-    @SequenceGenerator(
-            name = "primary_sequence",
-            sequenceName = "primary_sequence",
-            allocationSize = 1,
-            initialValue = 10000
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "primary_sequence"
-    )
     private Long challengeId;
 
     @Column(nullable = false)
@@ -45,6 +35,13 @@ public class Challenge {
 
     @Column
     private Integer exp;
+
+    @Column
+    private String icon;
+
+    @Column
+    private Integer total;
+
 
     @OneToMany(mappedBy = "challenge")
     private Set<ChallengeCount> challengeCounts = new HashSet<>();

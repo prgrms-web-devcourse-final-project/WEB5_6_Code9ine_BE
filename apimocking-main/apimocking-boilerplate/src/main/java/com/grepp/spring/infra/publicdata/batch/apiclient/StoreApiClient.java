@@ -37,7 +37,7 @@ public class StoreApiClient {
     public List<StoreDto> fetchFilteredStores() {
         int perPage = 1000; // 한번에 가져올 데이터 수
         int totalCount = getTotalCount(perPage); // 전체 데이터 개수
-        log.info("전체 데이터 수: {}", totalCount);
+//        log.info("전체 데이터 수: {}", totalCount);
         int totalPages = (int) Math.ceil((double) totalCount / perPage); // 총페이지 수를 계산
 
         List<StoreDto> allResults = new ArrayList<>();
@@ -46,14 +46,14 @@ public class StoreApiClient {
         for (int page = 1; page <= totalPages; page++) {
             String fullUrl = apiUrl + "?page=" + page + "&perPage=" + perPage +
                     "&returnType=JSON&serviceKey=" + apiKey;
-            log.info("호출 URL: {}", fullUrl);
+//            log.info("호출 URL: {}", fullUrl);
 
             // API 연결 및 응답 수신
             try {
                 URL url = new URL(fullUrl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
-                log.info("api 연결 및 응답");
+//                log.info("api 연결 및 응답");
 
                 try (BufferedReader bufferedReader = new BufferedReader(
                         new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
@@ -61,12 +61,12 @@ public class StoreApiClient {
                     String response = bufferedReader.lines().collect(Collectors.joining());
                     JsonNode root = objectMapper.readTree(response);
                     JsonNode dataArray = root.path("data");
-                    log.info("json 파싱");
+//                    log.info("json 파싱");
 
                     if (dataArray.isArray()) {
                         for (JsonNode node : dataArray) {
                             StoreDto dto = objectMapper.treeToValue(node, StoreDto.class);
-                            log.debug("수신 DTO: 업소명={}, 시도={}, 업종={}", dto.get업소명(), dto.get시도(), dto.get업종());
+//                            log.debug("수신 DTO: 업소명={}, 시도={}, 업종={}", dto.get업소명(), dto.get시도(), dto.get업종());
 
                             boolean isSeoul = "서울특별시".equals(dto.get시도());
 
@@ -77,7 +77,7 @@ public class StoreApiClient {
                                     .orElse(false);
 
                             if (isSeoul && isAllowedCategory) {
-                                log.info("통과: {} / {}", dto.get업종(), dto.get시도());
+//                                log.info("통과: {} / {}", dto.get업종(), dto.get시도());
                                 allResults.add(dto);
                             }
                         }
@@ -88,7 +88,7 @@ public class StoreApiClient {
                 throw new RuntimeException("API 요청 실패 (page " + page + ")", e);
             }
         }
-        log.info("최종 저장 대상 개수: {}", allResults.size());
+//        log.info("최종 저장 대상 개수: {}", allResults.size());
         return allResults;
     }
 

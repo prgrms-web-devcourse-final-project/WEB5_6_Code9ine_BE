@@ -123,7 +123,6 @@ public class MemberController {
         member.setNickname(request.getNickname());
         member.setPhoneNumber(request.getPhoneNumber());
         member.setRole("ROLE_USER");
-        member.setActivated(true);
         Long userId = memberService.create(memberService.mapToDTO(member, new com.grepp.spring.app.model.member.model.MemberDTO()));
         
         // 초대코드 사용 처리

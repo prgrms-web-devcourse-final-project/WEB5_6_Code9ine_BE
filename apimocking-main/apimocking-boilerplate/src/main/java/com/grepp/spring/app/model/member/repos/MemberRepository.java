@@ -2,6 +2,10 @@ package com.grepp.spring.app.model.member.repos;
 
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.model.TopSaversResponse;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -45,4 +49,19 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // 소셜 이메일로 계정 존재 여부 확인
     boolean existsBySocialEmail(String socialEmail);
     // ---------------------------------
+
+    // 관리자 모든 유저 조회
+    Page<Member> findByRoleEquals(String role, Pageable pageable);
+
+    // 관리자 유저 닉네임으로 검색
+    Optional<Member> findByNicknameAndRole(String nickname, String role);
+
+    // 관리자 유저 차단
+    Optional<Member> findByMemberIdAndRole(Long memberId, String role);
+
+    // 관리자 당일 통계(방문자)
+    int countByLastLoginedAt(LocalDate today);
+
+    // 관리자 당일 통계(회원가입 수)
+    int countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 }

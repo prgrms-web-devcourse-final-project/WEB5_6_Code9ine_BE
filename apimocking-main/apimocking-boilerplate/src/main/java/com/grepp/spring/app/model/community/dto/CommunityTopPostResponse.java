@@ -8,6 +8,9 @@ public record CommunityTopPostResponse(
     @Schema(description = "게시글 고유식별번호", example = "0")
     Long postId,
 
+    @Schema(description = "유저 고유식별번호", example = "1")
+    Long memberId,
+
     @Schema(description = "작성자 닉네임", example = "닉네임")
     String writerNickname,
 

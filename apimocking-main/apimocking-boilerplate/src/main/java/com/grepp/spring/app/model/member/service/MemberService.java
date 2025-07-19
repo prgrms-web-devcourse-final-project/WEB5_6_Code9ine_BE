@@ -99,9 +99,6 @@ public class MemberService {
         member.setName(memberDTO.getName());
         member.setRole(memberDTO.getRole());
         member.setPhoneNumber(memberDTO.getPhoneNumber());
-        member.setActivated(memberDTO.getActivated());
-        member.setCreatedAt(memberDTO.getCreatedAt());
-        member.setModifiedAt(memberDTO.getModifiedAt());
         member.setNickname(memberDTO.getNickname());
         member.setProfileImage(memberDTO.getProfileImage());
         member.setLevel(memberDTO.getLevel());

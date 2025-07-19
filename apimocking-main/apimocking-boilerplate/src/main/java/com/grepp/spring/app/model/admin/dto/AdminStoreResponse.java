@@ -7,7 +7,7 @@ import java.util.List;
 public record AdminStoreResponse(
 
     @Schema(description = "가게 고유식별번호", example = "0")
-    int placeId,
+    Long storeId,
 
     @Schema(description = "가게 이름", example = "대박 대패삼겹&우삼겹")
     String name,

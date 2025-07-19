@@ -27,4 +27,7 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
 
     // 커뮤니티 인기 게시글 조회
     List<CommunityPost> findTop10ByActivatedIsTrueOrderByLikeCountDesc();
+
+    // 내가 작성한 게시글 목록 조회
+    List<CommunityPost> findByMember_MemberIdAndActivatedIsTrue(Long memberId);
 }

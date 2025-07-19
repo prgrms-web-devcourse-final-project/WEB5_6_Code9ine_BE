@@ -21,7 +21,7 @@ public interface ChallengeCountRepository extends JpaRepository<ChallengeCount, 
 
     @Query("""
         SELECT new com.grepp.spring.app.model.challenge_count.model.ChallengeTopResponse(
-            c.name
+            c.description
         )
         FROM ChallengeCount cc
         JOIN cc.challenge c

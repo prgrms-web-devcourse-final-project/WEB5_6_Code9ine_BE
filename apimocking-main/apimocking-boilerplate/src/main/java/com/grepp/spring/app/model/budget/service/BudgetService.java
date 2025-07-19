@@ -10,6 +10,9 @@ import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.util.NotFoundException;
 import com.grepp.spring.util.ReferencedWarning;
 import java.util.List;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -57,6 +60,33 @@ public class BudgetService {
 
     public void delete(final Long budgetId) {
         budgetRepository.deleteById(budgetId);
+    }
+
+    // 현재 달의 총 수입과 총 지출 조회
+    public BigDecimal[] getCurrentMonthTotal(Long memberId) {
+        YearMonth currentYearMonth = YearMonth.now();
+        LocalDate startOfMonth = currentYearMonth.atDay(1);
+        LocalDate endOfMonth = currentYearMonth.atEndOfMonth();
+        
+        // Member 객체를 먼저 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException("Member not found"));
+        
+        List<Budget> monthlyBudgets = budgetRepository.findAllByMemberAndDateBetweenOrderByDateAsc(member, startOfMonth, endOfMonth);
+        
+        BigDecimal totalIncome = BigDecimal.ZERO;
+        BigDecimal totalExpense = BigDecimal.ZERO;
+        
+        for (Budget budget : monthlyBudgets) {
+            if (budget.getTotalIncome() != null) {
+                totalIncome = totalIncome.add(budget.getTotalIncome());
+            }
+            if (budget.getTotalExpense() != null) {
+                totalExpense = totalExpense.add(budget.getTotalExpense());
+            }
+        }
+        
+        return new BigDecimal[]{totalIncome, totalExpense};
     }
 
     private BudgetDTO mapToDTO(final Budget budget, final BudgetDTO budgetDTO) {

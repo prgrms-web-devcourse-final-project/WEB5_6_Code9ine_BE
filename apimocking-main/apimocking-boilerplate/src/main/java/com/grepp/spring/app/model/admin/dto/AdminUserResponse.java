@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record AdminUserResponse(
 
     @Schema(description = "유저 고유식별번호", example = "0")
-    int userId,
+    Long memberId,
 
     @Schema(description = "닉네임", example = "거지왕")
     String nickname,

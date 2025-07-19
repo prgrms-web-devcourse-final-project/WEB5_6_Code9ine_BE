@@ -14,6 +14,7 @@ public class DetailStorePlaceResponse extends DetailPlaceResponse {
     private String name;
     private String address;
     private String category;
+    private String type;
     private String contact;
 
     private String firstMenu;
@@ -28,6 +29,11 @@ public class DetailStorePlaceResponse extends DetailPlaceResponse {
     private Double longitude;
     private Double latitude;
 
+
+    @Override
+    public String getType() {
+        return type;
+    }
 
     @Override
     public String getName() {
@@ -49,13 +55,14 @@ public class DetailStorePlaceResponse extends DetailPlaceResponse {
         return longitude;
     }
 
-    public DetailStorePlaceResponse(Long storeId, String name, String address, String category, String contact,
+    public DetailStorePlaceResponse(Long storeId, String name, String address, String category,String type, String contact,
                                     String firstMenu, Integer firstPrice, String secondMenu, Integer secondPrice,
                                     String thirdMenu, Integer thirdPrice, Double longitude, Double latitude) {
         this.storeId = storeId;
         this.name = name;
         this.address = address;
         this.category = category;
+        this.type = type;
         this.contact = contact;
         this.firstMenu = firstMenu;
         this.firstPrice = firstPrice;

@@ -240,4 +240,6 @@ public class CommunityController {
             .status(ResponseCode.OK.status())
             .body(ApiResponse.success(topPosts));
     }
+
+
 }

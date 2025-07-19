@@ -25,18 +25,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class MockAdminUsersController {
 
     List<AdminUserResponse> mockUsers = List.of(
-        new AdminUserResponse(0, "닉네임0", "abc@abc.com", false),
-        new AdminUserResponse(1, "닉네임1", "def@def.com", false),
-        new AdminUserResponse(2, "닉네임2", "ghi@ghi.com", false),
-        new AdminUserResponse(3, "닉네임3", "jkl@jkl.com", false),
-        new AdminUserResponse(4, "닉네임4", "mno@mno.com", false),
-        new AdminUserResponse(5, "닉네임5", "pqr@pqr.com", false),
-        new AdminUserResponse(6, "닉네임6", "stu@stu.com", false),
-        new AdminUserResponse(7, "닉네임7", "wxyz@wxyz.com", false),
-        new AdminUserResponse(8, "닉네임8", "aaa@aaa.com", false),
-        new AdminUserResponse(9, "닉네임9", "bbb@bbb.com", false),
-        new AdminUserResponse(10, "닉네임10", "ccc@ccc.com", false),
-        new AdminUserResponse(11, "닉네임11", "ddd@ddd.com", false)
+        new AdminUserResponse(0L, "닉네임0", "abc@abc.com", false),
+        new AdminUserResponse(1L, "닉네임1", "def@def.com", false),
+        new AdminUserResponse(2L, "닉네임2", "ghi@ghi.com", false),
+        new AdminUserResponse(3L, "닉네임3", "jkl@jkl.com", false),
+        new AdminUserResponse(4L, "닉네임4", "mno@mno.com", false),
+        new AdminUserResponse(5L, "닉네임5", "pqr@pqr.com", false),
+        new AdminUserResponse(6L, "닉네임6", "stu@stu.com", false),
+        new AdminUserResponse(7L, "닉네임7", "wxyz@wxyz.com", false),
+        new AdminUserResponse(8L, "닉네임8", "aaa@aaa.com", false),
+        new AdminUserResponse(9L, "닉네임9", "bbb@bbb.com", false),
+        new AdminUserResponse(10L, "닉네임10", "ccc@ccc.com", false),
+        new AdminUserResponse(11L, "닉네임11", "ddd@ddd.com", false)
         );
 
     @GetMapping

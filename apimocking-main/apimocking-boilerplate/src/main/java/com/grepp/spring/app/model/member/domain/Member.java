@@ -1,23 +1,26 @@
 package com.grepp.spring.app.model.member.domain;
 
-import com.grepp.spring.app.model.achieved_title.domain.AchievedTitle;
+import com.google.type.Decimal;
 import com.grepp.spring.app.model.attendance.domain.Attendance;
 import com.grepp.spring.app.model.budget.domain.Budget;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.community.domain.CommunityPost;
 import com.grepp.spring.app.model.notification.domain.Notification;
 import com.grepp.spring.app.model.place_bookmark.domain.PlaceBookmark;
+import com.grepp.spring.app.model.achieved_title.domain.AchievedTitle;
+import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,7 +31,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Member {
+public class Member extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)
@@ -58,15 +61,6 @@ public class Member {
 
     @Column
     private String phoneNumber;
-
-    @Column
-    private Boolean activated;
-
-    @Column
-    private LocalDateTime createdAt;
-
-    @Column
-    private LocalDateTime modifiedAt;
 
     @Column(nullable = false)
     private String nickname;
@@ -116,4 +110,6 @@ public class Member {
     private String socialEmail; // 소셜 계정의 이메일 (있을 때만)
     // ---------------------------------
 
+    @Column
+    private LocalDate lastLoginedAt;
 }

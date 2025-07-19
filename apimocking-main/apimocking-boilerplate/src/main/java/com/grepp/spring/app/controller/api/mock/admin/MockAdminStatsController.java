@@ -23,7 +23,7 @@ public class MockAdminStatsController {
         return ResponseEntity
             .status(ResponseCode.OK.status())
             .body(ApiResponse.success(
-                new AdminStatsResponse(LocalDate.now().toString(), 100, 10)
+                new AdminStatsResponse(LocalDate.now(), 100, 10)
             ));
     }
 }

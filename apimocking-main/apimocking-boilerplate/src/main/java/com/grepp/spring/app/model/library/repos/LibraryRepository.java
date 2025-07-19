@@ -21,7 +21,7 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     List<PlaceResponse> search(@Param("location") String location);
 
     @Query("SELECT new com.grepp.spring.app.model.library.model.DetailLibraryPlaceResponse(" +
-            "l.libraryId, l.name, l.address, l.url, l.latitude, l.longitude) " +
+            "l.libraryId, l.name, l.address, l.url,'library', l.latitude, l.longitude) " +
             "FROM Library l " +
             "WHERE l.libraryId = :libraryId")
     DetailLibraryPlaceResponse getDetailLibrarySearch(@Param("libraryId") Long libraryId);

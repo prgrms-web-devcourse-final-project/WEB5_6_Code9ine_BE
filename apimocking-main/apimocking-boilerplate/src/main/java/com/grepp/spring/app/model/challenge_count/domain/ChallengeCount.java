@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.challenge_count.domain;
 
 import com.grepp.spring.app.model.challenge.domain.Challenge;
 import com.grepp.spring.app.model.member.domain.Member;
+import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,22 +19,10 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class ChallengeCount {
+public class ChallengeCount extends BaseEntity {
 
-    @Id
-    @Column(nullable = false, updatable = false)
-    @SequenceGenerator(
-            name = "primary_sequence",
-            sequenceName = "primary_sequence",
-            allocationSize = 1,
-            initialValue = 10000
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "primary_sequence"
-    )
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long challengeCountId;
-
 
     @Column(nullable = false)
     private Integer count;

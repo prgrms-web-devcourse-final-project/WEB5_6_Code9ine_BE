@@ -4,6 +4,8 @@ import com.grepp.spring.app.model.challenge.domain.Challenge;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.model.ChallengeTopResponse;
 import com.grepp.spring.app.model.member.domain.Member;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +29,7 @@ public interface ChallengeCountRepository extends JpaRepository<ChallengeCount, 
         ORDER BY SUM(cc.count) DESC
     """)
     List<ChallengeTopResponse> findTopAchievedChallengeNames(Pageable pageable);
+
+
+    Optional<ChallengeCount> findByMemberAndChallengeAndCreatedAtBetween(Member member, Challenge challenge, LocalDateTime localDateTime, LocalDateTime localDateTime1);
 }

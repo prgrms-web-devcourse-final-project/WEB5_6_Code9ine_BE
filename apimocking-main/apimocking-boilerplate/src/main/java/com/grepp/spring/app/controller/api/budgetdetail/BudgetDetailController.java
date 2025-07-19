@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -79,9 +80,9 @@ public class BudgetDetailController {
 
     @Operation(summary = "날짜별 내역 삭제")
     @DeleteMapping("/detail/{detail_id}")
-    public ApiResponse<?> deleteBudgetDetail(@PathVariable("detail_id") Long id) {
+    public ApiResponse<?> deleteBudgetDetail(@AuthenticationPrincipal Principal principal, @PathVariable("detail_id") Long id) {
 
-        budgetDetailService.deleteBudgetDetail(id);
+        budgetDetailService.deleteBudgetDetail(principal.getMemberId(),id);
         return new ApiResponse<>("2000", "내역삭제되었습니다", null);
     }
 

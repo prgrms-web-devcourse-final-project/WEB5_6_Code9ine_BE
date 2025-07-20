@@ -8,12 +8,17 @@ import com.grepp.spring.app.model.budget_detail.model.BudgetDetailRequestDTO;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailResponseDto;
 import com.grepp.spring.app.model.budget_detail.model.UpdatedBudgetDetailResponseDto;
 import com.grepp.spring.app.model.budget_detail.repos.BudgetDetailRepository;
+import com.grepp.spring.app.model.challenge.domain.Challenge;
+import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
+import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
+import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +33,8 @@ public class BudgetDetailService {
     private final BudgetRepository budgetRepository;
     private final BudgetDetailRepository budgetDetailRepository;
     private final MemberRepository memberRepository;
+    private final ChallengeRepository challengeRepository;
+    private final ChallengeCountRepository challengeCountRepository;
 
     @Transactional(readOnly = true)
     public BudgetDetailResponseDto findBudgetDetailByDate(String username, String date) {
@@ -72,6 +79,15 @@ public class BudgetDetailService {
             .build();
 
         budgetDetailRepository.save(detail);
+
+        // 만원의행복검증
+        if(LocalDate.parse(dto.getDate()).equals(LocalDate.now()))
+        {
+            handle_under10000Challenge(member, budget, false,true);
+
+
+        }
+
     }
 
     // 지출수정
@@ -93,7 +109,7 @@ public class BudgetDetailService {
         oldBudget.minusBudgetTotal(oldType, oldPrice);
 
         Budget newBudget = oldBudget;
-
+        boolean empty = false;
         // 2. 날짜가 바뀌었으면 새 Budget으로 이동
         if (!oldBudget.getDate().equals(newDate)) {
             oldBudget.getBudgetDetails().remove(budgetDetail);
@@ -102,10 +118,11 @@ public class BudgetDetailService {
                 .orElseGet(() -> budgetRepository.save(Budget.create(LocalDate.parse(dto.getDate()), member)));
 
             budgetDetail.setBudget(newBudget);
-
-            if (oldBudget.getBudgetDetails().isEmpty()) {
+            empty = oldBudget.getBudgetDetails().isEmpty();
+            if (empty) {
                 budgetRepository.delete(oldBudget);
             }
+
         }
 
         // BudgetDetail 업데이트
@@ -113,6 +130,16 @@ public class BudgetDetailService {
 
         // 새 Budget에 새 금액 더함
         newBudget.addAmount(dto.getType(), dto.getPrice());
+
+        // 만원의 행복 챌린지 검증
+        if(LocalDate.parse(dto.getDate()).equals(LocalDate.now())){
+            handle_under10000Challenge(member, newBudget, false ,true);
+        }
+        else{
+            handle_under10000Challenge(member, oldBudget, empty ,true);
+        }
+
+
 
         return new UpdatedBudgetDetailResponseDto(
             detailId,
@@ -123,10 +150,15 @@ public class BudgetDetailService {
             budgetDetail.getContent(),
             budgetDetail.getRepeatCycle()
         );
+
     }
 
     @Transactional
-    public void deleteBudgetDetail(Long detailId) {
+    public void deleteBudgetDetail(Long memberId, Long detailId) {
+
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
         BudgetDetail detail = budgetDetailRepository.findById(detailId)
             .orElseThrow(() -> new RuntimeException("해당 지출 내역이 존재하지 않습니다."));
 
@@ -140,6 +172,10 @@ public class BudgetDetailService {
         if (!hasOtherDetails) {
             budgetRepository.delete(budget);
         }
+
+        // 만원의 행복 검증
+        handle_under10000Challenge(member, budget, false ,hasOtherDetails);
+
     }
 
     @Transactional
@@ -170,5 +206,50 @@ public class BudgetDetailService {
                 return budgetRepository.save(newBudget);
             });
 
+    }
+
+
+    public void handle_under10000Challenge(Member member, Budget budget, boolean empty, boolean hasOtherDetails) {
+
+        LocalDate today = LocalDate.now();
+        Challenge challenge = challengeRepository.findByname("만원의 행복")
+            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+
+        // 이미 오늘 생성된 ChallengeCount가 있는지 확인
+        Optional<ChallengeCount> existingCount = challengeCountRepository
+            .findByMemberAndChallengeAndCreatedAtBetween(
+                member,
+                challenge,
+                today.atStartOfDay(),
+                today.plusDays(1).atStartOfDay()
+            );
+
+        if (budget.getTotalExpense().compareTo(BigDecimal.valueOf(10000)) <= 0 && !empty && hasOtherDetails)
+        {
+            if (existingCount.isEmpty()) {
+                // 없으면 새로 생성
+                ChallengeCount challengeCount = new ChallengeCount();
+                challengeCount.setMember(member);
+                challengeCount.setCount(1);
+                challengeCount.setChallenge(challenge);
+
+                challengeCountRepository.save(challengeCount);
+            }
+            else
+            {
+                ChallengeCount count = existingCount.get();
+                count.setCount(1);
+                challengeCountRepository.save(count);
+            }
+        }
+        else
+        {
+            if (existingCount.isPresent())
+            {
+                ChallengeCount count = existingCount.get();
+                count.setCount(0);
+                challengeCountRepository.save(count);
+            }
+        }
     }
 }

@@ -68,4 +68,16 @@ public interface BudgetDetailRepository extends JpaRepository<BudgetDetail, Long
         @Param("memberId") Long memberId,
         @Param("startDate") LocalDate start,
         @Param("endDate") LocalDate end);
+
+
+    @Query("""
+    SELECT COUNT(d) > 0
+    FROM BudgetDetail d
+    WHERE d.budget.member.memberId = :memberId
+      AND d.category = :category
+      AND d.date = :date
+""")
+    boolean existsBudgetDetailByMemberAndDate(@Param("memberId") Long memberId,
+        @Param("category") String category,
+        @Param("date") LocalDate date);
 }

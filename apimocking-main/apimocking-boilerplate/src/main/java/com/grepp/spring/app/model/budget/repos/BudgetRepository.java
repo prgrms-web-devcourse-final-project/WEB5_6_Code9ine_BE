@@ -67,4 +67,13 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
     Optional<BigDecimal> sumTotalExpenseByMemberUntilToday(
         @Param("memberId") Long memberId,
         @Param("today") LocalDate today);
+
+    @Query("""
+    SELECT COUNT(b) > 0
+    FROM Budget b
+    WHERE b.member.memberId = :memberId
+    AND b.date = :date
+    """)
+    boolean existsBudgetByMemberIdAndDate(@Param("memberId") Long memberId,
+        @Param("date") LocalDate date);
 }

@@ -72,9 +72,11 @@ public class BudgetDetailController {
 
     @Operation(summary = "날짜별 내역 수정")
     @PatchMapping("/detail/{detail_id}")
-    public ApiResponse<?> updateBudgetDetail(@PathVariable("detail_id") Long id, @RequestBody BudgetDetailRequestDTO dto) {
+    public ApiResponse<?> updateBudgetDetail(@AuthenticationPrincipal Principal principal,
+                                             @PathVariable("detail_id") Long id,
+                                             @RequestBody BudgetDetailRequestDTO dto) {
 
-        UpdatedBudgetDetailResponseDto updatedExpenseResponseDto = budgetDetailService.updateBudgetDetail(id, dto);
+        UpdatedBudgetDetailResponseDto updatedExpenseResponseDto = budgetDetailService.updateBudgetDetail(principal.getMemberId(), id, dto);
         return new ApiResponse<>("2000", "내역이 수정되었습니다.", updatedExpenseResponseDto);
     }
 

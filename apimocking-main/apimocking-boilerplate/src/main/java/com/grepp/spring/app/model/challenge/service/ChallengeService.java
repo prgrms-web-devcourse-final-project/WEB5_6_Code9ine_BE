@@ -10,6 +10,7 @@ import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
 import com.grepp.spring.app.model.member.domain.Member;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -168,7 +169,57 @@ public class ChallengeService {
         challengeCountRepository.save(count);
     }
 
+    @Transactional
+    public void handle_saveMoneyChallenge(Member member) {
 
+        LocalDate today = LocalDate.now();
+
+        Challenge challenge = challengeRepository.findByname("절약왕")
+            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+
+        Optional<ChallengeCount> existingCount = getChallengeCount(
+            member, challenge, today);
+
+        if (existingCount.isEmpty()) {
+            // 없으면 새로 생성
+            ChallengeCount challengeCount = new ChallengeCount();
+            challengeCount.setMember(member);
+            challengeCount.setCount(1);
+            challengeCount.setChallenge(challenge);
+
+            challengeCountRepository.save(challengeCount);
+            existingCount = Optional.of(challengeCount);
+        }
+        ChallengeCount count = existingCount.get();
+
+
+        YearMonth thisMonth = YearMonth.from(today);
+        YearMonth lastMonth = thisMonth.minusMonths(1);
+
+        // 7.1
+        LocalDate thisMonthStart = thisMonth.atDay(1);
+
+        // 6.1~6.30
+        LocalDate lastMonthStart = lastMonth.atDay(1);
+        LocalDate lastMonthEnd = lastMonth.atEndOfMonth();
+
+        // BudgetDetail 기준 합산 (오늘까지)
+        BigDecimal thisMonthSum = budgetRepository.sumExpenseByMemberAndDateBetween(
+            member.getMemberId(), thisMonthStart, today
+        );
+
+        BigDecimal lastMonthSum = budgetRepository.sumExpenseByMemberAndDateBetween(
+            member.getMemberId(), lastMonthStart, lastMonthEnd
+        );
+
+        if(lastMonthSum.compareTo(thisMonthSum) < 0) {
+            count.setCount(0);
+        }
+        else {
+            count.setCount(1);
+        }
+
+    }
 
 
     private Optional<ChallengeCount> getChallengeCount(Member member, Challenge challenge,

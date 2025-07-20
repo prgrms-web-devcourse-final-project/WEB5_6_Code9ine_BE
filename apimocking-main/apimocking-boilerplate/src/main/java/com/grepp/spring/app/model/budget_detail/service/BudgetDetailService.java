@@ -102,6 +102,8 @@ public class BudgetDetailService {
             //기록장인
             challengeService.handle_oneMonthAccountChallenge(member);
         }
+
+            challengeService.handle_saveMoneyChallenge(member);
     }
 
 
@@ -165,6 +167,8 @@ public class BudgetDetailService {
         //기록장인
         challengeService.handle_oneMonthAccountChallenge(member);
 
+        challengeService.handle_saveMoneyChallenge(member);
+
         return new UpdatedBudgetDetailResponseDto(
             detailId,
             budgetDetail.getType(),
@@ -210,6 +214,8 @@ public class BudgetDetailService {
 
         //기록장인
         challengeService.handle_oneMonthAccountChallenge(member);
+
+        challengeService.handle_saveMoneyChallenge(member);
     }
 
     @Transactional
@@ -247,6 +253,7 @@ public class BudgetDetailService {
             handle_zerofoodChallenge(member);
             handle_zeroTransitionChallenge(member);
             challengeService.handle_oneMonthAccountChallenge(member);
+            challengeService.handle_saveMoneyChallenge(member);
         }
 
         // 등록
@@ -261,6 +268,7 @@ public class BudgetDetailService {
         handle_zerofoodChallenge(member);
         handle_zeroTransitionChallenge(member);
         challengeService.handle_oneMonthAccountChallenge(member);
+        challengeService.handle_saveMoneyChallenge(member);
 
         return new ApiResponse<>("2000", "지출 없음으로 등록되었습니다.", null);
 

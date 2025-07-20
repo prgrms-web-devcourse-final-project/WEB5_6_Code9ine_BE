@@ -109,10 +109,12 @@ public class MemberController {
                     .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이메일 인증이 필요합니다.", null));
         }
         
-        // 초대코드 검증
-        if (!inviteCodeService.isValidInviteCode(request.getInviteCode())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "유효하지 않은 초대코드입니다.", null));
+        // 초대코드 검증 (선택적)
+        if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
+            if (!inviteCodeService.isValidInviteCode(request.getInviteCode())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "유효하지 않은 초대코드입니다.", null));
+            }
         }
         
         // 회원 생성
@@ -125,8 +127,10 @@ public class MemberController {
         member.setRole("ROLE_USER");
         Long userId = memberService.create(memberService.mapToDTO(member, new com.grepp.spring.app.model.member.model.MemberDTO()));
         
-        // 초대코드 사용 처리
-        inviteCodeService.useInviteCode(request.getInviteCode());
+        // 초대코드 사용 처리 (초대코드가 있는 경우에만)
+        if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
+            inviteCodeService.useInviteCode(request.getInviteCode());
+        }
         
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.successToCreate(new SignupResponse(userId)));
@@ -935,8 +939,7 @@ public class MemberController {
         @Pattern(regexp = "^01[016789]\\d{7,8}$", message = "휴대폰번호 형식이 올바르지 않습니다.")
         private String phoneNumber;
         
-        @Schema(description = "초대코드", example = "ABC123")
-        @NotBlank(message = "초대코드는 필수입니다.")
+        @Schema(description = "초대코드 (선택사항)", example = "ABC123")
         private String inviteCode;
     }
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor

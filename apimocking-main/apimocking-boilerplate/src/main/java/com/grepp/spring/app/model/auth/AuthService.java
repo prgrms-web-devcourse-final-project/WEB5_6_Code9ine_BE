@@ -33,20 +33,23 @@ public class AuthService {
     private final UserBlackListRepository userBlackListRepository;
     
     public TokenDto signin(LoginRequest loginRequest) {
+        log.info("AuthService.signin 호출됨: username={}", loginRequest.getUsername());
+        
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
                 loginRequest.getPassword());
         
-        // loadUserByUsername + password 검증 후 인증 객체 반환
-        // 인증 실패 시: AuthenticationException 발생
-        Authentication authentication = authenticationManagerBuilder.getObject()
-                                            .authenticate(authenticationToken);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            // loadUserByUsername + password 검증 후 인증 객체 반환
+            // 인증 실패 시: AuthenticationException 발생
+            Authentication authentication = authenticationManagerBuilder.getObject()
+                                                .authenticate(authenticationToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String email = loginRequest.getUsername();
-        log.info("{}!!!!!!!!", email);
+            String email = loginRequest.getUsername();
+            log.info("인증 성공: username={}", email);
 
-        memberRepository.findByEmail(email).ifPresent(member -> {
+        memberRepository.findByEmailIgnoreCase(email).ifPresent(member -> {
             LocalDate today = LocalDate.now();
             if (member.getLastLoginedAt() == null || !member.getLastLoginedAt().isEqual(today)) {
                 member.setLastLoginedAt(today);
@@ -56,6 +59,10 @@ public class AuthService {
 
         String roles =  String.join(",", authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
         return processTokenSignin(authentication.getName(), roles);
+        } catch (Exception e) {
+            log.error("인증 실패: username={}, error={}", loginRequest.getUsername(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Transactional(readOnly = true)

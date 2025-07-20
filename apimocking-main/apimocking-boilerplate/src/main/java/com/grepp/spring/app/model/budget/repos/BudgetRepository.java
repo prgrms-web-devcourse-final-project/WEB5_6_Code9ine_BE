@@ -87,4 +87,5 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
         @Param("start") LocalDate start,
         @Param("end") LocalDate end);
 
+    boolean existsByMemberAndDate(Member member, LocalDate yesterday);
 }

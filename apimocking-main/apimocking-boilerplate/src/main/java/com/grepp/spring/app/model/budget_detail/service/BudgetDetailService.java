@@ -96,8 +96,11 @@ public class BudgetDetailService {
             //강철 다리
             handle_zeroTransitionChallenge(member);
 
+            //머니 매니저
             challengeService.handle_salaryChallenge(member);
 
+            //기록장인
+            challengeService.handle_oneMonthAccountChallenge(member);
         }
     }
 
@@ -159,6 +162,9 @@ public class BudgetDetailService {
 
         challengeService.handle_salaryChallenge(member);
 
+        //기록장인
+        challengeService.handle_oneMonthAccountChallenge(member);
+
         return new UpdatedBudgetDetailResponseDto(
             detailId,
             budgetDetail.getType(),
@@ -201,6 +207,9 @@ public class BudgetDetailService {
         handle_zeroTransitionChallenge(member);
 
         challengeService.handle_salaryChallenge(member);
+
+        //기록장인
+        challengeService.handle_oneMonthAccountChallenge(member);
     }
 
     @Transactional
@@ -237,6 +246,7 @@ public class BudgetDetailService {
             handle_under10000Challenge(member, budget, false, true);
             handle_zerofoodChallenge(member);
             handle_zeroTransitionChallenge(member);
+            challengeService.handle_oneMonthAccountChallenge(member);
         }
 
         // 등록
@@ -250,6 +260,7 @@ public class BudgetDetailService {
         handle_under10000Challenge(member, newBudget, false, true);
         handle_zerofoodChallenge(member);
         handle_zeroTransitionChallenge(member);
+        challengeService.handle_oneMonthAccountChallenge(member);
 
         return new ApiResponse<>("2000", "지출 없음으로 등록되었습니다.", null);
 

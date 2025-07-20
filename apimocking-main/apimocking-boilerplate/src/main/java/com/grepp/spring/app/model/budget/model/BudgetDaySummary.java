@@ -20,4 +20,10 @@ public class BudgetDaySummary {
     private BigDecimal expense;
     private BigDecimal difference;
 
+    public BudgetDaySummary(LocalDate date, BigDecimal income, BigDecimal expense) {
+        this.date = date;
+        this.income = income != null ? income : BigDecimal.ZERO;
+        this.expense = expense != null ? expense : BigDecimal.ZERO;
+        this.difference = this.income.subtract(this.expense);
+    }
 }

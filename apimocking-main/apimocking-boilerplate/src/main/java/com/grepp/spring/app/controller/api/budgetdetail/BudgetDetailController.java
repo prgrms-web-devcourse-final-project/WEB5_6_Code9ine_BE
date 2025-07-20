@@ -92,8 +92,7 @@ public class BudgetDetailController {
     @PostMapping("/noexpenses")
     public ApiResponse<?> noExpense(@AuthenticationPrincipal Principal principal) {
 
-        budgetDetailService.registerNoExpense(principal.getMemberId());
-        return new ApiResponse<>("2000", "지출없음으로되었습니다", null);
+        return budgetDetailService.registerNoExpense(principal.getMemberId());
     }
 
 }

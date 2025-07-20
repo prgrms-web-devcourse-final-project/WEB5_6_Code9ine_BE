@@ -14,6 +14,7 @@ import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
+import com.grepp.spring.infra.response.ApiResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -90,6 +91,9 @@ public class BudgetDetailService {
             //소비단식러
             handle_zerofoodChallenge(member);
 
+            //강철 다리
+            handle_zeroTransitionChallenge(member);
+
         }
     }
 
@@ -146,6 +150,9 @@ public class BudgetDetailService {
         // 소비단식러
         handle_zerofoodChallenge(member);
 
+        // 강철다리
+        handle_zeroTransitionChallenge(member);
+
         return new UpdatedBudgetDetailResponseDto(
             detailId,
             budgetDetail.getType(),
@@ -184,7 +191,8 @@ public class BudgetDetailService {
         // 소비단식러
         handle_zerofoodChallenge(member);
 
-
+        //강철다리
+        handle_zeroTransitionChallenge(member);
     }
 
     @Transactional
@@ -199,7 +207,7 @@ public class BudgetDetailService {
     }
 
     @Transactional
-    public void registerNoExpense(Long memberId) {
+    public ApiResponse<String> registerNoExpense(Long memberId) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
@@ -211,18 +219,19 @@ public class BudgetDetailService {
         if (budget != null) {
             if (budget.getTotalIncome().compareTo(BigDecimal.ZERO) == 0 &&
                 budget.getTotalExpense().compareTo(BigDecimal.ZERO) == 0) {
-                throw new RuntimeException("오늘은 이미 지출 없음 등록이 되어있습니다.");
+                return new ApiResponse<>("4040", "오늘은 이미 지출 없음 등록이 되어있습니다.", null);
             }
 
             if (budget.getTotalExpense().compareTo(BigDecimal.ZERO) > 0) {
-                throw new RuntimeException("오늘은 지출이 등록되어있습니다. 확인해주세요.");
+                return new ApiResponse<>("4040", "오늘은 지출이 등록되어있습니다. 확인해주세요.", null);
             }
+
             handle_under10000Challenge(member, budget, false, true);
             handle_zerofoodChallenge(member);
-            return;
+            handle_zeroTransitionChallenge(member);
         }
 
-        // budget이 없으면 새로 생성
+        // 등록
         Budget newBudget = new Budget();
         newBudget.setMember(member);
         newBudget.setDate(today);
@@ -232,6 +241,9 @@ public class BudgetDetailService {
 
         handle_under10000Challenge(member, newBudget, false, true);
         handle_zerofoodChallenge(member);
+        handle_zeroTransitionChallenge(member);
+
+        return new ApiResponse<>("2000", "지출 없음으로 등록되었습니다.", null);
 
     }
 
@@ -283,6 +295,41 @@ public class BudgetDetailService {
 
         boolean existsByBudget = budgetRepository.existsBudgetByMemberIdAndDate(member.getMemberId(), LocalDate.now());
         boolean  existsByCategory= budgetDetailRepository.existsBudgetDetailByMemberAndDate(member.getMemberId(), "식비", LocalDate.now());
+
+        if (existingCount.isEmpty()) {
+            // 없으면 새로 생성
+            ChallengeCount challengeCount = new ChallengeCount();
+            challengeCount.setMember(member);
+            challengeCount.setCount(0);
+            challengeCount.setChallenge(challenge);
+
+            challengeCountRepository.save(challengeCount);
+            existingCount = Optional.of(challengeCount);
+        }
+
+        ChallengeCount count = existingCount.get();
+        if(!existsByBudget || existsByCategory)
+        {
+            count.setCount(0);
+        }
+        else {
+            count.setCount(1);
+        }
+        challengeCountRepository.save(count);
+
+    }
+
+    public void handle_zeroTransitionChallenge(Member member) {
+
+        LocalDate today = LocalDate.now();
+        Challenge challenge = challengeRepository.findByname("강철 다리")
+            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+
+        Optional<ChallengeCount> existingCount = getChallengeCount(
+            member, challenge, today);
+
+        boolean existsByBudget = budgetRepository.existsBudgetByMemberIdAndDate(member.getMemberId(), LocalDate.now());
+        boolean  existsByCategory= budgetDetailRepository.existsBudgetDetailByMemberAndDate(member.getMemberId(), "교통비", LocalDate.now());
 
         if (existingCount.isEmpty()) {
             // 없으면 새로 생성

@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.budget.repos;
 
 import com.grepp.spring.app.model.budget.domain.Budget;
+import com.grepp.spring.app.model.budget.model.BudgetDaySummary;
 import com.grepp.spring.app.model.member.domain.Member;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -76,4 +77,22 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
     """)
     boolean existsBudgetByMemberIdAndDate(@Param("memberId") Long memberId,
         @Param("date") LocalDate date);
+
+    @Query("""
+          SELECT new com.grepp.spring.app.model.budget.model.BudgetDaySummary(b.date, b.totalIncome, b.totalExpense) 
+          FROM Budget b 
+          WHERE b.member.memberId = :memberId AND b.date BETWEEN :start AND :end ORDER BY b.date ASC
+          """)
+    List<BudgetDaySummary> findMonthlySummary(@Param("memberId") Long memberId,
+        @Param("start") LocalDate start,
+        @Param("end") LocalDate end);
+
+    boolean existsByMemberAndDate(Member member, LocalDate yesterday);
+
+    @Query("SELECT SUM(b.totalExpense) FROM Budget b WHERE b.member.memberId = :memberId AND b.date BETWEEN :start AND :end")
+    BigDecimal sumExpenseByMemberAndDateBetween(
+        @Param("memberId") Long memberId,
+        @Param("start") LocalDate start,
+        @Param("end") LocalDate end
+    );
 }

@@ -1,15 +1,23 @@
 package com.grepp.spring.app.model.auth;
 
 import com.grepp.spring.app.controller.api.mock.auth.payload.LoginRequest;
+import com.grepp.spring.app.model.attendance.domain.Attendance;
+import com.grepp.spring.app.model.attendance.repos.AttendanceRepository;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
 import com.grepp.spring.app.model.auth.token.RefreshTokenService;
 import com.grepp.spring.app.model.auth.token.UserBlackListRepository;
 import com.grepp.spring.app.model.auth.token.entity.RefreshToken;
+import com.grepp.spring.app.model.challenge.domain.Challenge;
+import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
+import com.grepp.spring.app.model.challenge.service.ChallengeService;
+import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
+import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.spring.infra.auth.jwt.dto.AccessTokenDto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,6 +39,8 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final UserBlackListRepository userBlackListRepository;
+    private final AttendanceRepository attendanceRepository;
+    private final ChallengeService challengeService;
     
     public TokenDto signin(LoginRequest loginRequest) {
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -52,6 +62,19 @@ public class AuthService {
                 member.setLastLoginedAt(today);
                 memberRepository.save(member);
             }
+        });
+
+        memberRepository.findByEmail(email).ifPresent(member -> {
+            LocalDate today = LocalDate.now();
+            boolean alreadyChecked = attendanceRepository.existsByMemberAndDate(member, today);
+            if (!alreadyChecked) {
+                Attendance attendance = new Attendance();
+                attendance.setMember(member);
+                attendance.setDate(today);
+                attendance.setIsAttended(true);
+                attendanceRepository.save(attendance);
+            }
+            challengeService.handle_oneMonthChallenge(member);
         });
 
         String roles =  String.join(",", authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
@@ -82,5 +105,5 @@ public class AuthService {
     public TokenDto generateTokenForSocialLogin(String email, String roles) {
         return processTokenSignin(email, roles);
     }
-    
+
 }

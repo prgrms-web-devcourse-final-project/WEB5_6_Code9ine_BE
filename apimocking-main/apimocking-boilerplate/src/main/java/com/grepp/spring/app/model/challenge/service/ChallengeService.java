@@ -10,6 +10,10 @@ import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
 import com.grepp.spring.app.model.member.domain.Member;
+import com.grepp.spring.app.model.member.repos.MemberRepository;
+import com.grepp.spring.app.model.notification.repos.NotificationRepository;
+import com.grepp.spring.app.model.notification.service.NotificationService;
+import com.grepp.spring.app.model.notification.service.NotificationService.NotificationCreateRequest;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,6 +21,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +34,9 @@ public class ChallengeService {
     private final AttendanceRepository attendanceRepository;
     private final BudgetDetailRepository budgetDetailRepository;
     private final BudgetRepository budgetRepository;
+    private final MemberRepository memberRepository;
+    private final NotificationService notificationService;
+    private final NotificationRepository notificationRepository;
 
     @Transactional(readOnly = true)
     public List<ChallengeStatusDto> getChallengeStatuses(Long memberId) {
@@ -97,6 +105,13 @@ public class ChallengeService {
         boolean existsByType = budgetDetailRepository.existsTypelByMemberAndDate(
             member.getMemberId(), "수입", LocalDate.now());
 
+
+        LocalDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+
+        boolean notification = notificationRepository.existsMonthlyNotification(member.getMemberId(), startOfMonth,
+            endOfMonth,"머니 매니저 칭호를 획득했어요!");
+
         if (existingCount.isEmpty()) {
             // 없으면 새로 생성
             ChallengeCount challengeCount = new ChallengeCount();
@@ -111,6 +126,10 @@ public class ChallengeService {
         ChallengeCount count = existingCount.get();
         if (existsByBudget && existsByType) {
             count.setCount(1);
+            if(!notification)
+            {
+                createnotification(member, count);
+            }
         } else {
             count.setCount(0);
         }
@@ -192,7 +211,6 @@ public class ChallengeService {
         }
         ChallengeCount count = existingCount.get();
 
-
         YearMonth thisMonth = YearMonth.from(today);
         YearMonth lastMonth = thisMonth.minusMonths(1);
 
@@ -212,10 +230,9 @@ public class ChallengeService {
             member.getMemberId(), lastMonthStart, lastMonthEnd
         );
 
-        if(lastMonthSum.compareTo(thisMonthSum) < 0) {
+        if (lastMonthSum.compareTo(thisMonthSum) < 0) {
             count.setCount(0);
-        }
-        else {
+        } else {
             count.setCount(1);
         }
 
@@ -232,5 +249,73 @@ public class ChallengeService {
                 today.withDayOfMonth(1).plusMonths(1).atStartOfDay()
             );
         return existingCount;
+    }
+
+    //@Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul") // 매 분 0초마다 실행
+    public void daily_notifyChallengeSuccess() {
+        LocalDateTime startOfYesterday = LocalDate.now().minusDays(1).atStartOfDay(); // 어제 00:00:00
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay(); // 오늘 00:00:00
+
+        List<Member> allMembers = memberRepository.findAll(); // 전체 회원 조회
+
+        for (Member member : allMembers) {
+            List<ChallengeCount> counts = challengeCountRepository.findDailyChallenges(
+                member.getMemberId(), startOfYesterday, startOfToday, "일일");
+
+            System.out.println("알림시작");
+            for (ChallengeCount cc : counts) {
+                if (cc.getCount() == cc.getChallenge().getTotal()) {
+
+                    createnotification(member, cc);
+                    System.out.println("✅ 챌린지 " + cc.getChallenge().getName() + " 성공");
+                } else {
+                    System.out.println("❌ 챌린지 " + cc.getChallenge().getName() + " 실패");
+                }
+            }
+        }
+    }
+
+    // @Scheduled(cron = "0 0 0 1 * *")
+    //@Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")//매 달 1일
+    public void monthly_notifyChallengeSuccess() {
+
+        LocalDateTime startOfLastMonth = LocalDate.now().minusMonths(1).withDayOfMonth(1).atStartOfDay(); // 7월 1일 00:00:00
+        LocalDateTime endOfLastMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+
+        List<Member> allMembers = memberRepository.findAll(); // 전체 회원 조회
+
+        for (Member member : allMembers) {
+            List<ChallengeCount> counts = challengeCountRepository.findDailyChallenges(
+                member.getMemberId(), startOfLastMonth, endOfLastMonth,"월간");
+
+            boolean notification = notificationRepository.existsMonthlyNotification(member.getMemberId(), startOfLastMonth,
+                endOfLastMonth,"머니 매니저 칭호를 획득했어요!");
+
+            System.out.println("알림시작");
+            for (ChallengeCount cc : counts) {
+                if (cc.getCount() == cc.getChallenge().getTotal()) {
+
+                    if(!notification)
+                    {
+                        createnotification(member, cc);
+                    }
+                    System.out.println("✅ 챌린지 " + cc.getChallenge().getName() + " 성공");
+                } else {
+                    System.out.println("❌ 챌린지 " + cc.getChallenge().getName() + " 실패");
+                }
+            }
+        }
+    }
+
+
+    private void createnotification(Member member, ChallengeCount cc) {
+        NotificationCreateRequest request = new NotificationCreateRequest(
+            member.getMemberId(),
+            0L,
+            "TITLE",
+            "",
+            "운영자",
+            cc.getChallenge().getName());
+        notificationService.createNotification(request);
     }
 }

@@ -4,12 +4,15 @@ import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/budget")
+@Profile("mock")
 public class OcrController {
 
     @Operation(summary = "영수증 분석")

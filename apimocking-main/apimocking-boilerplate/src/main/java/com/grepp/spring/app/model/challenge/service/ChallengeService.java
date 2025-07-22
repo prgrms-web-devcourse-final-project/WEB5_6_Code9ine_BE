@@ -18,7 +18,10 @@ import com.grepp.spring.app.model.challenge_history.repository.ChallengeHistoryR
 import com.grepp.spring.app.model.community.domain.CommunityPost;
 import com.grepp.spring.app.model.community.repos.CommunityRepository;
 import com.grepp.spring.app.model.member.domain.Member;
+import com.grepp.spring.app.model.member.repos.MemberRepository;
+import com.grepp.spring.app.model.notification.repos.NotificationRepository;
 import com.grepp.spring.app.model.notification.service.NotificationService;
+import com.grepp.spring.app.model.notification.service.NotificationService.NotificationCreateRequest;
 import com.grepp.spring.util.NotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,6 +30,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,9 +43,11 @@ public class ChallengeService {
     private final AttendanceRepository attendanceRepository;
     private final BudgetDetailRepository budgetDetailRepository;
     private final BudgetRepository budgetRepository;
+    private final MemberRepository memberRepository;
     private final NotificationService notificationService;
-    private final ChallengeHistoryRepository challengeHistoryRepository;
+    private final NotificationRepository notificationRepository;
     private final AchievedTitleRepository achievedTitleRepository;
+    private final ChallengeHistoryRepository challengeHistoryRepository;
     private final CommunityRepository communityRepository;
 
     @Transactional(readOnly = true)
@@ -106,10 +112,16 @@ public class ChallengeService {
         Optional<ChallengeCount> existingCount = getChallengeCount(
             member, challenge, today);
 
-        boolean existsByBudget = budgetRepository.existsBudgetByMemberIdAndDate(
-            member.getMemberId(), LocalDate.now());
-        boolean existsByType = budgetDetailRepository.existsTypelByMemberAndDate(
-            member.getMemberId(), "수입", LocalDate.now());
+        LocalDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+
+//        boolean existsByBudget = budgetRepository.existsBudgetByMemberIdAndDate(
+//            member.getMemberId(), LocalDate.now());
+        boolean existsByType = budgetDetailRepository.existsByTypeInMonth(
+            member.getMemberId(), "수입", startOfMonth.toLocalDate(), endOfMonth.toLocalDate());
+
+        boolean notification = notificationRepository.existsMonthlyNotification(member.getMemberId(), startOfMonth,
+            endOfMonth,"머니 매니저 칭호를 획득했어요!");
 
         if (existingCount.isEmpty()) {
             // 없으면 새로 생성
@@ -123,8 +135,14 @@ public class ChallengeService {
         }
 
         ChallengeCount count = existingCount.get();
-        if (existsByBudget && existsByType) {
+        System.out.print(existsByType);
+        if (existsByType) {
             count.setCount(1);
+            if(!notification)
+            {
+                createdAchievedTitle(member,count);
+                createNotification(member, count);
+            }
         } else {
             count.setCount(0);
         }
@@ -206,7 +224,6 @@ public class ChallengeService {
         }
         ChallengeCount count = existingCount.get();
 
-
         YearMonth thisMonth = YearMonth.from(today);
         YearMonth lastMonth = thisMonth.minusMonths(1);
 
@@ -226,10 +243,9 @@ public class ChallengeService {
             member.getMemberId(), lastMonthStart, lastMonthEnd
         );
 
-        if(lastMonthSum.compareTo(thisMonthSum) < 0) {
+        if (lastMonthSum.compareTo(thisMonthSum) < 0) {
             count.setCount(0);
-        }
-        else {
+        } else {
             count.setCount(1);
         }
 
@@ -247,6 +263,101 @@ public class ChallengeService {
             );
         return existingCount;
     }
+
+    @Scheduled(cron = "0 0 0 * * *") // 매일 00시(자정)에 실행
+    //@Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul") // 매 분 0초마다 실행
+    public void daily_notifyChallengeSuccess() {
+        LocalDateTime startOfYesterday = LocalDate.now().minusDays(1).atStartOfDay(); // 어제 00:00:00
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay(); // 오늘 00:00:00
+
+        List<Member> allMembers = memberRepository.findAll(); // 전체 회원 조회
+
+        for (Member member : allMembers) {
+            List<ChallengeCount> counts = challengeCountRepository.findDailyChallenges(
+                member.getMemberId(), startOfYesterday, startOfToday, "일일");
+
+            System.out.println("알림시작");
+            for (ChallengeCount cc : counts) {
+                if (cc.getCount() == cc.getChallenge().getTotal()) {
+
+                    createdAchievedTitle(member,cc);
+                    createNotification(member, cc);
+                    System.out.println("✅ 챌린지 " + cc.getChallenge().getName() + " 성공");
+                } else {
+                    System.out.println("❌ 챌린지 " + cc.getChallenge().getName() + " 실패");
+                }
+            }
+        }
+    }
+
+     @Scheduled(cron = "0 0 0 1 * *") // 매달 1일에 실행
+    //@Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul") // 매 분 실행
+    public void monthly_notifyChallengeSuccess() {
+
+        LocalDateTime startOfLastMonth = LocalDate.now().minusMonths(1).withDayOfMonth(1).atStartOfDay(); // 7월 1일 00:00:00
+        LocalDateTime endOfLastMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+
+        List<Member> allMembers = memberRepository.findAll(); // 전체 회원 조회
+
+        for (Member member : allMembers) {
+            List<ChallengeCount> counts = challengeCountRepository.findDailyChallenges(
+                member.getMemberId(), startOfLastMonth, endOfLastMonth,"월간");
+
+            boolean notification = notificationRepository.existsMonthlyNotification(member.getMemberId(), startOfLastMonth,
+                endOfLastMonth,"머니 매니저 칭호를 획득했어요!");
+
+            System.out.println("알림시작");
+            for (ChallengeCount cc : counts) {
+                if (cc.getCount() == cc.getChallenge().getTotal()) {
+
+                    if (cc.getChallenge().getName().equals("머니 매니저")) {
+                        if (!notification) {
+                            createdAchievedTitle(member, cc);
+                            createNotification(member, cc);
+                        }
+                    } else {
+                        createdAchievedTitle(member, cc);
+                        createNotification(member, cc);
+                    }
+                    System.out.println("✅ 챌린지 " + cc.getChallenge().getName() + " 성공");
+                } else {
+                    System.out.println("❌ 챌린지 " + cc.getChallenge().getName() + " 실패");
+                }
+            }
+        }
+    }
+
+    public void createdAchievedTitle(Member member,ChallengeCount cc) {
+        Optional<AchievedTitle> optional = achievedTitleRepository.findByMemberAndName(member,cc.getChallenge().getName());
+
+        if (optional.isPresent()) {
+            AchievedTitle existing = optional.get();
+            existing.setMinCount(existing.getMinCount() + 1); // count 증가
+            achievedTitleRepository.save(existing);
+        } else {
+            AchievedTitle newTitle = new AchievedTitle();
+            newTitle.setName(cc.getChallenge().getName());
+            newTitle.setChallenge(cc.getChallenge());
+            newTitle.setAchieved(false);
+            newTitle.setMember(member);
+            newTitle.setIcon(cc.getChallenge().getIcon());
+            newTitle.setMinCount(1); // 처음은 1로 설정
+            achievedTitleRepository.save(newTitle);
+        }
+    }
+
+    private void createNotification(Member member, ChallengeCount cc) {
+        NotificationCreateRequest request = new NotificationCreateRequest(
+            member.getMemberId(),
+            0L,
+            "TITLE",
+            "",
+            "운영자",
+            cc.getChallenge().getName());
+        notificationService.createNotification(request);
+    }
+
+
 
     // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부 확인
     @Transactional

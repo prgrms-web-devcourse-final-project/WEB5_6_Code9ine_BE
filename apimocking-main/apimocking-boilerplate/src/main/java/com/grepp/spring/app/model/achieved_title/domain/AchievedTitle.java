@@ -20,26 +20,18 @@ import lombok.Setter;
 @Setter
 public class AchievedTitle {
 
-    @Id
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, updatable = false)
-    @SequenceGenerator(
-            name = "primary_sequence",
-            sequenceName = "primary_sequence",
-            allocationSize = 1,
-            initialValue = 10000
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "primary_sequence"
-    )
     private Long aTId;
-
 
     @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
     private Boolean achieved;
+
+    @Column
+    private String icon;
 
     @Column
     private Integer minCount;

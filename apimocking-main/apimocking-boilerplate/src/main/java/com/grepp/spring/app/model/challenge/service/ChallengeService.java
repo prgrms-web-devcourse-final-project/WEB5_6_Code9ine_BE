@@ -1,6 +1,8 @@
 package com.grepp.spring.app.model.challenge.service;
 
 
+import com.grepp.spring.app.model.achieved_title.domain.AchievedTitle;
+import com.grepp.spring.app.model.achieved_title.repos.AchievedTitleRepository;
 import com.grepp.spring.app.model.attendance.repos.AttendanceRepository;
 import com.grepp.spring.app.model.budget.repos.BudgetRepository;
 import com.grepp.spring.app.model.budget_detail.repos.BudgetDetailRepository;
@@ -37,6 +39,7 @@ public class ChallengeService {
     private final MemberRepository memberRepository;
     private final NotificationService notificationService;
     private final NotificationRepository notificationRepository;
+    private final AchievedTitleRepository achievedTitleRepository;
 
     @Transactional(readOnly = true)
     public List<ChallengeStatusDto> getChallengeStatuses(Long memberId) {
@@ -100,14 +103,13 @@ public class ChallengeService {
         Optional<ChallengeCount> existingCount = getChallengeCount(
             member, challenge, today);
 
-        boolean existsByBudget = budgetRepository.existsBudgetByMemberIdAndDate(
-            member.getMemberId(), LocalDate.now());
-        boolean existsByType = budgetDetailRepository.existsTypelByMemberAndDate(
-            member.getMemberId(), "수입", LocalDate.now());
-
-
         LocalDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay();
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+
+//        boolean existsByBudget = budgetRepository.existsBudgetByMemberIdAndDate(
+//            member.getMemberId(), LocalDate.now());
+        boolean existsByType = budgetDetailRepository.existsByTypeInMonth(
+            member.getMemberId(), "수입", startOfMonth.toLocalDate(), endOfMonth.toLocalDate());
 
         boolean notification = notificationRepository.existsMonthlyNotification(member.getMemberId(), startOfMonth,
             endOfMonth,"머니 매니저 칭호를 획득했어요!");
@@ -124,11 +126,13 @@ public class ChallengeService {
         }
 
         ChallengeCount count = existingCount.get();
-        if (existsByBudget && existsByType) {
+        System.out.print(existsByType);
+        if (existsByType) {
             count.setCount(1);
             if(!notification)
             {
-                createnotification(member, count);
+                createdAchievedTitle(member,count);
+                createNotification(member, count);
             }
         } else {
             count.setCount(0);
@@ -251,6 +255,7 @@ public class ChallengeService {
         return existingCount;
     }
 
+    @Scheduled(cron = "0 0 0 * * *") // 매일 00시(자정)에 실행
     //@Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul") // 매 분 0초마다 실행
     public void daily_notifyChallengeSuccess() {
         LocalDateTime startOfYesterday = LocalDate.now().minusDays(1).atStartOfDay(); // 어제 00:00:00
@@ -266,7 +271,8 @@ public class ChallengeService {
             for (ChallengeCount cc : counts) {
                 if (cc.getCount() == cc.getChallenge().getTotal()) {
 
-                    createnotification(member, cc);
+                    createdAchievedTitle(member,cc);
+                    createNotification(member, cc);
                     System.out.println("✅ 챌린지 " + cc.getChallenge().getName() + " 성공");
                 } else {
                     System.out.println("❌ 챌린지 " + cc.getChallenge().getName() + " 실패");
@@ -275,8 +281,8 @@ public class ChallengeService {
         }
     }
 
-    // @Scheduled(cron = "0 0 0 1 * *")
-    //@Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")//매 달 1일
+     @Scheduled(cron = "0 0 0 1 * *") // 매달 1일에 실행
+    //@Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul") // 매 분 실행
     public void monthly_notifyChallengeSuccess() {
 
         LocalDateTime startOfLastMonth = LocalDate.now().minusMonths(1).withDayOfMonth(1).atStartOfDay(); // 7월 1일 00:00:00
@@ -295,9 +301,14 @@ public class ChallengeService {
             for (ChallengeCount cc : counts) {
                 if (cc.getCount() == cc.getChallenge().getTotal()) {
 
-                    if(!notification)
-                    {
-                        createnotification(member, cc);
+                    if (cc.getChallenge().getName().equals("머니 매니저")) {
+                        if (!notification) {
+                            createdAchievedTitle(member, cc);
+                            createNotification(member, cc);
+                        }
+                    } else {
+                        createdAchievedTitle(member, cc);
+                        createNotification(member, cc);
                     }
                     System.out.println("✅ 챌린지 " + cc.getChallenge().getName() + " 성공");
                 } else {
@@ -307,8 +318,26 @@ public class ChallengeService {
         }
     }
 
+    public void createdAchievedTitle(Member member,ChallengeCount cc) {
+        Optional<AchievedTitle> optional = achievedTitleRepository.findByMemberAndName(member,cc.getChallenge().getName());
 
-    private void createnotification(Member member, ChallengeCount cc) {
+        if (optional.isPresent()) {
+            AchievedTitle existing = optional.get();
+            existing.setMinCount(existing.getMinCount() + 1); // count 증가
+            achievedTitleRepository.save(existing);
+        } else {
+            AchievedTitle newTitle = new AchievedTitle();
+            newTitle.setName(cc.getChallenge().getName());
+            newTitle.setChallenge(cc.getChallenge());
+            newTitle.setAchieved(false);
+            newTitle.setMember(member);
+            newTitle.setIcon(cc.getChallenge().getIcon());
+            newTitle.setMinCount(1); // 처음은 1로 설정
+            achievedTitleRepository.save(newTitle);
+        }
+    }
+
+    private void createNotification(Member member, ChallengeCount cc) {
         NotificationCreateRequest request = new NotificationCreateRequest(
             member.getMemberId(),
             0L,
@@ -318,4 +347,6 @@ public class ChallengeService {
             cc.getChallenge().getName());
         notificationService.createNotification(request);
     }
+
+
 }

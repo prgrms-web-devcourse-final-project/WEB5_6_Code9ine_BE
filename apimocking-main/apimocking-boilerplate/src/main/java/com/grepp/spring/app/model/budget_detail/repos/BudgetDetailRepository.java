@@ -5,6 +5,7 @@ import com.grepp.spring.app.model.budget.model.BudgetCategorySummary;
 import com.grepp.spring.app.model.budget_detail.domain.BudgetDetail;
 import feign.Param;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -91,4 +92,15 @@ public interface BudgetDetailRepository extends JpaRepository<BudgetDetail, Long
     boolean existsTypelByMemberAndDate(@Param("memberId") Long memberId,
         @Param("type") String type,
         @Param("date") LocalDate date);
+
+
+    @Query("SELECT COUNT(d) > 0 FROM BudgetDetail d " +
+        "WHERE d.budget.member.memberId = :memberId " +
+        "AND d.type = :type " +
+        "AND d.date >= :startDateTime " +
+        "AND d.date < :endDateTime")
+    boolean existsByTypeInMonth(@Param("memberId") Long memberId,
+        @Param("type") String type,
+        @Param("startDateTime") LocalDate startDateTime,
+        @Param("endDateTime") LocalDate endDateTime);
 }

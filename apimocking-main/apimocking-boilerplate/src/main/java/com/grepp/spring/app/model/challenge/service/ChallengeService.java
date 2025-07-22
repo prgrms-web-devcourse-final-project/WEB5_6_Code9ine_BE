@@ -1,15 +1,25 @@
 package com.grepp.spring.app.model.challenge.service;
 
 
+import com.grepp.spring.app.model.achieved_title.domain.AchievedTitle;
+import com.grepp.spring.app.model.achieved_title.repos.AchievedTitleRepository;
 import com.grepp.spring.app.model.attendance.repos.AttendanceRepository;
 import com.grepp.spring.app.model.budget.repos.BudgetRepository;
 import com.grepp.spring.app.model.budget_detail.repos.BudgetDetailRepository;
+import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
+import com.grepp.spring.app.model.challenge.code.CommunityCategory;
 import com.grepp.spring.app.model.challenge.domain.Challenge;
 import com.grepp.spring.app.model.challenge.model.ChallengeStatusDto;
 import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
+import com.grepp.spring.app.model.challenge_history.domain.ChallengeHistory;
+import com.grepp.spring.app.model.challenge_history.repository.ChallengeHistoryRepository;
+import com.grepp.spring.app.model.community.domain.CommunityPost;
+import com.grepp.spring.app.model.community.repos.CommunityRepository;
 import com.grepp.spring.app.model.member.domain.Member;
+import com.grepp.spring.app.model.notification.service.NotificationService;
+import com.grepp.spring.util.NotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,6 +39,10 @@ public class ChallengeService {
     private final AttendanceRepository attendanceRepository;
     private final BudgetDetailRepository budgetDetailRepository;
     private final BudgetRepository budgetRepository;
+    private final NotificationService notificationService;
+    private final ChallengeHistoryRepository challengeHistoryRepository;
+    private final AchievedTitleRepository achievedTitleRepository;
+    private final CommunityRepository communityRepository;
 
     @Transactional(readOnly = true)
     public List<ChallengeStatusDto> getChallengeStatuses(Long memberId) {
@@ -232,5 +246,144 @@ public class ChallengeService {
                 today.withDayOfMonth(1).plusMonths(1).atStartOfDay()
             );
         return existingCount;
+    }
+
+    // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부 확인
+    @Transactional
+    public void checkChallenge(CommunityPost post) {
+
+        // 좋아요 5개 미만 시 실패
+        if (post.getLikeCount() < 5) return;
+
+        // 이미지가 없을 시 실패
+        if (post.getImages() == null || post.getImages().isEmpty()) return;
+
+        // 커뮤니티 카테고리가 챌린지가 아닐 시 실패
+        ChallengeCategory challengeCategory = post.getChallenge();
+        if (challengeCategory == null) return;
+
+        Member postWriter = post.getMember();
+
+        // 존재하는 챌린지인지 조회
+        Challenge challenge = challengeRepository.findByName(mapCategoryToName(challengeCategory))
+            .orElseThrow(() -> new NotFoundException("해당 챌린지를 찾을 수 없습니다"));
+
+        // 이미 달성한 챌린지인지 확인
+        boolean alreadyAchievedHistory = challengeHistoryRepository.existsByPostAndMember(post, postWriter);
+        boolean alreadyAchievedTitle = achievedTitleRepository.existsByMemberAndChallenge(postWriter, challenge);
+
+        if (alreadyAchievedHistory || alreadyAchievedTitle) return;
+
+        // 챌린지 기록 저장
+        ChallengeHistory history = new ChallengeHistory();
+        history.setMember(postWriter);
+        history.setPost(post);
+        history.setChallenge(challenge);
+        challengeHistoryRepository.save(history);
+
+        // 챌린지 횟수 저장
+        ChallengeCount count = new ChallengeCount();
+        count.setMember(postWriter);
+        count.setChallenge(challenge);
+        count.setCount(1);
+        challengeCountRepository.save(count);
+
+        // 경험치 추가
+        postWriter.setTotalExp(postWriter.getTotalExp() + 100);
+
+        // 알림 전송
+        notificationService.createNotification(new NotificationService.NotificationCreateRequest(
+            postWriter.getMemberId(),
+            null,
+            "TITLE",
+            null,
+            null,
+            challenge.getName()
+        ));
+
+        // 획득한 칭호 저장
+        createAchievedTitle(postWriter, challenge);
+    }
+
+    // 숨은 맛집 탐방 챌린지 달성 여부 확인 메서드
+    @Transactional
+    public void checkMyStoreChallenge(CommunityPost post) {
+
+        // 카테고리가 숨맛탐이 아닐 시 실패
+        if (post.getCategory() != CommunityCategory.MY_STORE) return;
+
+        Member postWriter = post.getMember();
+
+        // 로그인한 사용자가 작성한 숨맛탐 게시글 개수
+        int count = communityRepository.countByMemberAndCategory(postWriter, CommunityCategory.MY_STORE);
+
+        // 존재하는 챌린지인지 조회
+        Challenge challenge = challengeRepository.findByName("숨.맛.탐")
+            .orElseThrow(() -> new NotFoundException("해당 챌린지를 찾을 수 없습니다"));
+
+        // 이미 달성한 챌린지인지 확인
+        boolean alreadyAchievedTitle = challengeHistoryRepository.existsByMemberAndChallenge(postWriter, challenge);
+        if (alreadyAchievedTitle) return;
+
+        // 게시글 개수가 5개 이상일 경우
+        if (count >= 5) {
+
+            // 챌린지 기록 저장
+            ChallengeHistory history = new ChallengeHistory();
+            history.setMember(postWriter);
+            history.setPost(post);
+            history.setChallenge(challenge);
+            challengeHistoryRepository.save(history);
+
+            // 챌린지 횟수 저장
+            ChallengeCount cc = new ChallengeCount();
+            cc.setMember(postWriter);
+            cc.setChallenge(challenge);
+            cc.setCount(1);
+            challengeCountRepository.save(cc);
+
+            // 경험치 추가
+            postWriter.setTotalExp(postWriter.getTotalExp() + 100);
+
+            // 알림 전송
+            notificationService.createNotification(new NotificationService.NotificationCreateRequest(
+                postWriter.getMemberId(),
+                null,
+                "TITLE",
+                null,
+                null,
+                challenge.getName()
+            ));
+
+            // 획득한 칭호 저장
+            createAchievedTitle(postWriter, challenge);
+        }
+    }
+
+    // achieved_title 테이블 데이터 삽입
+    private void createAchievedTitle(Member member, Challenge challenge) {
+        boolean alreadyExists = achievedTitleRepository.existsByMemberAndChallenge(member, challenge);
+        if (alreadyExists) return;
+
+        AchievedTitle achievedTitle = new AchievedTitle();
+        achievedTitle.setName(challenge.getName()); // 칭호 이름
+        achievedTitle.setAchieved(true);
+        achievedTitle.setMinCount(1); // 커뮤니티는 단발성이므로 1로 설정
+        achievedTitle.setChallenge(challenge);
+        achievedTitle.setMember(member);
+        achievedTitle.setIcon(challenge.getIcon());
+
+        achievedTitleRepository.save(achievedTitle);
+    }
+
+    // 챌린지 카테고리 이름 맵핑
+    private String mapCategoryToName(ChallengeCategory category) {
+        return switch (category) {
+            case NO_MONEY -> "제로 마스터";
+            case MASTER -> "노노 카페";
+            case COOK_KING -> "냉털 요리왕";
+            case KIND_CONSUMER -> "착한 소비러";
+            case DETECTIVE -> "숨.맛.탐";
+        };
     }
 }

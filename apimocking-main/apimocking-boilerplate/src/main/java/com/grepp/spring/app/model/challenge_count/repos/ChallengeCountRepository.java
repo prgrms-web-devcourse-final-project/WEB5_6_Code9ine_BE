@@ -32,8 +32,6 @@ public interface ChallengeCountRepository extends JpaRepository<ChallengeCount, 
 
 
     Optional<ChallengeCount> findByMemberAndChallengeAndCreatedAtBetween(Member member, Challenge challenge, LocalDateTime localDateTime, LocalDateTime localDateTime1);
-
     boolean existsByMemberAndChallengeAndModifiedAtBetween(Member member, Challenge challenge, LocalDateTime localDateTime, LocalDateTime localDateTime1);
 
-    ChallengeCount findByMemberAndChallenge(Member member, Challenge challenge);
 }

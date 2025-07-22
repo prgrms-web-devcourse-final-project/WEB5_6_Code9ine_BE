@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.challenge.repos;
 
+import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
 import com.grepp.spring.app.model.challenge.domain.Challenge;
 import com.grepp.spring.app.model.challenge.model.ChallengeStatusDto;
 import feign.Param;
@@ -37,4 +38,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
         @Param("currentMonth") String currentMonth);
 
     Optional<Challenge> findByname(String name);
+
+    Optional<Challenge> findByName(String name);
+
 }

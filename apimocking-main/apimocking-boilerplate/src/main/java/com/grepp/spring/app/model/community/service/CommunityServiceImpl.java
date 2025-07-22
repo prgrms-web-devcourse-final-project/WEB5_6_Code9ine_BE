@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.community.service;
 
 import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
+import com.grepp.spring.app.model.challenge.service.ChallengeService;
 import com.grepp.spring.app.model.community.domain.CommunityBookmark;
 import com.grepp.spring.app.model.community.domain.CommunityComment;
 import com.grepp.spring.app.model.community.domain.CommunityLike;
@@ -21,12 +22,9 @@ import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.app.model.notification.service.NotificationService;
 import com.grepp.spring.app.model.post_image.domain.PostImage;
-import com.grepp.spring.app.model.post_image.repos.PostImageRepository;
 import com.grepp.spring.app.model.post_image.service.PostImageService;
-import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.util.NotFoundException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +50,7 @@ public class CommunityServiceImpl implements CommunityService {
     private final CommunityCommentRepository commentRepository;
     private final CommunityLikeRepository likeRepository;
     private final CommunityBookmarkRepository bookmarkRepository;
-    private final PostImageRepository postImageRepository;
+    private final ChallengeService challengeService;
 
     // 커뮤니티 로그인 유저 정보
     @Override
@@ -86,6 +84,11 @@ public class CommunityServiceImpl implements CommunityService {
         List<String> imageUrls = request.imageUrls();
         if (imageUrls != null && !imageUrls.isEmpty()) {
             postImageService.addPostImages(post, imageUrls);
+        }
+
+        // 숨은 맛집 탐방 챌린지 달성 여부 확인
+        if (post.getCategory() == CommunityCategory.MY_STORE) {
+            challengeService.checkMyStoreChallenge(post);
         }
     }
 
@@ -304,6 +307,10 @@ public class CommunityServiceImpl implements CommunityService {
                 post.setLikeCount(post.getLikeCount() + 1);
                 // 알림 생성
                 notificationService.createNotification(post.getMember().getMemberId(), memberId, "LIKE");
+                // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부
+                if (post.getLikeCount() == 5) {
+                    challengeService.checkChallenge(post);
+                }
                 return true;
             }
         } else {
@@ -315,6 +322,10 @@ public class CommunityServiceImpl implements CommunityService {
             likeRepository.save(newLike);
             post.setLikeCount(post.getLikeCount() + 1);
             notificationService.createNotification(post.getMember().getMemberId(), memberId, "LIKE");
+            // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부
+            if (post.getLikeCount() == 5) {
+                challengeService.checkChallenge(post);
+            }
             return true;
         }
     }

@@ -2,6 +2,8 @@ package com.grepp.spring.app.model.community.service;
 
 import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
+import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
+import com.grepp.spring.app.model.challenge.service.ChallengeService;
 import com.grepp.spring.app.model.community.domain.CommunityBookmark;
 import com.grepp.spring.app.model.community.domain.CommunityComment;
 import com.grepp.spring.app.model.community.domain.CommunityLike;
@@ -18,6 +20,7 @@ import com.grepp.spring.app.model.community.repos.CommunityCommentRepository;
 import com.grepp.spring.app.model.community.repos.CommunityLikeRepository;
 import com.grepp.spring.app.model.community.repos.CommunityRepository;
 import com.grepp.spring.app.model.member.domain.Member;
+import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.app.model.notification.service.NotificationService;
 import com.grepp.spring.app.model.post_image.domain.PostImage;
@@ -53,6 +56,8 @@ public class CommunityServiceImpl implements CommunityService {
     private final CommunityLikeRepository likeRepository;
     private final CommunityBookmarkRepository bookmarkRepository;
     private final PostImageRepository postImageRepository;
+    private final ChallengeService challengeService;
+    private final MemberRepository memberRepository;
 
     // 커뮤니티 로그인 유저 정보
     @Override
@@ -260,6 +265,9 @@ public class CommunityServiceImpl implements CommunityService {
         Long receiverId = post.getMember().getMemberId();
         Long senderId = member.getMemberId();
 
+        // 소통왕 챌린지
+        challengeService.handle_heartChallenge(member);
+
         notificationService.createNotification(receiverId, senderId, "COMMENT");
     }
 
@@ -279,6 +287,10 @@ public class CommunityServiceImpl implements CommunityService {
         comment.unActivated();
         CommunityPost post = getActivatedPostWithLock(comment.getPost().getPostId());
         post.setCommentCount(Math.max(0, post.getCommentCount() - 1));
+
+        //소통왕챌린지
+        memberRepository.findById(memberId)
+            .ifPresent(member -> challengeService.handle_heartChallenge(member));
     }
 
     // 게시물 좋아요 활성화/비활성화
@@ -297,6 +309,9 @@ public class CommunityServiceImpl implements CommunityService {
                 // 활성화 → 비활성화
                 like.unActivated();
                 post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
+                //소통왕챌린지
+                memberRepository.findById(memberId)
+                    .ifPresent(member -> challengeService.handle_heartChallenge(member));
                 return false;
             } else {
                 // 비활성화 → 활성화
@@ -304,6 +319,9 @@ public class CommunityServiceImpl implements CommunityService {
                 post.setLikeCount(post.getLikeCount() + 1);
                 // 알림 생성
                 notificationService.createNotification(post.getMember().getMemberId(), memberId, "LIKE");
+                //소통왕챌린지
+                memberRepository.findById(memberId)
+                    .ifPresent(member -> challengeService.handle_heartChallenge(member));
                 return true;
             }
         } else {
@@ -315,8 +333,12 @@ public class CommunityServiceImpl implements CommunityService {
             likeRepository.save(newLike);
             post.setLikeCount(post.getLikeCount() + 1);
             notificationService.createNotification(post.getMember().getMemberId(), memberId, "LIKE");
+            //소통왕챌린지
+            memberRepository.findById(memberId)
+                .ifPresent(member -> challengeService.handle_heartChallenge(member));
             return true;
         }
+
     }
 
     // 게시물 북마크 활성화/비활성화

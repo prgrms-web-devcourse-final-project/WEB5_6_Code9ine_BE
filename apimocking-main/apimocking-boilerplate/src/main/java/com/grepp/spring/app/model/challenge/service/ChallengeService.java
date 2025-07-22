@@ -11,6 +11,9 @@ import com.grepp.spring.app.model.challenge.model.ChallengeStatusDto;
 import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
+import com.grepp.spring.app.model.community.domain.CommunityLike;
+import com.grepp.spring.app.model.community.repos.CommunityCommentRepository;
+import com.grepp.spring.app.model.community.repos.CommunityLikeRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.notification.repos.NotificationRepository;
@@ -40,6 +43,8 @@ public class ChallengeService {
     private final NotificationService notificationService;
     private final NotificationRepository notificationRepository;
     private final AchievedTitleRepository achievedTitleRepository;
+    private final CommunityLikeRepository communityLikeRepository;
+    private final CommunityCommentRepository communityCommentRepository;
 
     @Transactional(readOnly = true)
     public List<ChallengeStatusDto> getChallengeStatuses(Long memberId) {
@@ -233,12 +238,68 @@ public class ChallengeService {
         BigDecimal lastMonthSum = budgetRepository.sumExpenseByMemberAndDateBetween(
             member.getMemberId(), lastMonthStart, lastMonthEnd
         );
-
+        if (lastMonthSum == null) {
+            lastMonthSum = BigDecimal.ZERO;
+        }
         if (lastMonthSum.compareTo(thisMonthSum) < 0) {
             count.setCount(0);
         } else {
             count.setCount(1);
         }
+
+    }
+
+    @Transactional
+    public void handle_heartChallenge(Member member) {
+
+        LocalDate today = LocalDate.now();
+
+        Challenge challenge = challengeRepository.findByname("소통왕")
+            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+
+        Optional<ChallengeCount> existingCount = getChallengeCount(
+            member, challenge, today);
+
+        LocalDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+
+        int commentcount = communityCommentRepository.countAchievedComment(member.getMemberId(), startOfMonth, endOfMonth);
+        int commentlike = communityLikeRepository.countAchievedLike(member.getMemberId(), startOfMonth, endOfMonth);
+
+        if(commentcount>5)
+            commentcount=5;
+
+        if(commentlike>5)
+            commentlike=5;
+
+        boolean notification = notificationRepository.existsMonthlyNotification(member.getMemberId(), startOfMonth,
+            endOfMonth,"소통왕 칭호를 획득했어요!");
+
+        if (existingCount.isEmpty()) {
+            // 없으면 새로 생성
+            ChallengeCount challengeCount = new ChallengeCount();
+            challengeCount.setMember(member);
+            challengeCount.setCount(0);
+            challengeCount.setChallenge(challenge);
+
+            challengeCountRepository.save(challengeCount);
+            existingCount = Optional.of(challengeCount);
+        }
+
+        ChallengeCount count = existingCount.get();
+
+        count.setCount(commentcount+commentlike);
+
+        if(!notification)
+        {
+            if(count.getCount()>=10)
+            {
+                createdAchievedTitle(member,count);
+                createNotification(member, count);
+            }
+        }
+
+        challengeCountRepository.save(count);
 
     }
 
@@ -297,6 +358,9 @@ public class ChallengeService {
             boolean notification = notificationRepository.existsMonthlyNotification(member.getMemberId(), startOfLastMonth,
                 endOfLastMonth,"머니 매니저 칭호를 획득했어요!");
 
+            boolean notification_heart = notificationRepository.existsMonthlyNotification(member.getMemberId(), startOfLastMonth,
+                endOfLastMonth,"소통왕 칭호를 획득했어요!");
+
             System.out.println("알림시작");
             for (ChallengeCount cc : counts) {
                 if (cc.getCount() == cc.getChallenge().getTotal()) {
@@ -306,7 +370,15 @@ public class ChallengeService {
                             createdAchievedTitle(member, cc);
                             createNotification(member, cc);
                         }
-                    } else {
+                    }
+                    else if(cc.getChallenge().getName().equals("소통왕"))
+                    {
+                        if (!notification_heart) {
+                            createdAchievedTitle(member, cc);
+                            createNotification(member, cc);
+                        }
+                    }
+                    else {
                         createdAchievedTitle(member, cc);
                         createNotification(member, cc);
                     }

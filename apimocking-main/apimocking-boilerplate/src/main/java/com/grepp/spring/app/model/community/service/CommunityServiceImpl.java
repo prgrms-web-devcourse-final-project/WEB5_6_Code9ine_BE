@@ -62,8 +62,8 @@ public class CommunityServiceImpl implements CommunityService {
             member.getMemberId(),
             member.getNickname(),
             member.getProfileImage(),
-            member.getEquippedTitle().getName(),
-            member.getLevel()
+            member.getEquippedTitle() != null ? member.getEquippedTitle().getName() : null,
+            member.getLevel() != null ? member.getLevel() : 1
         );
     }
 
@@ -125,7 +125,7 @@ public class CommunityServiceImpl implements CommunityService {
                     false,
                     post.getMember().getNickname(),
                     post.getMember().getEquippedTitle() != null ? post.getMember().getEquippedTitle().getName() : null,
-                    post.getMember().getLevel(),
+                    post.getMember().getLevel() != null ? post.getMember().getLevel() : 1,
                     post.getMember().getProfileImage()
                 );
         })
@@ -211,7 +211,7 @@ public class CommunityServiceImpl implements CommunityService {
             false,
             post.getMember().getNickname(),
             post.getMember().getEquippedTitle() != null ? post.getMember().getEquippedTitle().getName() : null,
-            post.getMember().getLevel(),
+            post.getMember().getLevel() != null ? post.getMember().getLevel() : 1,
             post.getMember().getProfileImage()
         );
     }
@@ -234,7 +234,7 @@ public class CommunityServiceImpl implements CommunityService {
                 comment.getMember().getNickname(),
                 comment.getMember().getProfileImage(),
                 comment.getMember().getEquippedTitle() != null ? comment.getMember().getEquippedTitle().getName() : null,
-                comment.getMember().getLevel(),
+                comment.getMember().getLevel() != null ? comment.getMember().getLevel() : 1,
                 comment.getCreatedAt().toString(),
                 comment.getModifiedAt().toString()
             ))
@@ -373,7 +373,7 @@ public class CommunityServiceImpl implements CommunityService {
             post.getMember().getMemberId(),
             post.getMember().getNickname(),
             post.getMember().getEquippedTitle() != null ? post.getMember().getEquippedTitle().getName() : null,
-            post.getMember().getLevel(),
+            post.getMember().getLevel() != null ? post.getMember().getLevel() : 1,
             post.getMember().getProfileImage(),
             post.getTitle(),
             post.getCreatedAt().toString(),
@@ -444,7 +444,7 @@ public class CommunityServiceImpl implements CommunityService {
                 Member writer = post.getMember();
                 postMap.put("writerNickname", writer.getNickname());
                 postMap.put("writerTitle", writer.getEquippedTitle() != null ? writer.getEquippedTitle().getName() : null);
-                postMap.put("writerLevel", writer.getLevel());
+                postMap.put("writerLevel", writer.getLevel() != null ? writer.getLevel() : 1);
                 postMap.put("writerProfileImage", writer.getProfileImage());
                 
                 return postMap;
@@ -497,7 +497,7 @@ public class CommunityServiceImpl implements CommunityService {
                 Member writer = post.getMember();
                 postMap.put("writerNickname", writer.getNickname());
                 postMap.put("writerTitle", writer.getEquippedTitle() != null ? writer.getEquippedTitle().getName() : null);
-                postMap.put("writerLevel", writer.getLevel());
+                postMap.put("writerLevel", writer.getLevel() != null ? writer.getLevel() : 1);
                 postMap.put("writerProfileImage", writer.getProfileImage());
                 
                 return postMap;

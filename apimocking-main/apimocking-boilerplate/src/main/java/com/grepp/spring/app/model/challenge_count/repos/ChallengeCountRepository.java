@@ -37,7 +37,7 @@ public interface ChallengeCountRepository extends JpaRepository<ChallengeCount, 
 
     boolean existsByMemberAndChallengeAndModifiedAtBetween(Member member, Challenge challenge, LocalDateTime localDateTime, LocalDateTime localDateTime1);
 
-    ChallengeCount findByMemberAndChallenge(Member member, Challenge challenge);
+    Optional<ChallengeCount> findByMemberAndChallenge(Member member, Challenge challenge);
 
     @Query("SELECT cc FROM ChallengeCount cc " +
         "JOIN FETCH cc.challenge c " +

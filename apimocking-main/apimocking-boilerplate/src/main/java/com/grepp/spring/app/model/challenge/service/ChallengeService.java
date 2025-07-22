@@ -516,11 +516,27 @@ public class ChallengeService {
             .orElseThrow(() -> new NotFoundException("해당 챌린지를 찾을 수 없습니다"));
 
         // 이미 달성한 챌린지인지 확인
-        boolean alreadyAchievedTitle = challengeHistoryRepository.existsByMemberAndChallenge(postWriter, challenge);
-        if (alreadyAchievedTitle) return;
+        if (challengeHistoryRepository.existsByMemberAndChallenge(postWriter, challenge)) return;
 
-        // 게시글 개수가 5개 이상일 경우
-        if (count >= 5) {
+        // ChallengeCount 테이블에 없는 경우 생성
+        ChallengeCount challengeCount = challengeCountRepository
+            .findByMemberAndChallenge(postWriter, challenge)
+            .orElseGet(() -> {
+                ChallengeCount cc = new ChallengeCount();
+                cc.setMember(postWriter);
+                cc.setChallenge(challenge);
+                cc.setCount(0);
+                return cc;
+            });
+
+        challengeCount.setCount(Math.min(count, 5));
+        challengeCountRepository.save(challengeCount);
+
+        // 게시글 개수가 5개 이상일 경우 종료
+        if (challengeCount.getCount() > 5) return;
+
+        // 게시글 개수가 5개일 경우
+        if (challengeCount.getCount() == 5) {
 
             // 챌린지 기록 저장
             ChallengeHistory history = new ChallengeHistory();
@@ -528,13 +544,6 @@ public class ChallengeService {
             history.setPost(post);
             history.setChallenge(challenge);
             challengeHistoryRepository.save(history);
-
-            // 챌린지 횟수 저장
-            ChallengeCount cc = new ChallengeCount();
-            cc.setMember(postWriter);
-            cc.setChallenge(challenge);
-            cc.setCount(1);
-            challengeCountRepository.save(cc);
 
             // 경험치 추가
             postWriter.setTotalExp(postWriter.getTotalExp() + 100);

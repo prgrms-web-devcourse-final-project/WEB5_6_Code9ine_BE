@@ -22,14 +22,22 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        Member member = memberRepository.findByEmail(username)
-                            .orElseThrow(() -> new UsernameNotFoundException(username));
+        System.out.println("UserDetailsServiceImpl.loadUserByUsername 호출됨: username=" + username);
+        
+        Member member = memberRepository.findByEmailIgnoreCase(username)
+                            .orElseThrow(() -> {
+                                System.out.println("사용자를 찾을 수 없음: " + username);
+                                return new UsernameNotFoundException(username);
+                            });
+        
+        System.out.println("사용자 찾음: " + member.getEmail() + ", 비밀번호: " + member.getPassword());
+        
         List<SimpleGrantedAuthority> authorities = findUserAuthorities(username);
         return Principal.createPrincipal(member, authorities);
     }
 
     public List<SimpleGrantedAuthority> findUserAuthorities(String username){
-        Member member = memberRepository.findByEmail(username)
+        Member member = memberRepository.findByEmailIgnoreCase(username)
                             .orElseThrow(() -> new UsernameNotFoundException(username));
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
@@ -38,7 +46,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
     
     public Long findMemberIdByEmail(String email) {
-        Member member = memberRepository.findByEmail(email)
+        Member member = memberRepository.findByEmailIgnoreCase(email)
                             .orElseThrow(() -> new UsernameNotFoundException(email));
         return member.getMemberId();
     }

@@ -47,6 +47,7 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import com.grepp.spring.app.model.challenge.service.ChallengeService;
 
 @RestController
 @RequestMapping("/api/members")
@@ -67,8 +68,9 @@ public class MemberController {
     private final AchievedTitleService achievedTitleService;
     private final AchievedTitleRepository achievedTitleRepository;
     private final InviteCodeService inviteCodeService;
+    private final ChallengeService challengeService;
 
-    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService, CommunityService communityService, BudgetService budgetService, AchievedTitleService achievedTitleService, AchievedTitleRepository achievedTitleRepository, InviteCodeService inviteCodeService) {
+    public MemberController(MemberService memberService, MemberRepository memberRepository, PasswordEncoder passwordEncoder, AuthService authService, EmailVerificationService emailVerificationService, EmailService emailService, UserBlackListRepository userBlackListRepository, RefreshTokenService refreshTokenService, JwtTokenProvider jwtTokenProvider, PlaceBookmarkService placeBookmarkService, CommunityService communityService, BudgetService budgetService, AchievedTitleService achievedTitleService, AchievedTitleRepository achievedTitleRepository, InviteCodeService inviteCodeService, ChallengeService challengeService) {
         this.memberService = memberService;
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
@@ -84,6 +86,7 @@ public class MemberController {
         this.achievedTitleService = achievedTitleService;
         this.achievedTitleRepository = achievedTitleRepository;
         this.inviteCodeService = inviteCodeService;
+        this.challengeService = challengeService;
     }
 
     // 회원가입
@@ -109,10 +112,12 @@ public class MemberController {
                     .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이메일 인증이 필요합니다.", null));
         }
         
-        // 초대코드 검증
-        if (!inviteCodeService.isValidInviteCode(request.getInviteCode())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "유효하지 않은 초대코드입니다.", null));
+        // 초대코드 검증 (선택적)
+        if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
+            if (!inviteCodeService.isValidInviteCode(request.getInviteCode())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "유효하지 않은 초대코드입니다.", null));
+            }
         }
         
         // 회원 생성
@@ -125,8 +130,10 @@ public class MemberController {
         member.setRole("ROLE_USER");
         Long userId = memberService.create(memberService.mapToDTO(member, new com.grepp.spring.app.model.member.model.MemberDTO()));
         
-        // 초대코드 사용 처리
-        inviteCodeService.useInviteCode(request.getInviteCode());
+        // 초대코드 사용 처리 (초대코드가 있는 경우에만)
+        if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
+            inviteCodeService.useInviteCode(request.getInviteCode());
+        }
         
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.successToCreate(new SignupResponse(userId)));
@@ -443,31 +450,21 @@ public class MemberController {
             }
         }
         
-        // 임시 칭호 정보 (칭호 API 구현 후 교체)
-        Map<String, Object> equippedTitle = null;
-        List<Map<String, Object>> achievedTitles = List.of(
-            Map.of(
-                "titleId", 1,
-                "name", "개근왕",
-                "description", "30일 연속 출석",
-                "minCount", 30,
-                "achieved", true
-            ),
-            Map.of(
-                "titleId", 2,
-                "name", "절약왕", 
-                "description", "한 달 동안 지출을 10만원 이하로!",
-                "minCount", 1,
-                "achieved", true
-            ),
-            Map.of(
-                "titleId", 3,
-                "name", "인싸왕",
-                "description", "친구 5명 초대",
-                "minCount", 5,
-                "achieved", true
-            )
-        );
+        // 칭호 정보 (실제 서비스 데이터로 대체)
+        List<com.grepp.spring.app.model.achieved_title.model.AchievedTitleDTO> allTitles = achievedTitleService.findAll();
+        List<Map<String, Object>> achievedTitles = new java.util.ArrayList<>();
+        for (var t : allTitles) {
+            if (t.getAchieved() != null && t.getAchieved()) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("titleId", t.getATId());
+                map.put("name", t.getName());
+                map.put("description", ""); // 필요시 ChallengeService 등에서 설명 추가
+                map.put("minCount", t.getMinCount());
+                map.put("achieved", t.getAchieved());
+                achievedTitles.add(map);
+            }
+        }
+        Map<String, Object> equippedTitle = achievedTitles.isEmpty() ? null : achievedTitles.get(0);
         
         MypageResponse.Data data = new MypageResponse.Data(
             member.getMemberId(),
@@ -839,25 +836,26 @@ public class MemberController {
     @GetMapping("/mypage/challenges/dashboard")
     @Operation(summary = "챌린지 대시보드 조회", description = "현재 로그인한 사용자의 챌린지 대시보드 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<ChallengeDashboardResponse>> getChallengeDashboard() {
-        // JWT에서 현재 사용자 이메일 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
-        
         if (currentEmail == null || currentEmail.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
         }
-        
-        // 이메일로 멤버 조회
         Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
                 .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
-        
-        // 챌린지 대시보드 데이터 조회 (실제 구현에서는 챌린지 서비스에서 가져와야 함)
-        List<ChallengeDashboardResponse.ChallengeData> challenges = List.of(
-            new ChallengeDashboardResponse.ChallengeData(1L, "만원의 행복", "일일", "만원으로 하루 살아보기", 1, 0, "moneyIcon"),
-            new ChallengeDashboardResponse.ChallengeData(2L, "영수증 인증하기", "일일", "오늘 사용한 영수증 인증하기", 1, 0, "receipt")
-        );
-        
+        // 실제 챌린지 서비스에서 데이터 조회
+        List<com.grepp.spring.app.model.challenge.model.ChallengeStatusDto> challengeStatuses = challengeService.getChallengeStatuses(member.getMemberId());
+        List<ChallengeDashboardResponse.ChallengeData> challenges = challengeStatuses.stream()
+            .map(dto -> new ChallengeDashboardResponse.ChallengeData(
+                dto.getChallengeId(),
+                dto.getName(), // getTitle() → getName()
+                dto.getType(),
+                dto.getDescription(),
+                dto.getTotal(),
+                dto.getProgress(),
+                dto.getIcon()
+            )).toList();
         ChallengeDashboardResponse response = new ChallengeDashboardResponse(challenges);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -935,8 +933,7 @@ public class MemberController {
         @Pattern(regexp = "^01[016789]\\d{7,8}$", message = "휴대폰번호 형식이 올바르지 않습니다.")
         private String phoneNumber;
         
-        @Schema(description = "초대코드", example = "ABC123")
-        @NotBlank(message = "초대코드는 필수입니다.")
+        @Schema(description = "초대코드 (선택사항)", example = "ABC123")
         private String inviteCode;
     }
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor

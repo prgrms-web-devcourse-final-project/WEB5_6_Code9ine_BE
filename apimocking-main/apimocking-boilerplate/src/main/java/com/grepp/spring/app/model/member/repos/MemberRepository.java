@@ -64,4 +64,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     // 관리자 당일 통계(회원가입 수)
     int countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
 }

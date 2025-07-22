@@ -30,31 +30,33 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtExceptionFilter jwtExceptionFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable)
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .cors(Customizer.withDefaults())
-            .sessionManagement(
-                session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .logout(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(
-                (requests) -> requests
-                                  .requestMatchers("/favicon.ico", "/img/**", "/js/**","/css/**").permitAll()
-                                  .requestMatchers("/", "/error", "/auth/login", "/auth/signup").permitAll()
-                                  .requestMatchers("/api/members/login", "/api/members/signup", "/api/members/email/**", "/api/members/login/kakao").permitAll()
-                                  .requestMatchers("/api/members/email/find", "/api/members/password/find").permitAll()
-                                  .requestMatchers("/api/members/logout").authenticated()
-                                  .requestMatchers("/api/**").authenticated()
-                                  .anyRequest().permitAll()
-            )
-            // jwtAuthenticationEntryPoint 는 oauth 인증을 사용할 경우 제거
-            .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .logout(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(
+                        (requests) -> requests
+                                .requestMatchers("/favicon.ico", "/img/**", "/js/**", "/css/**").permitAll()
+                                .requestMatchers("/", "/error", "/auth/login", "/auth/signup").permitAll()
+                                .requestMatchers("/api/members/login", "/api/members/signup", "/api/members/email/**", "/api/members/login/kakao").permitAll()
+                                .requestMatchers("/api/members/email/find", "/api/members/password/find").permitAll()
+                                .requestMatchers("/api/members/nickname/check").permitAll()
+                                .requestMatchers("/api/users/top-savers", "/api/users/top-challenges", "/api/users/average-saving", "/api/users/all-saving").permitAll()
+                                .requestMatchers("/api/members/logout").authenticated()
+                                .requestMatchers("/api/**").authenticated()
+                                .anyRequest().permitAll()
+                )
+                // jwtAuthenticationEntryPoint 는 oauth 인증을 사용할 경우 제거
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
     

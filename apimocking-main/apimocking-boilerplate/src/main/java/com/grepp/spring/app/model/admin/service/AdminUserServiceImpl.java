@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.admin.service;
 
+import com.grepp.spring.app.model.admin.dto.AdminUserListResponse;
 import com.grepp.spring.app.model.admin.dto.AdminUserResponse;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
@@ -22,10 +23,10 @@ public class AdminUserServiceImpl implements AdminUserService {
     // 관리자 모든 유저 조회
     @Transactional(readOnly = true)
     @Override
-    public List<AdminUserResponse> getAllUsers(PageParam pageParam) {
-        Pageable pageable = pageParam.toPageable(Sort.by(Sort.Direction.ASC,"memberId"));
+    public AdminUserListResponse getAllUsers() {
+        List<Member> members = memberRepository.findAllByRole("ROLE_USER");
 
-        return memberRepository.findByRoleEquals("ROLE_USER", pageable)
+        List<AdminUserResponse> memberList = members.stream()
             .map(member -> new AdminUserResponse(
                 member.getMemberId(),
                 member.getNickname(),
@@ -33,6 +34,8 @@ public class AdminUserServiceImpl implements AdminUserService {
                 member.getActivated()
             ))
             .toList();
+
+        return new AdminUserListResponse(memberList.size(), memberList);
     }
 
     // 관리자 유저 닉네임으로 검색

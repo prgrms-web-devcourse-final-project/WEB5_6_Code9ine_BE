@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.community.service;
 
 import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
+import com.grepp.spring.app.model.challenge.service.ChallengeService;
 import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
 import com.grepp.spring.app.model.challenge.service.ChallengeService;
 import com.grepp.spring.app.model.community.domain.CommunityBookmark;
@@ -24,12 +25,9 @@ import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.app.model.notification.service.NotificationService;
 import com.grepp.spring.app.model.post_image.domain.PostImage;
-import com.grepp.spring.app.model.post_image.repos.PostImageRepository;
 import com.grepp.spring.app.model.post_image.service.PostImageService;
-import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.util.NotFoundException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +53,6 @@ public class CommunityServiceImpl implements CommunityService {
     private final CommunityCommentRepository commentRepository;
     private final CommunityLikeRepository likeRepository;
     private final CommunityBookmarkRepository bookmarkRepository;
-    private final PostImageRepository postImageRepository;
     private final ChallengeService challengeService;
     private final MemberRepository memberRepository;
 
@@ -69,8 +66,8 @@ public class CommunityServiceImpl implements CommunityService {
             member.getMemberId(),
             member.getNickname(),
             member.getProfileImage(),
-            member.getEquippedTitle().getName(),
-            member.getLevel()
+            member.getEquippedTitle() != null ? member.getEquippedTitle().getName() : null,
+            member.getLevel() != null ? member.getLevel() : 1
         );
     }
 
@@ -91,6 +88,11 @@ public class CommunityServiceImpl implements CommunityService {
         List<String> imageUrls = request.imageUrls();
         if (imageUrls != null && !imageUrls.isEmpty()) {
             postImageService.addPostImages(post, imageUrls);
+        }
+
+        // 숨은 맛집 탐방 챌린지 달성 여부 확인
+        if (post.getCategory() == CommunityCategory.MY_STORE) {
+            challengeService.checkMyStoreChallenge(post);
         }
     }
 
@@ -127,7 +129,7 @@ public class CommunityServiceImpl implements CommunityService {
                     false,
                     post.getMember().getNickname(),
                     post.getMember().getEquippedTitle() != null ? post.getMember().getEquippedTitle().getName() : null,
-                    post.getMember().getLevel(),
+                    post.getMember().getLevel() != null ? post.getMember().getLevel() : 1,
                     post.getMember().getProfileImage()
                 );
         })
@@ -213,7 +215,7 @@ public class CommunityServiceImpl implements CommunityService {
             false,
             post.getMember().getNickname(),
             post.getMember().getEquippedTitle() != null ? post.getMember().getEquippedTitle().getName() : null,
-            post.getMember().getLevel(),
+            post.getMember().getLevel() != null ? post.getMember().getLevel() : 1,
             post.getMember().getProfileImage()
         );
     }
@@ -236,7 +238,7 @@ public class CommunityServiceImpl implements CommunityService {
                 comment.getMember().getNickname(),
                 comment.getMember().getProfileImage(),
                 comment.getMember().getEquippedTitle() != null ? comment.getMember().getEquippedTitle().getName() : null,
-                comment.getMember().getLevel(),
+                comment.getMember().getLevel() != null ? comment.getMember().getLevel() : 1,
                 comment.getCreatedAt().toString(),
                 comment.getModifiedAt().toString()
             ))
@@ -322,6 +324,10 @@ public class CommunityServiceImpl implements CommunityService {
                 //소통왕챌린지
                 memberRepository.findById(memberId)
                     .ifPresent(member -> challengeService.handle_heartChallenge(member));
+                // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부
+                if (post.getLikeCount() == 5) {
+                    challengeService.checkChallenge(post);
+                }
                 return true;
             }
         } else {
@@ -336,6 +342,10 @@ public class CommunityServiceImpl implements CommunityService {
             //소통왕챌린지
             memberRepository.findById(memberId)
                 .ifPresent(member -> challengeService.handle_heartChallenge(member));
+            // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부
+            if (post.getLikeCount() == 5) {
+                challengeService.checkChallenge(post);
+            }
             return true;
         }
 
@@ -384,7 +394,7 @@ public class CommunityServiceImpl implements CommunityService {
             post.getMember().getMemberId(),
             post.getMember().getNickname(),
             post.getMember().getEquippedTitle() != null ? post.getMember().getEquippedTitle().getName() : null,
-            post.getMember().getLevel(),
+            post.getMember().getLevel() != null ? post.getMember().getLevel() : 1,
             post.getMember().getProfileImage(),
             post.getTitle(),
             post.getCreatedAt().toString(),
@@ -455,7 +465,7 @@ public class CommunityServiceImpl implements CommunityService {
                 Member writer = post.getMember();
                 postMap.put("writerNickname", writer.getNickname());
                 postMap.put("writerTitle", writer.getEquippedTitle() != null ? writer.getEquippedTitle().getName() : null);
-                postMap.put("writerLevel", writer.getLevel());
+                postMap.put("writerLevel", writer.getLevel() != null ? writer.getLevel() : 1);
                 postMap.put("writerProfileImage", writer.getProfileImage());
                 
                 return postMap;
@@ -508,7 +518,7 @@ public class CommunityServiceImpl implements CommunityService {
                 Member writer = post.getMember();
                 postMap.put("writerNickname", writer.getNickname());
                 postMap.put("writerTitle", writer.getEquippedTitle() != null ? writer.getEquippedTitle().getName() : null);
-                postMap.put("writerLevel", writer.getLevel());
+                postMap.put("writerLevel", writer.getLevel() != null ? writer.getLevel() : 1);
                 postMap.put("writerProfileImage", writer.getProfileImage());
                 
                 return postMap;

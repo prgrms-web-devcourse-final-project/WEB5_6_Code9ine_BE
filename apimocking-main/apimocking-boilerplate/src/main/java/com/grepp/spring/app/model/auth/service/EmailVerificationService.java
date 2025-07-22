@@ -84,4 +84,18 @@ public class EmailVerificationService {
         emailVerificationRepository.deleteExpiredVerifications();
         log.info("만료된 인증 코드 정리 완료");
     }
+    
+    // 개발 환경용: 이메일 인증을 자동으로 완료시키는 메서드
+    @Transactional
+    public void autoVerifyEmail(String email) {
+        // 기존 인증 정보가 있다면 삭제
+        emailVerificationRepository.deleteByEmail(email);
+        
+        // 새로운 인증 정보 생성 (자동 완료)
+        EmailVerification emailVerification = new EmailVerification(email, "000000");
+        emailVerification.markAsVerified(); // 바로 인증 완료로 설정
+        emailVerificationRepository.save(emailVerification);
+        
+        log.info("개발 환경: 이메일 자동 인증 완료: {}", email);
+    }
 } 

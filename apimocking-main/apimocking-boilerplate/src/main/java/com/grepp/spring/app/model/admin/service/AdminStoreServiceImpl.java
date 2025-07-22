@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.admin.service;
 
 import com.grepp.spring.app.model.admin.dto.AdminStoreCreateRequest;
+import com.grepp.spring.app.model.admin.dto.AdminStoreListResponse;
 import com.grepp.spring.app.model.admin.dto.AdminStoreMenuCreateRequest;
 import com.grepp.spring.app.model.admin.dto.AdminStoreMenuResponse;
 import com.grepp.spring.app.model.admin.dto.AdminStoreResponse;
@@ -9,6 +10,8 @@ import com.grepp.spring.app.model.store.domain.Store;
 import com.grepp.spring.app.model.store.repos.StoreRepository;
 import com.grepp.spring.infra.error.exceptions.BadRequestException;
 import com.grepp.spring.infra.payload.PageParam;
+import com.grepp.spring.infra.response.ApiResponse;
+import com.grepp.spring.infra.response.ResponseCode;
 import com.grepp.spring.util.NotFoundException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,44 +31,45 @@ public class AdminStoreServiceImpl implements AdminStoreService {
 
     private final StoreRepository storeRepository;
 
-
     // 관리자 모든 가게 조회
     @Transactional(readOnly = true)
     @Override
-    public List<AdminStoreResponse> getAllStores(PageParam pageParam) {
-        Pageable pageable = pageParam.toPageable(Sort.by(Sort.Direction.ASC, "storeId"));
+    public AdminStoreListResponse getAllStores() {
+        List<Store> stores = storeRepository.findAllByActivatedTrue();
 
-        Page<Store> storePage = storeRepository.findAllByActivatedTrue(pageable);
-
-        return storePage.getContent().stream().map(store ->
-            new AdminStoreResponse(
+        List<AdminStoreResponse> result = stores.stream()
+            .map(store -> new AdminStoreResponse(
                 store.getStoreId(),
                 store.getName(),
                 store.getAddress(),
                 store.getCategory(),
                 mappingMenus(store)
-            )
-        ).collect(Collectors.toList());
+            )).toList();
+
+        int total = result.size();
+        return new AdminStoreListResponse(total, result);
     }
 
     // 관리자 지정 카테고리로 가게 조회
     @Override
     @Transactional(readOnly = true)
-    public List<AdminStoreResponse> getStoreByCategory(String category, PageParam pageParam) {
+    public AdminStoreListResponse getStoresByCategory(String category) {
         validateCategory(category);
 
-        Pageable pageable = pageParam.toPageable(Sort.by(Sort.Direction.ASC, "storeId"));
-        Page<Store> storePage = storeRepository.findAllByCategoryAndActivatedTrue(category, pageable);
+        List<Store> stores = storeRepository.findAllByCategoryAndActivatedTrue(category);
 
-        return storePage.getContent().stream().map(store ->
-            new AdminStoreResponse(
+        List<AdminStoreResponse> result = stores.stream()
+            .map(store -> new AdminStoreResponse(
                 store.getStoreId(),
                 store.getName(),
                 store.getAddress(),
                 store.getCategory(),
                 mappingMenus(store)
-            )
-        ).collect(Collectors.toList());
+            )).toList();
+
+        int total = result.size();
+
+        return new AdminStoreListResponse(result.size(), result);
     }
 
     // 관리자 장소 등록
@@ -138,13 +143,13 @@ public class AdminStoreServiceImpl implements AdminStoreService {
     private List<AdminStoreMenuResponse> mappingMenus(Store store) {
         List<AdminStoreMenuResponse> menus = new ArrayList<>();
 
-        if (store.getFirstMenu() != null) {
+        if (store.getFirstMenu() != null && store.getFirstPrice() != null) {
             menus.add(new AdminStoreMenuResponse(store.getFirstMenu(), store.getFirstPrice()));
         }
-        if (store.getSecondMenu() != null) {
+        if (store.getSecondMenu() != null && store.getSecondPrice() != null) {
             menus.add(new AdminStoreMenuResponse(store.getSecondMenu(), store.getSecondPrice()));
         }
-        if (store.getThirdMenu() != null) {
+        if (store.getThirdMenu() != null && store.getThirdPrice() != null) {
             menus.add(new AdminStoreMenuResponse(store.getThirdMenu(), store.getThirdPrice()));
         }
 

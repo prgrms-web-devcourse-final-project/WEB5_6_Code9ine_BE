@@ -1,6 +1,7 @@
 package com.grepp.spring.app.controller.api.admin;
 
 import com.grepp.spring.app.model.admin.dto.AdminStoreCreateRequest;
+import com.grepp.spring.app.model.admin.dto.AdminStoreListResponse;
 import com.grepp.spring.app.model.admin.dto.AdminStoreResponse;
 import com.grepp.spring.app.model.admin.dto.AdminStoreUpdateRequest;
 import com.grepp.spring.app.model.admin.service.AdminStoreService;
@@ -36,10 +37,8 @@ public class AdminStoreController {
 
     @GetMapping
     @Operation(summary = "관리자 모든 가게 조회")
-    public ResponseEntity<ApiResponse<List<AdminStoreResponse>>> getAllStores(
-        @ParameterObject PageParam pageParam
-    ) {
-        List<AdminStoreResponse> result = adminStoreService.getAllStores(pageParam);
+    public ResponseEntity<ApiResponse<AdminStoreListResponse>> getAllStores() {
+        AdminStoreListResponse result = adminStoreService.getAllStores();
 
         return ResponseEntity
             .status(ResponseCode.OK.status())
@@ -48,11 +47,10 @@ public class AdminStoreController {
 
     @GetMapping("/search")
     @Operation(summary = "관리자 지정 카테고리로 가게 조회", description = "카테고리 : 한식, 중식, 일식, 양식, 미용업, 세탁업, 숙박업")
-    public ResponseEntity<ApiResponse<List<AdminStoreResponse>>> getStoreByCategory(
-        @RequestParam String category,
-        @ParameterObject PageParam pageParam
+    public ResponseEntity<ApiResponse<AdminStoreListResponse>> getStoreByCategory(
+        @RequestParam String category
     ) {
-        List<AdminStoreResponse> result = adminStoreService.getStoreByCategory(category, pageParam);
+        AdminStoreListResponse result = adminStoreService.getStoresByCategory(category);
 
         return ResponseEntity
             .status(ResponseCode.OK.status())

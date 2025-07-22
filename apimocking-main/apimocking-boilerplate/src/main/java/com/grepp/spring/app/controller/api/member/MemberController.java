@@ -1001,7 +1001,7 @@ public class MemberController {
 
     @Getter @Setter @NoArgsConstructor
     public static class PasswordFindResponse {
-        // 응답 데이터 없음 (성공 메시지만 반환)
+        private String message = "임시 비밀번호가 이메일로 발송되었습니다.";
     }
 
     // 비밀번호 변경 관련 DTO

@@ -1,5 +1,6 @@
 package com.grepp.spring.app.controller.api.admin;
 
+import com.grepp.spring.app.model.admin.dto.AdminUserListResponse;
 import com.grepp.spring.app.model.admin.dto.AdminUserResponse;
 import com.grepp.spring.app.model.admin.service.AdminUserService;
 import com.grepp.spring.infra.payload.PageParam;
@@ -31,10 +32,8 @@ public class AdminUserController {
 
     @GetMapping
     @Operation(summary = "관리자 모든 유저 조회")
-    public ResponseEntity<ApiResponse<List<AdminUserResponse>>> getAllUsers(
-        @ParameterObject PageParam pageParam
-    ) {
-        List<AdminUserResponse> result = adminUserService.getAllUsers(pageParam);
+    public ResponseEntity<ApiResponse<AdminUserListResponse>> getAllUsers() {
+        AdminUserListResponse result = adminUserService.getAllUsers();
 
         return ResponseEntity
             .status(ResponseCode.OK.status())

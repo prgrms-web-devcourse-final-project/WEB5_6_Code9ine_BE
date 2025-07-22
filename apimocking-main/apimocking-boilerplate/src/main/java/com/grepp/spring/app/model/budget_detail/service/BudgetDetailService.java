@@ -10,6 +10,7 @@ import com.grepp.spring.app.model.budget_detail.model.UpdatedBudgetDetailRespons
 import com.grepp.spring.app.model.budget_detail.repos.BudgetDetailRepository;
 import com.grepp.spring.app.model.challenge.domain.Challenge;
 import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
+import com.grepp.spring.app.model.challenge.service.ChallengeService;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
 import com.grepp.spring.app.model.member.domain.Member;
@@ -36,6 +37,7 @@ public class BudgetDetailService {
     private final MemberRepository memberRepository;
     private final ChallengeRepository challengeRepository;
     private final ChallengeCountRepository challengeCountRepository;
+    private final ChallengeService challengeService;
 
     @Transactional(readOnly = true)
     public BudgetDetailResponseDto findBudgetDetailByDate(String username, String date) {
@@ -94,7 +96,14 @@ public class BudgetDetailService {
             //강철 다리
             handle_zeroTransitionChallenge(member);
 
+            //머니 매니저
+            challengeService.handle_salaryChallenge(member);
+
+            //기록장인
+            challengeService.handle_oneMonthAccountChallenge(member);
         }
+
+            challengeService.handle_saveMoneyChallenge(member);
     }
 
 
@@ -153,6 +162,13 @@ public class BudgetDetailService {
         // 강철다리
         handle_zeroTransitionChallenge(member);
 
+        challengeService.handle_salaryChallenge(member);
+
+        //기록장인
+        challengeService.handle_oneMonthAccountChallenge(member);
+
+        challengeService.handle_saveMoneyChallenge(member);
+
         return new UpdatedBudgetDetailResponseDto(
             detailId,
             budgetDetail.getType(),
@@ -193,6 +209,13 @@ public class BudgetDetailService {
 
         //강철다리
         handle_zeroTransitionChallenge(member);
+
+        challengeService.handle_salaryChallenge(member);
+
+        //기록장인
+        challengeService.handle_oneMonthAccountChallenge(member);
+
+        challengeService.handle_saveMoneyChallenge(member);
     }
 
     @Transactional
@@ -229,6 +252,8 @@ public class BudgetDetailService {
             handle_under10000Challenge(member, budget, false, true);
             handle_zerofoodChallenge(member);
             handle_zeroTransitionChallenge(member);
+            challengeService.handle_oneMonthAccountChallenge(member);
+            challengeService.handle_saveMoneyChallenge(member);
         }
 
         // 등록
@@ -242,6 +267,8 @@ public class BudgetDetailService {
         handle_under10000Challenge(member, newBudget, false, true);
         handle_zerofoodChallenge(member);
         handle_zeroTransitionChallenge(member);
+        challengeService.handle_oneMonthAccountChallenge(member);
+        challengeService.handle_saveMoneyChallenge(member);
 
         return new ApiResponse<>("2000", "지출 없음으로 등록되었습니다.", null);
 

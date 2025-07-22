@@ -4,6 +4,8 @@ import com.grepp.spring.app.model.challenge.domain.Challenge;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.model.ChallengeTopResponse;
 import com.grepp.spring.app.model.member.domain.Member;
+import feign.Param;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -36,4 +38,16 @@ public interface ChallengeCountRepository extends JpaRepository<ChallengeCount, 
     boolean existsByMemberAndChallengeAndModifiedAtBetween(Member member, Challenge challenge, LocalDateTime localDateTime, LocalDateTime localDateTime1);
 
     ChallengeCount findByMemberAndChallenge(Member member, Challenge challenge);
+
+    @Query("SELECT cc FROM ChallengeCount cc " +
+        "JOIN FETCH cc.challenge c " +
+        "WHERE cc.member.memberId = :memberId " +
+        "AND cc.createdAt >= :startOfYesterday " +
+        "AND cc.createdAt < :startOfToday " +
+        "AND cc.challenge.type= :type")
+    List<ChallengeCount> findDailyChallenges(
+        @Param("memberId") Long memberId,
+        @Param("startOfYesterday") LocalDateTime startOfYesterday,
+        @Param("startOfToday") LocalDateTime startOfToday,
+        @Param("type") String type);
 }

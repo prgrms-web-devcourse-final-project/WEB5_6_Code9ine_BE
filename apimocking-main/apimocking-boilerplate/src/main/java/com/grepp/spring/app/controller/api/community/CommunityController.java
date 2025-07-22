@@ -85,7 +85,7 @@ public class CommunityController {
     }
 
     @PostMapping("/posts")
-    @Operation(summary = "커뮤니티 게시글 생성", description = "카테고리 : MY_STORE, CHALLENGE, FREE<br/> 챌린지 카테고리 : NO_MONEY, KIND_CONSUMER, DETECTIVE, MASTER,COOK_KING ")
+    @Operation(summary = "커뮤니티 게시글 생성", description = "카테고리 : MY_STORE, CHALLENGE, FREE<br/> 챌린지 카테고리 : NO_MONEY, KIND_CONSUMER, DETECTIVE, MASTER, COOK_KING ")
     public ResponseEntity<ApiResponse<Map<String, String>>> createPost(
         @RequestBody @Valid CommunityPostCreateRequest request,
         @AuthenticationPrincipal Principal principal

@@ -13,4 +13,5 @@ public interface AchievedTitleRepository extends JpaRepository<AchievedTitle, Lo
 
     Optional<AchievedTitle> findByMemberAndName(Member member, String name);
 
+    boolean existsByMemberAndChallenge(Member member, Challenge challenge);
 }

@@ -138,6 +138,7 @@ public class ChallengeService {
             {
                 createdAchievedTitle(member,count);
                 createNotification(member, count);
+                member.setTotalExp(member.getTotalExp() + 100);
             }
         } else {
             count.setCount(0);
@@ -296,6 +297,8 @@ public class ChallengeService {
             {
                 createdAchievedTitle(member,count);
                 createNotification(member, count);
+                member.setTotalExp(member.getTotalExp() + 100);
+                memberRepository.save(member);
             }
         }
 
@@ -334,6 +337,8 @@ public class ChallengeService {
 
                     createdAchievedTitle(member,cc);
                     createNotification(member, cc);
+                    member.setTotalExp(member.getTotalExp() + 20);
+                    memberRepository.save(member);
                     System.out.println("✅ 챌린지 " + cc.getChallenge().getName() + " 성공");
                 } else {
                     System.out.println("❌ 챌린지 " + cc.getChallenge().getName() + " 실패");
@@ -369,6 +374,8 @@ public class ChallengeService {
                         if (!notification) {
                             createdAchievedTitle(member, cc);
                             createNotification(member, cc);
+                            member.setTotalExp(member.getTotalExp() + 100);
+                            memberRepository.save(member);
                         }
                     }
                     else if(cc.getChallenge().getName().equals("소통왕"))
@@ -376,11 +383,15 @@ public class ChallengeService {
                         if (!notification_heart) {
                             createdAchievedTitle(member, cc);
                             createNotification(member, cc);
+                            member.setTotalExp(member.getTotalExp() + 100);
+                            memberRepository.save(member);
                         }
                     }
                     else {
                         createdAchievedTitle(member, cc);
                         createNotification(member, cc);
+                        member.setTotalExp(member.getTotalExp() + 100);
+                        memberRepository.save(member);
                     }
                     System.out.println("✅ 챌린지 " + cc.getChallenge().getName() + " 성공");
                 } else {

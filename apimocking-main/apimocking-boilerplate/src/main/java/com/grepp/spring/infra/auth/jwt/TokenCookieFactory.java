@@ -9,7 +9,7 @@ public class TokenCookieFactory {
                    .path("/")
                    .httpOnly(true)             // HttpOnly
                    .secure(true)
-                   .sameSite("none")// Secure
+                   .sameSite("None")// Secure
                    .build();
     }
     
@@ -19,7 +19,7 @@ public class TokenCookieFactory {
                    .path("/")
                    .httpOnly(true)             // HttpOnly
                    .secure(true)
-                   .sameSite("none")// // Secure
+                   .sameSite("None")// // Secure
                    .build();
     }
 }

@@ -34,42 +34,43 @@ public class AdminStoreServiceImpl implements AdminStoreService {
     // 관리자 모든 가게 조회
     @Transactional(readOnly = true)
     @Override
-    public AdminStoreListResponse getAllStores() {
-        List<Store> stores = storeRepository.findAllByActivatedTrue();
+    public AdminStoreListResponse getAllStores(PageParam pageParam) {
+        Pageable pageable = pageParam.toPageable(Sort.by(Sort.Direction.ASC, "storeId"));
+        Page<Store> page = storeRepository.findAllByActivatedTrue(pageable);
 
-        List<AdminStoreResponse> result = stores.stream()
+        List<AdminStoreResponse> result = page.getContent().stream()
             .map(store -> new AdminStoreResponse(
                 store.getStoreId(),
                 store.getName(),
                 store.getAddress(),
                 store.getCategory(),
                 mappingMenus(store)
-            )).toList();
+            ))
+            .collect(Collectors.toList());
 
-        int total = result.size();
-        return new AdminStoreListResponse(total, result);
+        return new AdminStoreListResponse((int) page.getTotalElements(), result);
     }
 
     // 관리자 지정 카테고리로 가게 조회
     @Override
     @Transactional(readOnly = true)
-    public AdminStoreListResponse getStoresByCategory(String category) {
+    public AdminStoreListResponse getStoresByCategory(String category, PageParam pageParam) {
         validateCategory(category);
 
-        List<Store> stores = storeRepository.findAllByCategoryAndActivatedTrue(category);
+        Pageable pageable = pageParam.toPageable(Sort.by(Sort.Direction.ASC, "storeId"));
+        Page<Store> page = storeRepository.findAllByCategoryAndActivatedTrue(category, pageable);
 
-        List<AdminStoreResponse> result = stores.stream()
+        List<AdminStoreResponse> result = page.getContent().stream()
             .map(store -> new AdminStoreResponse(
                 store.getStoreId(),
                 store.getName(),
                 store.getAddress(),
                 store.getCategory(),
                 mappingMenus(store)
-            )).toList();
+            ))
+            .collect(Collectors.toList());
 
-        int total = result.size();
-
-        return new AdminStoreListResponse(result.size(), result);
+        return new AdminStoreListResponse((int) page.getTotalElements(), result);
     }
 
     // 관리자 장소 등록

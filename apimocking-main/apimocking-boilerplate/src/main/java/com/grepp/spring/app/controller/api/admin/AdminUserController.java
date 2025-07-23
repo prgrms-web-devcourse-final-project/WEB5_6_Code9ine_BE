@@ -32,8 +32,10 @@ public class AdminUserController {
 
     @GetMapping
     @Operation(summary = "관리자 모든 유저 조회")
-    public ResponseEntity<ApiResponse<AdminUserListResponse>> getAllUsers() {
-        AdminUserListResponse result = adminUserService.getAllUsers();
+    public ResponseEntity<ApiResponse<AdminUserListResponse>> getAllUsers(
+        @ParameterObject PageParam pageParam
+    ) {
+        AdminUserListResponse result = adminUserService.getAllUsers(pageParam);
 
         return ResponseEntity
             .status(ResponseCode.OK.status())

@@ -30,8 +30,8 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     DetailStorePlaceResponse getDetailStoreSearch (@Param("storeId") Long storeId);
 
     // 관리자 활성화된 모든 가게 조회
-    List<Store> findAllByActivatedTrue();
+    Page<Store> findAllByActivatedTrue(Pageable pageable);
 
     // 관리자 지정 카테고리로 활성화된 모든 가게 조회
-    List<Store> findAllByCategoryAndActivatedTrue(String category);
+    Page<Store> findAllByCategoryAndActivatedTrue(String category, Pageable pageable);
 }

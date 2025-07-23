@@ -37,8 +37,10 @@ public class AdminStoreController {
 
     @GetMapping
     @Operation(summary = "관리자 모든 가게 조회")
-    public ResponseEntity<ApiResponse<AdminStoreListResponse>> getAllStores() {
-        AdminStoreListResponse result = adminStoreService.getAllStores();
+    public ResponseEntity<ApiResponse<AdminStoreListResponse>> getAllStores(
+        @ParameterObject PageParam pageParam
+    ) {
+        AdminStoreListResponse result = adminStoreService.getAllStores(pageParam);
 
         return ResponseEntity
             .status(ResponseCode.OK.status())
@@ -48,9 +50,10 @@ public class AdminStoreController {
     @GetMapping("/search")
     @Operation(summary = "관리자 지정 카테고리로 가게 조회", description = "카테고리 : 한식, 중식, 일식, 양식, 미용업, 세탁업, 숙박업")
     public ResponseEntity<ApiResponse<AdminStoreListResponse>> getStoreByCategory(
-        @RequestParam String category
+        @RequestParam String category,
+        @ParameterObject PageParam pageParam
     ) {
-        AdminStoreListResponse result = adminStoreService.getStoresByCategory(category);
+        AdminStoreListResponse result = adminStoreService.getStoresByCategory(category, pageParam);
 
         return ResponseEntity
             .status(ResponseCode.OK.status())

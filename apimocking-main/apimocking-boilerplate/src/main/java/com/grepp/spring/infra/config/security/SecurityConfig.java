@@ -3,6 +3,7 @@ package com.grepp.spring.infra.config.security;
 import com.grepp.spring.infra.auth.jwt.JwtAuthenticationEntryPoint;
 import com.grepp.spring.infra.auth.jwt.filter.JwtAuthenticationFilter;
 import com.grepp.spring.infra.auth.jwt.filter.JwtExceptionFilter;
+import com.grepp.spring.app.model.auth.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +20,9 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 @Configuration
 @EnableWebSecurity
@@ -30,6 +34,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtExceptionFilter jwtExceptionFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -45,7 +50,7 @@ public class SecurityConfig {
                         (requests) -> requests
                                 .requestMatchers("/favicon.ico", "/img/**", "/js/**", "/css/**").permitAll()
                                 .requestMatchers("/", "/error", "/auth/login", "/auth/signup").permitAll()
-                                .requestMatchers("/api/members/login", "/api/members/signup", "/api/members/email/**", "/api/members/login/kakao").permitAll()
+                                .requestMatchers("/api/members/login", "/api/members/signup", "/api/members/email/**").permitAll()
                                 .requestMatchers("/api/members/email/find", "/api/members/password/find").permitAll()
                                 .requestMatchers("/api/members/nickname/check").permitAll()
                                 .requestMatchers("/api/users/top-savers", "/api/users/top-challenges", "/api/users/average-saving", "/api/users/all-saving").permitAll()
@@ -56,7 +61,14 @@ public class SecurityConfig {
                 // jwtAuthenticationEntryPoint 는 oauth 인증을 사용할 경우 제거
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
+                .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class)
+                .oauth2Login(oauth2 -> oauth2
+                    .userInfoEndpoint(userInfo -> userInfo
+                        .userService(customOAuth2UserService)
+                    )
+                    // .successHandler(customOAuth2SuccessHandler()) // 필요시 JWT 발급 등 후처리 연결
+                )
+        ;
         return http.build();
     }
     
@@ -69,5 +81,10 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
+    public OAuth2UserService<org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest, OAuth2User> oAuth2UserService() {
+        return new DefaultOAuth2UserService();
     }
 }

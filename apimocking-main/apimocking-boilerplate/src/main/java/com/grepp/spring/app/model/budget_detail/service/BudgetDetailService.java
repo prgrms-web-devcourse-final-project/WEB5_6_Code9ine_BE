@@ -96,13 +96,11 @@ public class BudgetDetailService {
             //강철 다리
             handle_zeroTransitionChallenge(member);
 
-            //머니 매니저
-            challengeService.handle_salaryChallenge(member);
-
             //기록장인
             challengeService.handle_oneMonthAccountChallenge(member);
         }
-
+            //머니 매니저
+            challengeService.handle_salaryChallenge(member);
             challengeService.handle_saveMoneyChallenge(member);
     }
 
@@ -162,11 +160,13 @@ public class BudgetDetailService {
         // 강철다리
         handle_zeroTransitionChallenge(member);
 
+        // 머니매니저
         challengeService.handle_salaryChallenge(member);
 
         //기록장인
         challengeService.handle_oneMonthAccountChallenge(member);
 
+        // 절약왕
         challengeService.handle_saveMoneyChallenge(member);
 
         return new UpdatedBudgetDetailResponseDto(

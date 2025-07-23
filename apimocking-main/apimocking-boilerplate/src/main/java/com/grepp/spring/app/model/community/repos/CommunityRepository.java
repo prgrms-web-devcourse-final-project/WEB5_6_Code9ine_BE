@@ -1,7 +1,9 @@
 package com.grepp.spring.app.model.community.repos;
 
+import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
 import com.grepp.spring.app.model.community.domain.CommunityPost;
+import com.grepp.spring.app.model.member.domain.Member;
 import feign.Param;
 import jakarta.persistence.LockModeType;
 import java.util.List;
@@ -30,4 +32,6 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
 
     // 내가 작성한 게시글 목록 조회
     List<CommunityPost> findByMember_MemberIdAndActivatedIsTrue(Long memberId);
+
+    int countByMemberAndCategory(Member member, CommunityCategory category);
 }

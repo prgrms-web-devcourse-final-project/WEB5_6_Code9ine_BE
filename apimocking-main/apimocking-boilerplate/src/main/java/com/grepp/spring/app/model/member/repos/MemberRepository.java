@@ -51,7 +51,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // ---------------------------------
 
     // 관리자 모든 유저 조회
-    Page<Member> findByRoleEquals(String role, Pageable pageable);
+    List<Member> findAllByRole(String role);
 
     // 관리자 유저 닉네임으로 검색
     Optional<Member> findByNicknameAndRole(String nickname, String role);
@@ -64,4 +64,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     // 관리자 당일 통계(회원가입 수)
     int countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
 }

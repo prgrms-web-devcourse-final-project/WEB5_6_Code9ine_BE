@@ -264,7 +264,7 @@ public class MemberMockController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // 마이페이지 - 장소 북마크 목록 조회 (type 필드 포함)
+    // 마이페이지 - 장소 북마크 목록 조회
     @GetMapping("/bookmarks/places")
     public ResponseEntity<Object> getBookmarkedPlaces() {
         java.util.List<Object> data = new java.util.ArrayList<>();

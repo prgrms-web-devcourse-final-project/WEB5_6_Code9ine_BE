@@ -8,7 +8,7 @@ import java.util.List;
 public interface AdminUserService {
 
     // 관리자 모든 유저 조회
-    AdminUserListResponse getAllUsers();
+    AdminUserListResponse getAllUsers(PageParam pageParam);
 
     // 관리자 유저 닉네임으로 검색
     AdminUserResponse getUserByNickname(String nickname);

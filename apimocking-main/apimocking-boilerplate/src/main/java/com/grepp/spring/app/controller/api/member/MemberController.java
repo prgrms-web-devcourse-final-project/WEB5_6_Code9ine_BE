@@ -287,25 +287,25 @@ public class MemberController {
         // JWT에서 현재 사용자 이메일 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
-        
+
         if (currentEmail == null || currentEmail.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
         }
-        
-        // 사용자를 블랙리스트에 추가
+
+        // 사용자 블랙리스트 추가
         userBlackListRepository.save(new UserBlackList(currentEmail));
-        
+
         // SecurityContext 클리어
         SecurityContextHolder.clearContext();
-        
+
         // 쿠키 만료 처리
         ResponseCookie expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
         ResponseCookie expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
-        
         response.addHeader("Set-Cookie", expiredAccessToken.toString());
         response.addHeader("Set-Cookie", expiredRefreshToken.toString());
-        
+
+        // 정상 로그아웃 메시지 반환
         LogoutResponse logoutResponse = new LogoutResponse();
         return ResponseEntity.ok(ApiResponse.success(logoutResponse));
     }
@@ -849,7 +849,7 @@ public class MemberController {
         List<ChallengeDashboardResponse.ChallengeData> challenges = challengeStatuses.stream()
             .map(dto -> new ChallengeDashboardResponse.ChallengeData(
                 dto.getChallengeId(),
-                dto.getName(), // getTitle() → getName()
+                dto.getName(), // title -> name
                 dto.getType(),
                 dto.getDescription(),
                 dto.getTotal(),
@@ -1184,27 +1184,20 @@ public class MemberController {
     public static class ChallengeDashboardResponse {
         @Schema(description = "챌린지 목록")
         private List<ChallengeData> challenges;
-        
         @Getter @Setter @NoArgsConstructor @AllArgsConstructor
         public static class ChallengeData {
             @Schema(description = "챌린지 ID", example = "1")
             private Long challengeId;
-            
-            @Schema(description = "챌린지 제목", example = "만원의 행복")
-            private String title;
-            
+            @Schema(description = "챌린지 이름", example = "만원의 행복")
+            private String name;
             @Schema(description = "챌린지 타입", example = "일일")
             private String type;
-            
             @Schema(description = "챌린지 설명", example = "만원으로 하루 살아보기")
             private String description;
-            
             @Schema(description = "총 목표", example = "1")
             private Integer total;
-            
             @Schema(description = "진행률", example = "0")
             private Integer progress;
-            
             @Schema(description = "아이콘", example = "moneyIcon")
             private String icon;
         }

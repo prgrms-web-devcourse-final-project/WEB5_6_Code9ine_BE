@@ -18,6 +18,7 @@ import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.infra.response.ApiResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -45,9 +46,13 @@ public class BudgetDetailService {
         Member member = memberRepository.findByEmail(username)
             .orElseThrow(() -> new RuntimeException("해당 ID의 회원이 존재하지 않습니다."));
 
-        // 해당 유저의 해당 날짜 Budget 찾기
-        Budget budget = budgetRepository.findByDateWithDetails(LocalDate.parse(date), member)
-            .orElseThrow(() -> new RuntimeException("해당 날짜의 예산이 없습니다."));
+        // 해당 날짜의 Budget이 없을 경우 빈 리스트 반환
+        Optional<Budget> optionalBudget = budgetRepository.findByDateWithDetails(LocalDate.parse(date), member);
+        if (optionalBudget.isEmpty()) {
+            return new BudgetDetailResponseDto(Collections.emptyList());
+        }
+
+        Budget budget = optionalBudget.get();
 
         // Budget에 연결된 BudgetDetail 꺼내기
         List<BudgetDetailDto> details = budget.getBudgetDetails().stream()
@@ -240,8 +245,7 @@ public class BudgetDetailService {
             .orElse(null);
 
         if (budget != null) {
-            if (budget.getTotalIncome().compareTo(BigDecimal.ZERO) == 0 &&
-                budget.getTotalExpense().compareTo(BigDecimal.ZERO) == 0) {
+            if (budget.getTotalExpense().compareTo(BigDecimal.ZERO) == 0) {
                 return new ApiResponse<>("4040", "오늘은 이미 지출 없음 등록이 되어있습니다.", null);
             }
 
@@ -256,21 +260,22 @@ public class BudgetDetailService {
             challengeService.handle_saveMoneyChallenge(member);
         }
 
-        // 등록
-        Budget newBudget = new Budget();
-        newBudget.setMember(member);
-        newBudget.setDate(today);
-        newBudget.setTotalIncome(BigDecimal.ZERO);
-        newBudget.setTotalExpense(BigDecimal.ZERO);
-        budgetRepository.save(newBudget);
+            // 등록
+            Budget newBudget = new Budget();
+            newBudget.setMember(member);
+            newBudget.setDate(today);
+            newBudget.setTotalIncome(BigDecimal.ZERO);
+            newBudget.setTotalExpense(BigDecimal.ZERO);
+            budgetRepository.save(newBudget);
 
-        handle_under10000Challenge(member, newBudget, false, true);
-        handle_zerofoodChallenge(member);
-        handle_zeroTransitionChallenge(member);
-        challengeService.handle_oneMonthAccountChallenge(member);
-        challengeService.handle_saveMoneyChallenge(member);
+            handle_under10000Challenge(member, newBudget, false, true);
+            handle_zerofoodChallenge(member);
+            handle_zeroTransitionChallenge(member);
+            challengeService.handle_oneMonthAccountChallenge(member);
+            challengeService.handle_saveMoneyChallenge(member);
 
-        return new ApiResponse<>("2000", "지출 없음으로 등록되었습니다.", null);
+            return new ApiResponse<>("2000", "지출 없음으로 등록되었습니다.", null);
+
 
     }
 

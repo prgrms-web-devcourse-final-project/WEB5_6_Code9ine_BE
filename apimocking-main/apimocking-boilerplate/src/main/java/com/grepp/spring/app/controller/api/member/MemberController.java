@@ -1118,9 +1118,11 @@ public class MemberController {
     }
 
     // 로그아웃 관련 DTO
-    @Getter @Setter @NoArgsConstructor
+    @Getter @Setter
     public static class LogoutResponse {
-        // 응답 데이터 없음 (성공 메시지만 반환)
+        private String message = "로그아웃 성공";
+        public LogoutResponse() {}
+        public LogoutResponse(String message) { this.message = message; }
     }
 
     // 장소 북마크 해제 요청 DTO

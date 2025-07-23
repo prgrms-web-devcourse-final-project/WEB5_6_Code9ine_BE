@@ -287,25 +287,25 @@ public class MemberController {
         // JWT에서 현재 사용자 이메일 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
-
+        
         if (currentEmail == null || currentEmail.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
         }
-
-        // 사용자 블랙리스트 추가
+        
+        // 사용자를 블랙리스트에 추가
         userBlackListRepository.save(new UserBlackList(currentEmail));
-
+        
         // SecurityContext 클리어
         SecurityContextHolder.clearContext();
-
+        
         // 쿠키 만료 처리
         ResponseCookie expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
         ResponseCookie expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
+        
         response.addHeader("Set-Cookie", expiredAccessToken.toString());
         response.addHeader("Set-Cookie", expiredRefreshToken.toString());
-
-        // 정상 로그아웃 메시지 반환
+        
         LogoutResponse logoutResponse = new LogoutResponse();
         return ResponseEntity.ok(ApiResponse.success(logoutResponse));
     }
@@ -538,6 +538,36 @@ public class MemberController {
         BigDecimal goalAmount = member.getGoalAmount();
         GoalResponse response = new GoalResponse(goalAmount, member.getGoalStuff());
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // 프로필 수정
+    @PatchMapping("/mypage/profile")
+    @Operation(summary = "프로필 수정", description = "사용자의 프로필 정보를 수정합니다.")
+    public ResponseEntity<ApiResponse<Object>> updateProfile(@RequestBody @Valid ProfileUpdateRequest request) {
+        // JWT에서 현재 사용자 ID 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        
+        // 이메일로 멤버 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
+        // 프로필 정보 업데이트
+        if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
+            member.setNickname(request.getNickname());
+        }
+        if (request.getProfileImage() != null) {
+            member.setProfileImage(request.getProfileImage());
+        }
+        
+        memberRepository.save(member);
+        
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     // 대표 칭호 변경
@@ -1103,16 +1133,19 @@ public class MemberController {
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class ProfileImageRequest {
+    public static class ProfileUpdateRequest {
+        
+        @Schema(description = "닉네임", example = "새로운닉네임")
+        private String nickname;
+        
         @Schema(description = "프로필 이미지 URL", example = "https://example.com/image.jpg")
-        @NotBlank(message = "프로필 이미지 URL은 필수입니다.")
         private String profileImage;
-    }
-
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class ProfileImageResponse {
-        @Schema(description = "변경된 프로필 이미지 URL", example = "https://example.com/image.jpg")
-        private String profileImage;
+        
+        @Schema(description = "새 비밀번호", example = "newpassword123!")
+        private String newPassword;
+        
+        @Schema(description = "새 비밀번호 확인", example = "newpassword123!")
+        private String newPasswordCheck;
     }
 
     // 초대 코드 관련 DTO
@@ -1126,6 +1159,20 @@ public class MemberController {
     @Getter @Setter @NoArgsConstructor
     public static class WithdrawResponse {
         // 응답 데이터 없음 (성공 메시지만 반환)
+    }
+
+    // 프로필 이미지 변경 관련 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class ProfileImageRequest {
+        @Schema(description = "프로필 이미지 URL", example = "https://example.com/image.jpg")
+        @NotBlank(message = "프로필 이미지 URL은 필수입니다.")
+        private String profileImage;
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class ProfileImageResponse {
+        @Schema(description = "변경된 프로필 이미지 URL", example = "https://example.com/image.jpg")
+        private String profileImage;
     }
 
     // 챌린지 대시보드 관련 DTO

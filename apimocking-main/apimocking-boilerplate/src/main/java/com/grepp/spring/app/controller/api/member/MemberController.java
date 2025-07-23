@@ -857,6 +857,74 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @GetMapping("/profile/{memberId}")
+    @Operation(summary = "다른 유저 프로필 조회", description = "memberId로 다른 유저의 프로필 정보를 조회합니다. 마이페이지와 동일한 데이터 구조를 반환합니다.")
+    public ResponseEntity<ApiResponse<MypageResponse>> getOtherMemberProfile(@PathVariable Long memberId) {
+        // JWT 인증 필요(로그인 사용자만 조회 가능)
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || auth.getName().isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        // memberId로 멤버 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        // 마이페이지와 동일한 데이터 구성
+        int level = member.getLevel();
+        int currentExp = member.getTotalExp() % 100;
+        int nextLevelExp = 100;
+        int expProgress = (int) ((double) currentExp / nextLevelExp * 100);
+        List<Map<String, Object>> myPosts = communityService.getMyPosts(member.getMemberId());
+        List<Map<String, Object>> bookmarkedPosts = communityService.getBookmarkedPosts(member.getMemberId());
+        List<Map<String, Object>> bookmarkedPlaces = placeBookmarkService.getMemberPlaceBookmarks(member.getMemberId());
+        String goalStuff = member.getGoalStuff();
+        BigDecimal remainPrice = null;
+        if (member.getGoalAmount() != null && member.getGoalStuff() != null) {
+            BigDecimal[] currentMonthTotal = budgetService.getCurrentMonthTotal(member.getMemberId());
+            BigDecimal totalIncome = currentMonthTotal[0];
+            BigDecimal totalExpense = currentMonthTotal[1];
+            BigDecimal savedAmount = totalIncome.subtract(totalExpense);
+            BigDecimal goalAmount = member.getGoalAmount();
+            remainPrice = goalAmount.subtract(savedAmount);
+            if (remainPrice.compareTo(BigDecimal.ZERO) < 0) {
+                remainPrice = BigDecimal.ZERO;
+            }
+        }
+        List<com.grepp.spring.app.model.achieved_title.model.AchievedTitleDTO> allTitles = achievedTitleService.findAll();
+        List<Map<String, Object>> achievedTitles = new java.util.ArrayList<>();
+        for (var t : allTitles) {
+            if (t.getAchieved() != null && t.getAchieved()) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("titleId", t.getATId());
+                map.put("name", t.getName());
+                map.put("description", "");
+                map.put("minCount", t.getMinCount());
+                map.put("achieved", t.getAchieved());
+                achievedTitles.add(map);
+            }
+        }
+        Map<String, Object> equippedTitle = achievedTitles.isEmpty() ? null : achievedTitles.get(0);
+        MypageResponse.Data data = new MypageResponse.Data(
+            member.getMemberId(),
+            member.getEmail(),
+            member.getName(),
+            member.getProfileImage(),
+            level,
+            currentExp,
+            nextLevelExp,
+            expProgress,
+            myPosts,
+            goalStuff,
+            remainPrice,
+            bookmarkedPosts,
+            bookmarkedPlaces,
+            equippedTitle,
+            achievedTitles
+        );
+        MypageResponse response = new MypageResponse(data);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     // ===== 유틸리티 메서드 =====
     
     // 이메일 마스킹 처리

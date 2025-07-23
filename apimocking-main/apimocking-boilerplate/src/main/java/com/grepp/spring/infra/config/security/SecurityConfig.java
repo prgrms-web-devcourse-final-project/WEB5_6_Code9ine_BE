@@ -48,6 +48,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/members/login", "/api/members/signup", "/api/members/email/**", "/api/members/login/kakao").permitAll()
                                 .requestMatchers("/api/members/email/find", "/api/members/password/find").permitAll()
                                 .requestMatchers("/api/users/top-savers", "/api/users/top-challenges", "/api/users/average-saving", "/api/users/all-saving").permitAll()
+                                .requestMatchers("/api/searches/top","/api/places/search","/api/places/detail").permitAll()
                                 .requestMatchers("/api/members/logout").authenticated()
                                 .requestMatchers("/api/**").authenticated()
                                 .anyRequest().permitAll()

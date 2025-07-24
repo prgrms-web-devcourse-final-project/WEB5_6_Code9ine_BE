@@ -111,21 +111,21 @@ public class JwtTokenProvider {
     }
     
     public String resolveToken(HttpServletRequest request, AuthToken token) {
-        
+        // 1. Authorization 헤더에서 Bearer 토큰 추출
         String headerToken = request.getHeader("Authorization");
-        if (headerToken != null && headerToken.startsWith("Bearer")) {
+        if (headerToken != null && headerToken.startsWith("Bearer ")) {
             return headerToken.substring(7);
         }
-        
+        // 2. 쿠키에서 accessToken 추출
         Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return null;
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if (c.getName().equals(token.name())) {
+                    return c.getValue();
+                }
+            }
         }
-        
-        return Arrays.stream(cookies)
-                   .filter(e -> e.getName().equals(token.name()))
-                   .map(Cookie::getValue).findFirst()
-                   .orElse(null);
+        return null;
     }
     
     // 토큰에서 클레임(정보) 추출

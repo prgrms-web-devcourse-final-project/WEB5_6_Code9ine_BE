@@ -9,13 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 public interface CommunityLikeRepository extends JpaRepository<CommunityLike, Long> {
 
     // 커뮤니티 활성화된 좋아요 개수
-    int countLikeByPost_PostIdAndActivatedTrue(Long postId);
+    int countByPost_PostIdAndActivatedTrueAndMember_ActivatedTrue(Long postId);
 
     // 커뮤니티 좋아요 활성화 여부
-    boolean existsByPost_PostIdAndMember_MemberIdAndActivatedTrue(Long postId, Long memberId);
+    boolean existsByPost_PostIdAndMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(Long postId, Long memberId);
 
     // 커뮤니티 현재 사용자의 활성화된 좋아요가 존재하는지 확인
-    Optional<CommunityLike> findByPost_PostIdAndMember_MemberId(Long postId, Long memberId);
+    Optional<CommunityLike> findByPost_PostIdAndMember_MemberIdAndMember_ActivatedTrue(Long postId, Long memberId);
 
     // 커뮤니티 활성화된 좋아야 개수 (createdat이 이번달이여야함)
     @Query("""

@@ -13,7 +13,6 @@ import com.grepp.spring.app.model.challenge.model.ChallengeStatusDto;
 import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
-import com.grepp.spring.app.model.community.domain.CommunityLike;
 import com.grepp.spring.app.model.community.repos.CommunityCommentRepository;
 import com.grepp.spring.app.model.community.repos.CommunityLikeRepository;
 import com.grepp.spring.app.model.challenge_history.domain.ChallengeHistory;
@@ -517,7 +516,7 @@ public class ChallengeService {
         Member postWriter = post.getMember();
 
         // 로그인한 사용자가 작성한 숨맛탐 게시글 개수
-        int count = communityRepository.countByMemberAndCategory(postWriter, CommunityCategory.MY_STORE);
+        int count = communityRepository.countByMemberAndCategoryAndActivatedIsTrueAndMember_ActivatedTrue(postWriter, CommunityCategory.MY_STORE);
 
         // 존재하는 챌린지인지 조회
         Challenge challenge = challengeRepository.findByName("숨.맛.탐")

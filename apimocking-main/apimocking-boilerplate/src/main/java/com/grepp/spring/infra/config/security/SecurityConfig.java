@@ -54,6 +54,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/members/email/find", "/api/members/password/find").permitAll()
                                 .requestMatchers("/api/members/nickname/check").permitAll()
                                 .requestMatchers("/api/users/top-savers", "/api/users/top-challenges", "/api/users/average-saving", "/api/users/all-saving").permitAll()
+                                .requestMatchers("/api/searches/top","/api/places/search","/api/places/detail").permitAll()
                                 .requestMatchers("/api/members/logout").authenticated()
                                 .requestMatchers("/api/**").authenticated()
                                 .anyRequest().permitAll()

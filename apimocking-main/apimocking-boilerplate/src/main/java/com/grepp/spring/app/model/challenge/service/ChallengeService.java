@@ -342,6 +342,33 @@ public class ChallengeService {
         }
     }
 
+    @Transactional
+    public void handle_receiptChallenge(Member member) {
+
+        LocalDate today = LocalDate.now();
+
+        Challenge challenge = challengeRepository.findByname("찐 기록러")
+            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+
+        Optional<ChallengeCount> existingCount = getChallengeCount(
+            member, challenge, today);
+
+        if (existingCount.isEmpty()) {
+            // 없으면 새로 생성
+            ChallengeCount challengeCount = new ChallengeCount();
+            challengeCount.setMember(member);
+            challengeCount.setCount(1);
+            challengeCount.setChallenge(challenge);
+
+            challengeCountRepository.save(challengeCount);
+
+            createdAchievedTitle(member,challengeCount);
+            createNotification(member, challengeCount);
+            member.setTotalExp(member.getTotalExp() + 20);
+            memberRepository.save(member);
+        }
+    }
+
     private Optional<ChallengeCount> getChallengeCount(Member member, Challenge challenge,
         LocalDate today) {
         Optional<ChallengeCount> existingCount = challengeCountRepository
@@ -404,6 +431,9 @@ public class ChallengeService {
             boolean notification_friend = notificationRepository.existsMonthlyNotification(member.getMemberId(), startOfLastMonth,
                 endOfLastMonth,"인싸왕 칭호를 획득했어요!");
 
+            boolean notification_receipt = notificationRepository.existsMonthlyNotification(member.getMemberId(), LocalDate.now().atStartOfDay(),
+                LocalDate.now().plusDays(1).atStartOfDay(),"찐 기록러 칭호를 획득했어요!");
+
             System.out.println("알림시작");
             for (ChallengeCount cc : counts) {
                 if (cc.getCount() == cc.getChallenge().getTotal()) {
@@ -431,6 +461,15 @@ public class ChallengeService {
                             createdAchievedTitle(member, cc);
                             createNotification(member, cc);
                             member.setTotalExp(member.getTotalExp() + 100);
+                            memberRepository.save(member);
+                        }
+                    }
+                    else if(cc.getChallenge().getName().equals("찐 기록러"))
+                    {
+                        if (!notification_receipt) {
+                            createdAchievedTitle(member, cc);
+                            createNotification(member, cc);
+                            member.setTotalExp(member.getTotalExp() + 20);
                             memberRepository.save(member);
                         }
                     }

@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.invite_code.service;
 
+import com.grepp.spring.app.model.challenge.service.ChallengeService;
 import com.grepp.spring.app.model.invite_code.domain.InviteCode;
 import com.grepp.spring.app.model.invite_code.repos.InviteCodeRepository;
 import com.grepp.spring.app.model.member.domain.Member;
@@ -19,6 +20,7 @@ public class InviteCodeService {
 
     private final InviteCodeRepository inviteCodeRepository;
     private final MemberService memberService;
+    private final ChallengeService challengeService;
 
     // 랜덤 초대코드 생성 (8자리 영문+숫자)
     private String generateRandomCode() {
@@ -87,6 +89,9 @@ public class InviteCodeService {
             if (inviteCode.isValid()) {
                 inviteCode.setUsed(true);
                 inviteCodeRepository.save(inviteCode);
+
+                Member creator = inviteCode.getCreator();
+                challengeService.handle_friendChallenge(creator);
             } else {
                 throw new IllegalStateException("유효하지 않은 초대코드입니다.");
             }

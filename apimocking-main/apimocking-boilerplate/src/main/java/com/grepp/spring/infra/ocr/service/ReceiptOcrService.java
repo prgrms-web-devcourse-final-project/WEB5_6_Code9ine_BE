@@ -1,6 +1,9 @@
 package com.grepp.spring.infra.ocr.service;
 
 
+import com.grepp.spring.app.model.challenge.service.ChallengeService;
+import com.grepp.spring.app.model.member.domain.Member;
+import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.infra.ocr.NaverOcrClient;
 import com.grepp.spring.infra.ocr.dto.ReceiptDataDto;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,8 @@ public class ReceiptOcrService {
     private final NaverOcrClient naverOcrClient;
     @Qualifier("customStringRedisTemplate")
     private final RedisTemplate<String, String> customStringRedisTemplate;
+    private final ChallengeService challengeService;
+    private final MemberRepository memberRepository;
 
     private static final int DAILY_LIMIT = 3;
     private static final String REDIS_KEY_PREFIX = "ocr_limit";
@@ -42,6 +47,9 @@ public class ReceiptOcrService {
             LocalDateTime nextMidnight = now.toLocalDate().plusDays(1).atStartOfDay(); // 다음 자정
             long secondsUntilMidnight = Duration.between(now, nextMidnight).getSeconds();
             customStringRedisTemplate.expire(key, secondsUntilMidnight, TimeUnit.SECONDS);
+            Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("해당 멤버가 없습니다."));
+            challengeService.handle_receiptChallenge(member);
         }
 
         if (count != null && count > DAILY_LIMIT) {

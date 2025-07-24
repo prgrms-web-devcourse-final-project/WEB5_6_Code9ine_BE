@@ -28,6 +28,7 @@ import com.grepp.spring.app.model.post_image.domain.PostImage;
 import com.grepp.spring.app.model.post_image.service.PostImageService;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.util.NotFoundException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,7 +122,10 @@ public class CommunityServiceImpl implements CommunityService {
                     post.getTitle(),
                     post.getCreatedAt().toString(),
                     post.getContent(),
-                    post.getImages().stream().map(PostImage::getImageUrl).toList(),
+                    post.getImages().stream()
+                        .sorted(Comparator.comparing(PostImage::getSortOrder))
+                        .map(PostImage::getImageUrl)
+                        .toList(),
                     commentCount,
                     likeCount,
                     isLiked,
@@ -207,7 +211,10 @@ public class CommunityServiceImpl implements CommunityService {
             post.getTitle(),
             post.getCreatedAt().toString(),
             post.getContent(),
-            post.getImages().stream().map(PostImage::getImageUrl).toList(),
+            post.getImages().stream()
+                .sorted(Comparator.comparing(PostImage::getSortOrder))
+                .map(PostImage::getImageUrl)
+                .toList(),
             commentCount,
             likeCount,
             isLiked,

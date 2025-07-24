@@ -470,6 +470,7 @@ public class MemberController {
             member.getMemberId(),
             member.getEmail(),
             member.getName(),
+            member.getNickname(),
             member.getProfileImage(),
             level,
             currentExp,
@@ -940,6 +941,7 @@ public class MemberController {
             member.getMemberId(),
             member.getEmail(),
             member.getName(),
+            member.getNickname(),
             member.getProfileImage(),
             level,
             currentExp,
@@ -1152,6 +1154,7 @@ public class MemberController {
             private Long memberId;
             private String email;
             private String name;
+            private String nickname;
             private String profileImage;
             private int level;
             private int currentExp;

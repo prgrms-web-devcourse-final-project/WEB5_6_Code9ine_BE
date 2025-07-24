@@ -166,18 +166,18 @@ public class MemberController {
             // accessToken 쿠키 생성
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenDto.getAccessToken())
                 .httpOnly(true)
-                .secure(false) // 운영 환경에서는 true
+                .secure(true)
                 .path("/")
                 .maxAge(tokenDto.getExpiresIn() / 1000)
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
             // refreshToken 쿠키 생성
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken())
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .maxAge(tokenDto.getRefreshExpiresIn() / 1000)
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
             response.addHeader("Set-Cookie", accessTokenCookie.toString());
             response.addHeader("Set-Cookie", refreshTokenCookie.toString());
@@ -470,6 +470,7 @@ public class MemberController {
             member.getMemberId(),
             member.getEmail(),
             member.getName(),
+            member.getNickname(),
             member.getProfileImage(),
             level,
             currentExp,
@@ -563,9 +564,6 @@ public class MemberController {
         }
         if (request.getProfileImage() != null) {
             member.setProfileImage(request.getProfileImage());
-        }
-        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
-            member.setPhoneNumber(request.getPhoneNumber());
         }
         
         memberRepository.save(member);
@@ -849,7 +847,7 @@ public class MemberController {
         List<ChallengeDashboardResponse.ChallengeData> challenges = challengeStatuses.stream()
             .map(dto -> new ChallengeDashboardResponse.ChallengeData(
                 dto.getChallengeId(),
-                dto.getName(), // getTitle() → getName()
+                dto.getName(), // title -> name
                 dto.getType(),
                 dto.getDescription(),
                 dto.getTotal(),
@@ -857,6 +855,107 @@ public class MemberController {
                 dto.getIcon()
             )).toList();
         ChallengeDashboardResponse response = new ChallengeDashboardResponse(challenges);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/social/extra")
+    @Operation(summary = "소셜 회원 추가 정보 입력", description = "구글 로그인 후 추가 정보(닉네임, 휴대폰번호 등)를 입력받아 회원 정보를 완성합니다. JWT 인증 필요, email 등은 자동 추출.")
+    public ResponseEntity<ApiResponse<Object>> completeSocialSignup(@RequestBody @Valid ExtraInfoRequest request) {
+        // JWT에서 본인 email 추출
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = auth != null ? auth.getName() : null;
+        if (currentEmail == null || currentEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        // 회원 조회
+        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        // 닉네임/휴대폰번호 등만 업데이트
+        if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
+            member.setNickname(request.getNickname());
+        }
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
+            member.setPhoneNumber(request.getPhoneNumber());
+        }
+        memberRepository.save(member);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class ExtraInfoRequest {
+        @Schema(description = "닉네임", example = "소셜유저")
+        private String nickname;
+        @Schema(description = "휴대폰번호", example = "01012345678")
+        private String phoneNumber;
+    }
+
+    @GetMapping("/profile/{memberId}")
+    @Operation(summary = "다른 유저 프로필 조회", description = "memberId로 다른 유저의 프로필 정보를 조회합니다. 마이페이지와 동일한 데이터 구조를 반환합니다.")
+    public ResponseEntity<ApiResponse<MypageResponse>> getOtherMemberProfile(@PathVariable Long memberId) {
+        // JWT 인증 필요(로그인 사용자만 조회 가능)
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || auth.getName().isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
+        }
+        // memberId로 멤버 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        // 마이페이지와 동일한 데이터 구성
+        int level = member.getLevel();
+        int currentExp = member.getTotalExp() % 100;
+        int nextLevelExp = 100;
+        int expProgress = (int) ((double) currentExp / nextLevelExp * 100);
+        List<Map<String, Object>> myPosts = communityService.getMyPosts(member.getMemberId());
+        List<Map<String, Object>> bookmarkedPosts = communityService.getBookmarkedPosts(member.getMemberId());
+        List<Map<String, Object>> bookmarkedPlaces = placeBookmarkService.getMemberPlaceBookmarks(member.getMemberId());
+        String goalStuff = member.getGoalStuff();
+        BigDecimal remainPrice = null;
+        if (member.getGoalAmount() != null && member.getGoalStuff() != null) {
+            BigDecimal[] currentMonthTotal = budgetService.getCurrentMonthTotal(member.getMemberId());
+            BigDecimal totalIncome = currentMonthTotal[0];
+            BigDecimal totalExpense = currentMonthTotal[1];
+            BigDecimal savedAmount = totalIncome.subtract(totalExpense);
+            BigDecimal goalAmount = member.getGoalAmount();
+            remainPrice = goalAmount.subtract(savedAmount);
+            if (remainPrice.compareTo(BigDecimal.ZERO) < 0) {
+                remainPrice = BigDecimal.ZERO;
+            }
+        }
+        List<com.grepp.spring.app.model.achieved_title.model.AchievedTitleDTO> allTitles = achievedTitleService.findAll();
+        List<Map<String, Object>> achievedTitles = new java.util.ArrayList<>();
+        for (var t : allTitles) {
+            if (t.getAchieved() != null && t.getAchieved()) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("titleId", t.getATId());
+                map.put("name", t.getName());
+                map.put("description", "");
+                map.put("minCount", t.getMinCount());
+                map.put("achieved", t.getAchieved());
+                achievedTitles.add(map);
+            }
+        }
+        Map<String, Object> equippedTitle = achievedTitles.isEmpty() ? null : achievedTitles.get(0);
+        MypageResponse.Data data = new MypageResponse.Data(
+            member.getMemberId(),
+            member.getEmail(),
+            member.getName(),
+            member.getNickname(),
+            member.getProfileImage(),
+            level,
+            currentExp,
+            nextLevelExp,
+            expProgress,
+            myPosts,
+            goalStuff,
+            remainPrice,
+            bookmarkedPosts,
+            bookmarkedPlaces,
+            equippedTitle,
+            achievedTitles
+        );
+        MypageResponse response = new MypageResponse(data);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -1021,9 +1120,11 @@ public class MemberController {
     }
 
     // 로그아웃 관련 DTO
-    @Getter @Setter @NoArgsConstructor
+    @Getter @Setter
     public static class LogoutResponse {
-        // 응답 데이터 없음 (성공 메시지만 반환)
+        private String message = "로그아웃 성공";
+        public LogoutResponse() {}
+        public LogoutResponse(String message) { this.message = message; }
     }
 
     // 장소 북마크 해제 요청 DTO
@@ -1053,6 +1154,7 @@ public class MemberController {
             private Long memberId;
             private String email;
             private String name;
+            private String nickname;
             private String profileImage;
             private int level;
             private int currentExp;
@@ -1144,12 +1246,11 @@ public class MemberController {
         @Schema(description = "프로필 이미지 URL", example = "https://example.com/image.jpg")
         private String profileImage;
         
-        @Schema(description = "휴대폰번호", example = "01012345678")
-        @Pattern(regexp = "^01[016789]\\d{7,8}$", message = "휴대폰번호 형식이 올바르지 않습니다.")
-        private String phoneNumber;
-        
         @Schema(description = "새 비밀번호", example = "newpassword123!")
         private String newPassword;
+        
+        @Schema(description = "새 비밀번호 확인", example = "newpassword123!")
+        private String newPasswordCheck;
     }
 
     // 초대 코드 관련 DTO
@@ -1184,27 +1285,20 @@ public class MemberController {
     public static class ChallengeDashboardResponse {
         @Schema(description = "챌린지 목록")
         private List<ChallengeData> challenges;
-        
         @Getter @Setter @NoArgsConstructor @AllArgsConstructor
         public static class ChallengeData {
             @Schema(description = "챌린지 ID", example = "1")
             private Long challengeId;
-            
-            @Schema(description = "챌린지 제목", example = "만원의 행복")
-            private String title;
-            
+            @Schema(description = "챌린지 이름", example = "만원의 행복")
+            private String name;
             @Schema(description = "챌린지 타입", example = "일일")
             private String type;
-            
             @Schema(description = "챌린지 설명", example = "만원으로 하루 살아보기")
             private String description;
-            
             @Schema(description = "총 목표", example = "1")
             private Integer total;
-            
             @Schema(description = "진행률", example = "0")
             private Integer progress;
-            
             @Schema(description = "아이콘", example = "moneyIcon")
             private String icon;
         }

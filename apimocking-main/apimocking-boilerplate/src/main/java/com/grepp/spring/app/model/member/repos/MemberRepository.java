@@ -51,7 +51,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // ---------------------------------
 
     // 관리자 모든 유저 조회
-    List<Member> findAllByRole(String role);
+    Page<Member> findAllByRole(String role, Pageable pageable);
 
     // 관리자 유저 닉네임으로 검색
     Optional<Member> findByNicknameAndRole(String nickname, String role);

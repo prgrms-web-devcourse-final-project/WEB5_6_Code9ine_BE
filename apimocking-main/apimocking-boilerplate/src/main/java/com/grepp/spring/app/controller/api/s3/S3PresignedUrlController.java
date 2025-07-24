@@ -17,7 +17,7 @@ public class S3PresignedUrlController {
 
     // S3Presigned URL 발급 (확장자 파라미터 지원, 기본 jpg)
     @GetMapping("/presigned-url")
-    public ResponseEntity<Map<String, String>> getPresignedUrl(@RequestParam(value = "extension", required = false, defaultValue = "jpg") String extension) {
+    public ResponseEntity<Map<String, String>> getPresignedUrl(@RequestParam(value = "extension", required = false, defaultValue = "jpeg") String extension) {
         String url = s3PresignedUrlService.generatePresignedUploadUrl(extension);
         return ResponseEntity.ok(Map.of("presignedUrl", url));
     }

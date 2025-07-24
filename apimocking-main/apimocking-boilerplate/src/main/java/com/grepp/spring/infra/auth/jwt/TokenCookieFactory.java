@@ -8,8 +8,8 @@ public class TokenCookieFactory {
                    .maxAge(expires)
                    .path("/")
                    .httpOnly(true)             // HttpOnly
-                   .secure(true)
-                   .sameSite("none")// Secure
+                   .secure(true)               // 운영 환경에서는 true
+                   .sameSite("None")           // 크로스 사이트 허용
                    .build();
     }
     
@@ -18,8 +18,8 @@ public class TokenCookieFactory {
                    .maxAge(0)
                    .path("/")
                    .httpOnly(true)             // HttpOnly
-                   .secure(true)
-                   .sameSite("none")// // Secure
+                   .secure(true)               // 운영 환경에서는 true
+                   .sameSite("None")           // 크로스 사이트 허용
                    .build();
     }
 }

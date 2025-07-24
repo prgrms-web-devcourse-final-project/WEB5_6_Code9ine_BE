@@ -59,26 +59,33 @@ public class AuthService {
             String email = loginRequest.getUsername();
             log.info("인증 성공: username={}", email);
 
-        memberRepository.findByEmailIgnoreCase(email).ifPresent(member -> {
-            LocalDate today = LocalDate.now();
-            if (member.getLastLoginedAt() == null || !member.getLastLoginedAt().isEqual(today)) {
-                member.setLastLoginedAt(today);
-                memberRepository.save(member);
+            // 활성화 여부 체크
+            Member member = memberRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 이메일입니다."));
+            if (member.getActivated() != null && !member.getActivated()) {
+                throw new RuntimeException("비활성화된 계정입니다. 관리자에게 문의하세요.");
             }
-        });
 
-        memberRepository.findByEmail(email).ifPresent(member -> {
-            LocalDate today = LocalDate.now();
-            boolean alreadyChecked = attendanceRepository.existsByMemberAndDate(member, today);
-            if (!alreadyChecked) {
-                Attendance attendance = new Attendance();
-                attendance.setMember(member);
-                attendance.setDate(today);
-                attendance.setIsAttended(true);
-                attendanceRepository.save(attendance);
-            }
-            challengeService.handle_oneMonthChallenge(member);
-        });
+            memberRepository.findByEmailIgnoreCase(email).ifPresent(memberEntity -> {
+                LocalDate today = LocalDate.now();
+                if (memberEntity.getLastLoginedAt() == null || !memberEntity.getLastLoginedAt().isEqual(today)) {
+                    memberEntity.setLastLoginedAt(today);
+                    memberRepository.save(memberEntity);
+                }
+            });
+
+            memberRepository.findByEmail(email).ifPresent(memberEntity -> {
+                LocalDate today = LocalDate.now();
+                boolean alreadyChecked = attendanceRepository.existsByMemberAndDate(memberEntity, today);
+                if (!alreadyChecked) {
+                    Attendance attendance = new Attendance();
+                    attendance.setMember(memberEntity);
+                    attendance.setDate(today);
+                    attendance.setIsAttended(true);
+                    attendanceRepository.save(attendance);
+                }
+                challengeService.handle_oneMonthChallenge(memberEntity);
+            });
 
         String roles =  String.join(",", authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
         return processTokenSignin(authentication.getName(), roles);

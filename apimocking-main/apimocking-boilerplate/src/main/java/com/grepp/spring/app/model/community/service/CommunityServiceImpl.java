@@ -109,7 +109,7 @@ public class CommunityServiceImpl implements CommunityService {
                 Long postId = post.getPostId();
                 int commentCount = commentRepository.countByPost_PostIdAndActivatedTrue(postId);
                 int likeCount = likeRepository.countLikeByPost_PostIdAndActivatedTrue(postId);
-                boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
+                boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberIdAndActivatedTrue(postId, memberId);
                 boolean isBookmarked = bookmarkRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
                 // TODO : 챌린지 달성 여부는 챌린지 repository 구현된 이후 추가
 
@@ -195,7 +195,7 @@ public class CommunityServiceImpl implements CommunityService {
 
         int commentCount = commentRepository.countByPost_PostIdAndActivatedTrue(postId);
         int likeCount = likeRepository.countLikeByPost_PostIdAndActivatedTrue(postId);
-        boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
+        boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberIdAndActivatedTrue(postId, memberId);
         boolean isBookmarked = bookmarkRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
         // TODO : 챌린지 달성 여부는 챌린지 repository 구현된 이후 추가
 
@@ -324,7 +324,7 @@ public class CommunityServiceImpl implements CommunityService {
                 //소통왕챌린지
                 memberRepository.findById(memberId)
                     .ifPresent(member -> challengeService.handle_heartChallenge(member));
-                // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부
+                // 제로 마스터, 노노카페, 냉털 요리왕, 착한 가게 방문 인증 챌린지 달성 여부
                 if (post.getLikeCount() == 5) {
                     challengeService.checkChallenge(post);
                 }
@@ -342,7 +342,7 @@ public class CommunityServiceImpl implements CommunityService {
             //소통왕챌린지
             memberRepository.findById(memberId)
                 .ifPresent(member -> challengeService.handle_heartChallenge(member));
-            // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부
+            // 제로 마스터, 노노카페, 냉털 요리왕, 착한 가게 방문 인증 챌린지 달성 여부
             if (post.getLikeCount() == 5) {
                 challengeService.checkChallenge(post);
             }

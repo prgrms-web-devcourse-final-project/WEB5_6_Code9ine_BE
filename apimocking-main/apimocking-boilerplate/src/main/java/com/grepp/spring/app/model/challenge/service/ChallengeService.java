@@ -442,7 +442,7 @@ public class ChallengeService {
 
 
 
-    // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부 확인
+    // 제로 마스터, 노노카페, 냉털 요리왕, 착한 가게 방문 인증 챌린지 달성 여부 확인
     @Transactional
     public void checkChallenge(CommunityPost post) {
 
@@ -455,6 +455,14 @@ public class ChallengeService {
         // 커뮤니티 카테고리가 챌린지가 아닐 시 실패
         ChallengeCategory challengeCategory = post.getChallenge();
         if (challengeCategory == null) return;
+
+        // 해당 카테고리에만 해당 되도록
+        if (!(challengeCategory == ChallengeCategory.NO_MONEY ||
+            challengeCategory == ChallengeCategory.MASTER ||
+            challengeCategory == ChallengeCategory.COOK_KING ||
+            challengeCategory == ChallengeCategory.KIND_CONSUMER)) {
+            return;
+        }
 
         Member postWriter = post.getMember();
 

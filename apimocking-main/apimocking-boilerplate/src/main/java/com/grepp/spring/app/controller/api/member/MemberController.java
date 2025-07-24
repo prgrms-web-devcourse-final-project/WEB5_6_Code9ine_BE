@@ -166,18 +166,18 @@ public class MemberController {
             // accessToken 쿠키 생성
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenDto.getAccessToken())
                 .httpOnly(true)
-                .secure(false) // 운영 환경에서는 true
+                .secure(false) // 개발 환경에서는 false, 운영에서는 true
                 .path("/")
                 .maxAge(tokenDto.getExpiresIn() / 1000)
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
             // refreshToken 쿠키 생성
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken())
                 .httpOnly(true)
-                .secure(false)
+                .secure(false) // 개발 환경에서는 false, 운영에서는 true
                 .path("/")
                 .maxAge(tokenDto.getRefreshExpiresIn() / 1000)
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
             response.addHeader("Set-Cookie", accessTokenCookie.toString());
             response.addHeader("Set-Cookie", refreshTokenCookie.toString());

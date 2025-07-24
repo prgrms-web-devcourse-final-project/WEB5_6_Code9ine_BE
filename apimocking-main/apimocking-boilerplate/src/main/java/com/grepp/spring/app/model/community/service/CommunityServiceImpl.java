@@ -3,8 +3,6 @@ package com.grepp.spring.app.model.community.service;
 import com.grepp.spring.app.model.challenge.code.ChallengeCategory;
 import com.grepp.spring.app.model.challenge.code.CommunityCategory;
 import com.grepp.spring.app.model.challenge.service.ChallengeService;
-import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
-import com.grepp.spring.app.model.challenge.service.ChallengeService;
 import com.grepp.spring.app.model.community.domain.CommunityBookmark;
 import com.grepp.spring.app.model.community.domain.CommunityComment;
 import com.grepp.spring.app.model.community.domain.CommunityLike;
@@ -28,6 +26,7 @@ import com.grepp.spring.app.model.post_image.domain.PostImage;
 import com.grepp.spring.app.model.post_image.service.PostImageService;
 import com.grepp.spring.infra.payload.PageParam;
 import com.grepp.spring.util.NotFoundException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,15 +101,15 @@ public class CommunityServiceImpl implements CommunityService {
     public List<CommunityPostDetailResponse> getPostsByCategory(String category, PageParam pageParam, Long memberId) {
         CommunityCategory categoryEnum = CommunityCategory.valueOf(category);
         Pageable pageable = pageParam.toPageable(Sort.by(Sort.Direction.DESC,"createdAt"));
-        Page<CommunityPost> posts =  communityRepository.findByCategoryAndActivatedIsTrue(categoryEnum, pageable);
+        Page<CommunityPost> posts =  communityRepository.findByCategoryAndActivatedIsTrueAndMember_ActivatedTrue(categoryEnum, pageable);
 
         return posts.stream()
             .map(post -> {
                 Long postId = post.getPostId();
-                int commentCount = commentRepository.countByPost_PostIdAndActivatedTrue(postId);
-                int likeCount = likeRepository.countLikeByPost_PostIdAndActivatedTrue(postId);
-                boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
-                boolean isBookmarked = bookmarkRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
+                int commentCount = commentRepository.countByPost_PostIdAndActivatedTrueAndMember_ActivatedTrue(postId);
+                int likeCount = likeRepository.countByPost_PostIdAndActivatedTrueAndMember_ActivatedTrue(postId);
+                boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(postId, memberId);
+                boolean isBookmarked = bookmarkRepository.existsByPost_PostIdAndMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(postId, memberId);
                 // TODO : 챌린지 달성 여부는 챌린지 repository 구현된 이후 추가
 
                 return new CommunityPostDetailResponse(
@@ -121,7 +120,10 @@ public class CommunityServiceImpl implements CommunityService {
                     post.getTitle(),
                     post.getCreatedAt().toString(),
                     post.getContent(),
-                    post.getImages().stream().map(PostImage::getImageUrl).toList(),
+                    post.getImages().stream()
+                        .sorted(Comparator.comparing(PostImage::getSortOrder))
+                        .map(PostImage::getImageUrl)
+                        .toList(),
                     commentCount,
                     likeCount,
                     isLiked,
@@ -193,10 +195,10 @@ public class CommunityServiceImpl implements CommunityService {
         // 존재하는 게시물인지 검증
         CommunityPost post = getActivatedPost(postId);
 
-        int commentCount = commentRepository.countByPost_PostIdAndActivatedTrue(postId);
-        int likeCount = likeRepository.countLikeByPost_PostIdAndActivatedTrue(postId);
-        boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
-        boolean isBookmarked = bookmarkRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
+        int commentCount = commentRepository.countByPost_PostIdAndActivatedTrueAndMember_ActivatedTrue(postId);
+        int likeCount = likeRepository.countByPost_PostIdAndActivatedTrueAndMember_ActivatedTrue(postId);
+        boolean isLiked = likeRepository.existsByPost_PostIdAndMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(postId, memberId);
+        boolean isBookmarked = bookmarkRepository.existsByPost_PostIdAndMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(postId, memberId);
         // TODO : 챌린지 달성 여부는 챌린지 repository 구현된 이후 추가
 
         return new CommunityPostDetailResponse(
@@ -207,7 +209,10 @@ public class CommunityServiceImpl implements CommunityService {
             post.getTitle(),
             post.getCreatedAt().toString(),
             post.getContent(),
-            post.getImages().stream().map(PostImage::getImageUrl).toList(),
+            post.getImages().stream()
+                .sorted(Comparator.comparing(PostImage::getSortOrder))
+                .map(PostImage::getImageUrl)
+                .toList(),
             commentCount,
             likeCount,
             isLiked,
@@ -228,7 +233,7 @@ public class CommunityServiceImpl implements CommunityService {
         // 존재하는 게시물인지 검증
         getActivatedPost(postId);
 
-        List<CommunityComment> comments = commentRepository.findByPost_PostIdAndActivatedTrue(postId);
+        List<CommunityComment> comments = commentRepository.findByPost_PostIdAndActivatedTrueAndMember_ActivatedTrue(postId);
 
         return comments.stream()
             .map(comment -> new CommunityCommentResponse(
@@ -303,7 +308,7 @@ public class CommunityServiceImpl implements CommunityService {
         CommunityPost post = getActivatedPostWithLock(postId);
 
         // 좋아요 활성화 여부 확인
-        Optional<CommunityLike> existingLike = likeRepository.findByPost_PostIdAndMember_MemberId(postId, memberId);
+        Optional<CommunityLike> existingLike = likeRepository.findByPost_PostIdAndMember_MemberIdAndMember_ActivatedTrue(postId, memberId);
 
         if (existingLike.isPresent()) {
             CommunityLike like = existingLike.get();
@@ -324,7 +329,7 @@ public class CommunityServiceImpl implements CommunityService {
                 //소통왕챌린지
                 memberRepository.findById(memberId)
                     .ifPresent(member -> challengeService.handle_heartChallenge(member));
-                // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부
+                // 제로 마스터, 노노카페, 냉털 요리왕, 착한 가게 방문 인증 챌린지 달성 여부
                 if (post.getLikeCount() == 5) {
                     challengeService.checkChallenge(post);
                 }
@@ -342,7 +347,7 @@ public class CommunityServiceImpl implements CommunityService {
             //소통왕챌린지
             memberRepository.findById(memberId)
                 .ifPresent(member -> challengeService.handle_heartChallenge(member));
-            // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부
+            // 제로 마스터, 노노카페, 냉털 요리왕, 착한 가게 방문 인증 챌린지 달성 여부
             if (post.getLikeCount() == 5) {
                 challengeService.checkChallenge(post);
             }
@@ -359,7 +364,7 @@ public class CommunityServiceImpl implements CommunityService {
         CommunityPost post = getActivatedPost(postId);
 
         // 북마크 활성화 여부 확인
-        Optional<CommunityBookmark> existingBookmark = bookmarkRepository.findByPost_PostIdAndMember_MemberId(postId, memberId);
+        Optional<CommunityBookmark> existingBookmark = bookmarkRepository.findByPost_PostIdAndMember_MemberIdAndMember_ActivatedTrue(postId, memberId);
 
         if (existingBookmark.isPresent()) {
             CommunityBookmark bookmark = existingBookmark.get();
@@ -387,7 +392,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     @Transactional(readOnly = true)
     public List<CommunityTopPostResponse> getTopPosts() {
-        List<CommunityPost> posts = communityRepository.findTop10ByActivatedIsTrueOrderByLikeCountDesc();
+        List<CommunityPost> posts = communityRepository.findTop10ByActivatedIsTrueAndMember_ActivatedTrueOrderByLikeCountDesc();
 
         return posts.stream().map(post -> new CommunityTopPostResponse(
             post.getPostId(),
@@ -405,7 +410,7 @@ public class CommunityServiceImpl implements CommunityService {
 
     // 존재하는 게시물인지 검증 메서드(조회)
     private CommunityPost getActivatedPost(Long postId) {
-        return communityRepository.findByPostIdAndActivatedIsTrue(postId)
+        return communityRepository.findByPostIdAndActivatedIsTrueAndMember_ActivatedTrue(postId)
             .orElseThrow(() -> new NotFoundException("존재하지 않거나 삭제된 게시글입니다."));
     }
 
@@ -417,7 +422,7 @@ public class CommunityServiceImpl implements CommunityService {
 
     // 존재하는 댓글인지 검증 메서드
     private CommunityComment getActivatedComment(Long commentId) {
-        return commentRepository.findByCommentIdAndActivatedTrue(commentId)
+        return commentRepository.findByCommentIdAndActivatedTrueAndMember_ActivatedTrue(commentId)
             .orElseThrow(() -> new NotFoundException("존재하지 않거나 이미 삭제된 댓글입니다."));
     }
 
@@ -425,7 +430,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getMyPosts(Long memberId) {
-        List<CommunityPost> posts = communityRepository.findByMember_MemberIdAndActivatedIsTrue(memberId);
+        List<CommunityPost> posts = communityRepository.findByMember_MemberIdAndActivatedIsTrueAndMember_ActivatedTrue(memberId);
         
         return posts.stream()
             .map(post -> {
@@ -477,7 +482,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getBookmarkedPosts(Long memberId) {
-        List<CommunityBookmark> bookmarks = bookmarkRepository.findByMember_MemberIdAndActivatedTrue(memberId);
+        List<CommunityBookmark> bookmarks = bookmarkRepository.findByMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(memberId);
         
         return bookmarks.stream()
             .map(bookmark -> {

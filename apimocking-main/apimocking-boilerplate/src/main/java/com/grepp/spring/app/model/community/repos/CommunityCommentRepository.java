@@ -11,13 +11,13 @@ import org.springframework.data.jpa.repository.Query;
 public interface CommunityCommentRepository extends JpaRepository<CommunityComment, Long> {
 
     // 커뮤니티 게시글 댓글 수
-    int countByPost_PostIdAndActivatedTrue(Long postId);
+    int countByPost_PostIdAndActivatedTrueAndMember_ActivatedTrue(Long postId);
 
     // 커뮤니티 게시글 댓글 조회
-    List<CommunityComment> findByPost_PostIdAndActivatedTrue(Long postId);
+    List<CommunityComment> findByPost_PostIdAndActivatedTrueAndMember_ActivatedTrue(Long postId);
 
     // 커뮤니티 게시글 댓글 삭제
-    Optional<CommunityComment> findByCommentIdAndActivatedTrue(Long commentId);
+    Optional<CommunityComment> findByCommentIdAndActivatedTrueAndMember_ActivatedTrue(Long commentId);
 
     // 로그인 한 사용자 커뮤니티 댓글 수 ( credated이 이번달이여야함)
     @Query("""

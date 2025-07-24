@@ -116,11 +116,11 @@ public class JwtTokenProvider {
         if (headerToken != null && headerToken.startsWith("Bearer ")) {
             return headerToken.substring(7);
         }
-        // 2. 쿠키에서 accessToken 추출
+        // 2. 쿠키에서 accessToken 추출 (대소문자 구분 없이 'accessToken'도 체크)
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie c : cookies) {
-                if (c.getName().equals(token.name())) {
+                if (c.getName().equalsIgnoreCase(token.name()) || c.getName().equalsIgnoreCase("accessToken")) {
                     return c.getValue();
                 }
             }

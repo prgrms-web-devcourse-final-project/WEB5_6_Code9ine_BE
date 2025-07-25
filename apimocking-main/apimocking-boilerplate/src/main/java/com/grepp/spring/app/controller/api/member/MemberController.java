@@ -51,6 +51,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import com.grepp.spring.app.model.challenge.service.ChallengeService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/members")

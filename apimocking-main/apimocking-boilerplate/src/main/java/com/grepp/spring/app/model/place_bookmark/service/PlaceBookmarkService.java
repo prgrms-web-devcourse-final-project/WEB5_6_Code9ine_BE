@@ -17,6 +17,7 @@ import com.grepp.spring.util.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -66,6 +67,7 @@ public class PlaceBookmarkService {
 
 
     // 멤버별 장소 북마크 목록 조회
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getMemberPlaceBookmarks(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException("멤버를 찾을 수 없습니다."));
@@ -75,40 +77,6 @@ public class PlaceBookmarkService {
         return bookmarks.stream()
                 .map(this::convertToResponseMap)
                 .toList();
-    }
-
-    // 장소 북마크 해제
-    public void unbookmarkPlace(Long memberId, Long placeId, String placeType) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException("멤버를 찾을 수 없습니다."));
-
-        PlaceBookmark bookmark = null;
-
-        switch (placeType.toLowerCase()) {
-            case "store" -> {
-                Store store = storeRepository.findById(placeId)
-                        .orElseThrow(() -> new NotFoundException("스토어를 찾을 수 없습니다."));
-                bookmark = placeBookmarkRepository.findByMemberAndStore(member, store)
-                        .orElseThrow(() -> new NotFoundException("북마크를 찾을 수 없습니다."));
-            }
-            case "festival" -> {
-                Festival festival = festivalRepository.findById(placeId)
-                        .orElseThrow(() -> new NotFoundException("페스티벌을 찾을 수 없습니다."));
-                bookmark = placeBookmarkRepository.findByMemberAndFestival(member, festival)
-                        .orElseThrow(() -> new NotFoundException("북마크를 찾을 수 없습니다."));
-            }
-            case "library" -> {
-                Library library = libraryRepository.findById(placeId)
-                        .orElseThrow(() -> new NotFoundException("도서관을 찾을 수 없습니다."));
-                bookmark = placeBookmarkRepository.findByMemberAndLibrary(member, library)
-                        .orElseThrow(() -> new NotFoundException("북마크를 찾을 수 없습니다."));
-            }
-            default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다: " + placeType);
-        }
-
-        // 북마크 비활성화 (삭제 대신 비활성화)
-        bookmark.setActivated(false);
-        placeBookmarkRepository.save(bookmark);
     }
 
     // PlaceBookmark를 응답용 Map으로 변환
@@ -154,6 +122,40 @@ public class PlaceBookmarkService {
         }
 
         return result;
+    }
+
+    // 장소 북마크 해제
+    public void unbookmarkPlace(Long memberId, Long placeId, String placeType) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException("멤버를 찾을 수 없습니다."));
+
+        PlaceBookmark bookmark = null;
+
+        switch (placeType.toLowerCase()) {
+            case "store" -> {
+                Store store = storeRepository.findById(placeId)
+                        .orElseThrow(() -> new NotFoundException("스토어를 찾을 수 없습니다."));
+                bookmark = placeBookmarkRepository.findByMemberAndStore(member, store)
+                        .orElseThrow(() -> new NotFoundException("북마크를 찾을 수 없습니다."));
+            }
+            case "festival" -> {
+                Festival festival = festivalRepository.findById(placeId)
+                        .orElseThrow(() -> new NotFoundException("페스티벌을 찾을 수 없습니다."));
+                bookmark = placeBookmarkRepository.findByMemberAndFestival(member, festival)
+                        .orElseThrow(() -> new NotFoundException("북마크를 찾을 수 없습니다."));
+            }
+            case "library" -> {
+                Library library = libraryRepository.findById(placeId)
+                        .orElseThrow(() -> new NotFoundException("도서관을 찾을 수 없습니다."));
+                bookmark = placeBookmarkRepository.findByMemberAndLibrary(member, library)
+                        .orElseThrow(() -> new NotFoundException("북마크를 찾을 수 없습니다."));
+            }
+            default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다: " + placeType);
+        }
+
+        // 북마크 비활성화 (삭제 대신 비활성화)
+        bookmark.setActivated(false);
+        placeBookmarkRepository.save(bookmark);
     }
 
     private PlaceBookmarkDTO mapToDTO(final PlaceBookmark placeBookmark,

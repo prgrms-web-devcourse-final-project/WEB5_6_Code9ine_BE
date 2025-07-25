@@ -13,7 +13,6 @@ import com.grepp.spring.app.model.challenge.model.ChallengeStatusDto;
 import com.grepp.spring.app.model.challenge.repos.ChallengeRepository;
 import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
-import com.grepp.spring.app.model.community.domain.CommunityLike;
 import com.grepp.spring.app.model.community.repos.CommunityCommentRepository;
 import com.grepp.spring.app.model.community.repos.CommunityLikeRepository;
 import com.grepp.spring.app.model.challenge_history.domain.ChallengeHistory;
@@ -519,7 +518,7 @@ public class ChallengeService {
 
 
 
-    // 제로 마스터, 노노카페, 냉털 요리왕 챌린지 달성 여부 확인
+    // 제로 마스터, 노노카페, 냉털 요리왕, 착한 가게 방문 인증 챌린지 달성 여부 확인
     @Transactional
     public void checkChallenge(CommunityPost post) {
 
@@ -532,6 +531,14 @@ public class ChallengeService {
         // 커뮤니티 카테고리가 챌린지가 아닐 시 실패
         ChallengeCategory challengeCategory = post.getChallenge();
         if (challengeCategory == null) return;
+
+        // 해당 카테고리에만 해당 되도록
+        if (!(challengeCategory == ChallengeCategory.NO_MONEY ||
+            challengeCategory == ChallengeCategory.MASTER ||
+            challengeCategory == ChallengeCategory.COOK_KING ||
+            challengeCategory == ChallengeCategory.KIND_CONSUMER)) {
+            return;
+        }
 
         Member postWriter = post.getMember();
 
@@ -586,7 +593,7 @@ public class ChallengeService {
         Member postWriter = post.getMember();
 
         // 로그인한 사용자가 작성한 숨맛탐 게시글 개수
-        int count = communityRepository.countByMemberAndCategory(postWriter, CommunityCategory.MY_STORE);
+        int count = communityRepository.countByMemberAndCategoryAndActivatedIsTrueAndMember_ActivatedTrue(postWriter, CommunityCategory.MY_STORE);
 
         // 존재하는 챌린지인지 조회
         Challenge challenge = challengeRepository.findByName("숨.맛.탐")

@@ -9,10 +9,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.io.IOException;
 
@@ -21,9 +22,13 @@ import java.io.IOException;
 @Tag(name = "Gemini 챗봇", description = "Google Gemini 기반 자산관리 챗봇 API")
 public class GeminiChatbotController {
     private final GeminiChatbotService geminiChatbotService;
+    private final String geminiApiKey;
+
     @Autowired
-    public GeminiChatbotController(GeminiChatbotService geminiChatbotService) {
+    public GeminiChatbotController(GeminiChatbotService geminiChatbotService,
+                                   @Value("${gemini.api.key}") String geminiApiKey) {
         this.geminiChatbotService = geminiChatbotService;
+        this.geminiApiKey = geminiApiKey;
     }
 
     @PostMapping("/analyze")
@@ -33,7 +38,7 @@ public class GeminiChatbotController {
             Long memberId = principal.getMemberId();
             String spendingData = geminiChatbotService.getSpendingDataForLastMonth(memberId);
             String prompt = buildGeminiPrompt(spendingData);
-            String geminiResponse = callGemini(prompt);
+            String geminiResponse = callGemini(prompt, geminiApiKey);
             String message = extractGeminiText(geminiResponse);
             return ResponseEntity.ok(Map.of("message", message));
         } catch (Exception e) {
@@ -47,14 +52,14 @@ public class GeminiChatbotController {
                 "\n1. 전체 소비 패턴을 요약해줘.\n2. 절약 정도에 대한 피드백을 줘.\n3. 지출이 많은 부분을 줄일 수 있는 구체적인 팁을 알려줘.";
     }
 
-    private static String callGemini(String prompt) throws IOException, InterruptedException {
-        String apiKey = "AIzaSyDvCXZ9xn9KCNUIznjqKWXSZVT5QWWWxG8";
-        String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey;
+    private static String callGemini(String prompt, String apiKey) throws IOException, InterruptedException {
+        String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
         String requestBody = "{\"contents\":[{\"parts\":[{\"text\":\"" + prompt.replace("\"", "\\\"") + "\"}]}]}";
         java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
         java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
                 .uri(java.net.URI.create(apiUrl))
                 .header("Content-Type", "application/json")
+                .header("X-Goog-Api-Key", apiKey)
                 .POST(java.net.http.HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
         java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());

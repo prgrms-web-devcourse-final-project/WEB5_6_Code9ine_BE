@@ -541,13 +541,8 @@ public class MemberController {
         if (request.getProfileImage() != null) {
             member.setProfileImage(request.getProfileImage());
         }
-        // 비밀번호 변경
+        // 비밀번호 변경 (기존 비밀번호 입력 없이도 가능)
         if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
-            // 기존 비밀번호 확인
-            if (request.getOldPassword() == null || !passwordEncoder.matches(request.getOldPassword(), member.getPassword())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "기존 비밀번호가 일치하지 않습니다.", null));
-            }
             // 새 비밀번호 유효성 검사
             if (!isValidPassword(request.getNewPassword())) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)

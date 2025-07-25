@@ -137,4 +137,21 @@ public class JwtTokenProvider {
             return e.getClaims();
         }
     }
+
+    // JWT에서 jti 추출
+    public String getJtiFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getId();
+    }
+    // JWT에서 subject(email) 추출
+    public String getUsername(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getSubject();
+    }
+    // JWT에서 roles 추출
+    public String getRoles(String token) {
+        Claims claims = parseClaims(token);
+        Object roles = claims.get("roles");
+        return roles != null ? roles.toString() : null;
+    }
 }

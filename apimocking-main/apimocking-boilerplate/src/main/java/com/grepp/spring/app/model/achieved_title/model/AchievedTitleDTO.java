@@ -25,7 +25,17 @@ public class AchievedTitleDTO {
 
     private Integer minCount;
 
+    private String icon;
+
     @NotNull
     private Long challenge;
 
+    public AchievedTitleDTO(Long challengeId, String name, Integer minCount, String icon) {
+
+        this.challengeId = challengeId;
+        this.name = name;
+        this.minCount = minCount;
+        this.icon = icon;
+    }
+    public AchievedTitleDTO() {}
 }

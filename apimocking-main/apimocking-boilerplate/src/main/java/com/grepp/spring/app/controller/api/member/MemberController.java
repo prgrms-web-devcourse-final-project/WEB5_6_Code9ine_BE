@@ -1,5 +1,6 @@
 package com.grepp.spring.app.controller.api.member;
 
+import com.grepp.spring.app.model.achieved_title.model.AchievedTitleDTO;
 import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.member.domain.Member;
@@ -14,6 +15,8 @@ import java.math.BigDecimal;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import jakarta.validation.Valid;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -451,21 +454,30 @@ public class MemberController {
         }
         
         // 칭호 정보 (실제 서비스 데이터로 대체)
-        List<com.grepp.spring.app.model.achieved_title.model.AchievedTitleDTO> allTitles = achievedTitleService.findAll();
+        List<AchievedTitleDTO> allTitles = achievedTitleRepository.findDtoByMemberId(member.getMemberId());
         List<Map<String, Object>> achievedTitles = new java.util.ArrayList<>();
         for (var t : allTitles) {
-            if (t.getAchieved() != null && t.getAchieved()) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("titleId", t.getATId());
-                map.put("name", t.getName());
-                map.put("description", ""); // 필요시 ChallengeService 등에서 설명 추가
-                map.put("minCount", t.getMinCount());
-                map.put("achieved", t.getAchieved());
-                achievedTitles.add(map);
-            }
+            Map<String, Object> map = new HashMap<>();
+            map.put("challengeId", t.getChallengeId());
+            map.put("name", t.getName());
+            map.put("minCount", t.getMinCount());
+            map.put("icon",t.getIcon());
+            achievedTitles.add(map);
         }
-        Map<String, Object> equippedTitle = achievedTitles.isEmpty() ? null : achievedTitles.get(0);
-        
+        //Map<String, Object> equippedTitle = achievedTitles.isEmpty() ? null : achievedTitles.get(0);
+        Optional<Member> withEquippedTitleAndChallenge = memberRepository.findWithEquippedTitleAndChallenge(member.getMemberId());
+
+        AchievedTitleDTO equippedTitleDto = withEquippedTitleAndChallenge
+            .map(Member::getEquippedTitle)
+            .filter(Objects::nonNull)
+            .map(equippedTitle -> new AchievedTitleDTO(
+                equippedTitle.getChallenge().getChallengeId(),
+                equippedTitle.getName(),
+                equippedTitle.getMinCount(),
+                equippedTitle.getIcon()
+            ))
+            .orElse(null);
+
         MypageResponse.Data data = new MypageResponse.Data(
             member.getMemberId(),
             member.getEmail(),
@@ -481,7 +493,7 @@ public class MemberController {
             remainPrice,
             bookmarkedPosts,
             bookmarkedPlaces,
-            equippedTitle,
+            equippedTitleDto,
             achievedTitles
         );
         
@@ -738,6 +750,7 @@ public class MemberController {
         
         // 장착된 칭호 조회
         AchievedTitle equippedTitle = member.getEquippedTitle();
+
         if (equippedTitle == null) {
             return ResponseEntity.ok(ApiResponse.success(null));
         }
@@ -923,20 +936,32 @@ public class MemberController {
                 remainPrice = BigDecimal.ZERO;
             }
         }
-        List<com.grepp.spring.app.model.achieved_title.model.AchievedTitleDTO> allTitles = achievedTitleService.findAll();
+        List<AchievedTitleDTO> allTitles = achievedTitleRepository.findDtoByMemberId(memberId);
         List<Map<String, Object>> achievedTitles = new java.util.ArrayList<>();
-        for (var t : allTitles) {
-            if (t.getAchieved() != null && t.getAchieved()) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("titleId", t.getATId());
-                map.put("name", t.getName());
-                map.put("description", "");
-                map.put("minCount", t.getMinCount());
-                map.put("achieved", t.getAchieved());
-                achievedTitles.add(map);
+            for (var t : allTitles) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("challengeId", t.getChallengeId());
+                    map.put("name", t.getName());
+                    map.put("minCount", t.getMinCount());
+                    map.put("icon",t.getIcon());
+                    achievedTitles.add(map);
             }
-        }
-        Map<String, Object> equippedTitle = achievedTitles.isEmpty() ? null : achievedTitles.get(0);
+
+
+       // Map<String, Object> equippedTitle = achievedTitles.isEmpty() ? null : achievedTitles.get(0);
+        Optional<Member> withEquippedTitleAndChallenge = memberRepository.findWithEquippedTitleAndChallenge(member.getMemberId());
+
+        AchievedTitleDTO equippedTitleDto = withEquippedTitleAndChallenge
+            .map(Member::getEquippedTitle)
+            .filter(Objects::nonNull)
+            .map(equippedTitle -> new AchievedTitleDTO(
+                equippedTitle.getChallenge().getChallengeId(),
+                equippedTitle.getName(),
+                equippedTitle.getMinCount(),
+                equippedTitle.getIcon()
+            ))
+            .orElse(null);
+
         MypageResponse.Data data = new MypageResponse.Data(
             member.getMemberId(),
             member.getEmail(),
@@ -952,7 +977,7 @@ public class MemberController {
             remainPrice,
             bookmarkedPosts,
             bookmarkedPlaces,
-            equippedTitle,
+            equippedTitleDto,
             achievedTitles
         );
         MypageResponse response = new MypageResponse(data);
@@ -1165,7 +1190,7 @@ public class MemberController {
             private BigDecimal remainPrice;
             private List<Map<String, Object>> bookmarkedPosts;
             private List<Map<String, Object>> bookmarkedPlaces;
-            private Map<String, Object> equippedTitle;
+            private AchievedTitleDTO equippedTitle;
             private List<Map<String, Object>> achievedTitles;
         }
     }

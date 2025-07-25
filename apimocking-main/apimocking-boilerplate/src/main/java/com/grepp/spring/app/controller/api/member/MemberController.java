@@ -251,39 +251,6 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // 비밀번호 변경
-    @PatchMapping("/password")
-    public ResponseEntity<ApiResponse<PasswordChangeResponse>> changePassword(@RequestBody @Valid PasswordChangeRequest request) {
-        // JWT에서 현재 사용자 이메일 추출
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = auth != null ? auth.getName() : null;
-        if (currentEmail == null || currentEmail.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
-        }
-        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
-                .orElse(null);
-        if (member == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse<>(ResponseCode.NOT_FOUND.code(), "사용자를 찾을 수 없습니다.", null));
-        }
-        // 기존 비밀번호 확인
-        if (!passwordEncoder.matches(request.getOldPassword(), member.getPassword())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "기존 비밀번호가 일치하지 않습니다.", null));
-        }
-        // 비밀번호 정책: 8자 이상, 영문/숫자/특수문자 포함
-        if (!isValidPassword(request.getNewPassword())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "비밀번호는 8자 이상, 영문/숫자/특수문자를 모두 포함해야 합니다.", null));
-        }
-        // 새 비밀번호로 변경
-        member.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        memberRepository.save(member);
-        PasswordChangeResponse response = new PasswordChangeResponse();
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
     // 로그아웃
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<LogoutResponse>> logout(HttpServletResponse response) {
@@ -555,31 +522,40 @@ public class MemberController {
 
     // 프로필 수정
     @PatchMapping("/mypage/profile")
-    @Operation(summary = "프로필 수정", description = "사용자의 프로필 정보를 수정합니다.")
+    @Operation(summary = "프로필 수정", description = "사용자의 프로필 정보(닉네임, 프로필 이미지, 비밀번호)를 수정합니다.")
     public ResponseEntity<ApiResponse<Object>> updateProfile(@RequestBody @Valid ProfileUpdateRequest request) {
-        // JWT에서 현재 사용자 ID 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
-        
         if (currentEmail == null || currentEmail.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
         }
-        
-        // 이메일로 멤버 조회
         Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
                 .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
-        
-        // 프로필 정보 업데이트
+
+        // 닉네임 변경
         if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
             member.setNickname(request.getNickname());
         }
+        // 프로필 이미지 변경
         if (request.getProfileImage() != null) {
             member.setProfileImage(request.getProfileImage());
         }
-        
+        // 비밀번호 변경 (기존 비밀번호 입력 없이도 가능)
+        if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+            // 새 비밀번호 유효성 검사
+            if (!isValidPassword(request.getNewPassword())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "비밀번호는 8자 이상, 영문/숫자/특수문자를 모두 포함해야 합니다.", null));
+            }
+            // 새 비밀번호 확인
+            if (!request.getNewPassword().equals(request.getNewPasswordCheck())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "새 비밀번호와 비밀번호 확인이 일치하지 않습니다.", null));
+            }
+            member.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        }
         memberRepository.save(member);
-        
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -815,31 +791,6 @@ public class MemberController {
         SecurityContextHolder.clearContext();
         
         WithdrawResponse response = new WithdrawResponse();
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    // 프로필 이미지 변경
-    @PatchMapping("/mypage/profile-image")
-    @Operation(summary = "프로필 이미지 변경", description = "현재 로그인한 사용자의 프로필 이미지를 변경합니다.")
-    public ResponseEntity<ApiResponse<ProfileImageResponse>> updateProfileImage(@RequestBody @Valid ProfileImageRequest request) {
-        // JWT에서 현재 사용자 이메일 추출
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = auth != null ? auth.getName() : null;
-        
-        if (currentEmail == null || currentEmail.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
-        }
-        
-        // 이메일로 멤버 조회
-        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
-                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
-        
-        // 프로필 이미지 업데이트
-        member.setProfileImage(request.getProfileImage());
-        memberRepository.save(member);
-        
-        ProfileImageResponse response = new ProfileImageResponse(request.getProfileImage());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -1271,6 +1222,9 @@ public class MemberController {
         @Schema(description = "프로필 이미지 URL", example = "https://example.com/image.jpg")
         private String profileImage;
         
+        @Schema(description = "기존 비밀번호", example = "1234")
+        private String oldPassword; // 기존 비밀번호(비밀번호 변경 시 필요)
+        
         @Schema(description = "새 비밀번호", example = "newpassword123!")
         private String newPassword;
         
@@ -1289,20 +1243,6 @@ public class MemberController {
     @Getter @Setter @NoArgsConstructor
     public static class WithdrawResponse {
         // 응답 데이터 없음 (성공 메시지만 반환)
-    }
-
-    // 프로필 이미지 변경 관련 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class ProfileImageRequest {
-        @Schema(description = "프로필 이미지 URL", example = "https://example.com/image.jpg")
-        @NotBlank(message = "프로필 이미지 URL은 필수입니다.")
-        private String profileImage;
-    }
-
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class ProfileImageResponse {
-        @Schema(description = "변경된 프로필 이미지 URL", example = "https://example.com/image.jpg")
-        private String profileImage;
     }
 
     // 챌린지 대시보드 관련 DTO

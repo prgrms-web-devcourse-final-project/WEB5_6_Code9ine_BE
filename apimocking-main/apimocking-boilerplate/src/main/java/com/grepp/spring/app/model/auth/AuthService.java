@@ -50,13 +50,13 @@ public class AuthService {
                 loginRequest.getPassword());
         
         try {
-            // loadUserByUsername + password 검증 후 인증 객체 반환
-            // 인증 실패 시: AuthenticationException 발생
-            Authentication authentication = authenticationManagerBuilder.getObject()
-                                                .authenticate(authenticationToken);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        // loadUserByUsername + password 검증 후 인증 객체 반환
+        // 인증 실패 시: AuthenticationException 발생
+        Authentication authentication = authenticationManagerBuilder.getObject()
+                                            .authenticate(authenticationToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            String email = loginRequest.getUsername();
+        String email = loginRequest.getUsername();
             log.info("인증 성공: username={}", email);
 
             // 활성화 여부 체크
@@ -67,11 +67,11 @@ public class AuthService {
             }
 
             memberRepository.findByEmailIgnoreCase(email).ifPresent(memberEntity -> {
-                LocalDate today = LocalDate.now();
+            LocalDate today = LocalDate.now();
                 if (memberEntity.getLastLoginedAt() == null || !memberEntity.getLastLoginedAt().isEqual(today)) {
                     memberEntity.setLastLoginedAt(today);
                     memberRepository.save(memberEntity);
-                }
+            }
             });
 
             memberRepository.findByEmail(email).ifPresent(memberEntity -> {
@@ -85,7 +85,7 @@ public class AuthService {
                     attendanceRepository.save(attendance);
                 }
                 challengeService.handle_oneMonthChallenge(memberEntity);
-            });
+        });
 
         String roles =  String.join(",", authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
         return processTokenSignin(authentication.getName(), roles);
@@ -119,5 +119,5 @@ public class AuthService {
     public TokenDto generateTokenForSocialLogin(String email, String roles) {
         return processTokenSignin(email, roles);
     }
-
+    
 }

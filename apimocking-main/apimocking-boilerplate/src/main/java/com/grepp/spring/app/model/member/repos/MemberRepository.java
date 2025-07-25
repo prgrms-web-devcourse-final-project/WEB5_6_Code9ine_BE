@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.member.repos;
 
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.model.TopSaversResponse;
+import feign.Param;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -65,4 +66,12 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // 관리자 당일 통계(회원가입 수)
     int countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
+
+    @Query("""
+    SELECT m FROM Member m
+    LEFT JOIN FETCH m.equippedTitle et
+    LEFT JOIN FETCH et.challenge
+    WHERE m.memberId = :memberId
+""")
+    Optional<Member> findWithEquippedTitleAndChallenge(@Param("memberId") Long memberId);
 }

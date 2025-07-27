@@ -482,7 +482,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getBookmarkedPosts(Long memberId) {
-        List<CommunityBookmark> bookmarks = bookmarkRepository.findByMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(memberId);
+        List<CommunityBookmark> bookmarks = bookmarkRepository.findByMember_MemberIdAndActivatedTrueAndMember_ActivatedTrueOrderByCreatedAtDesc(memberId);
         
         return bookmarks.stream()
             .map(bookmark -> {

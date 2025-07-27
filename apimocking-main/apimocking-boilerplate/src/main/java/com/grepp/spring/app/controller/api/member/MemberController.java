@@ -38,6 +38,7 @@ import com.grepp.spring.app.model.auth.code.AuthToken;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
@@ -1237,10 +1238,10 @@ public class MemberController {
     }
 
     @PostMapping("/token/refresh")
-    @Operation(summary = "엑세스 토큰 재발급", description = "리프레시 토큰을 이용해 새로운 엑세스 토큰과 리프레시 토큰을 발급합니다.")
-    public ResponseEntity<ApiResponse<TokenRefreshResponse>> refreshToken(@RequestBody @Valid TokenRefreshRequest request, HttpServletResponse response) {
-        // 1. 전달받은 refreshToken 유효성 검사
-        String refreshToken = request.getRefreshToken();
+    @Operation(summary = "엑세스 토큰 재발급", description = "쿠키의 리프레시 토큰을 이용해 새로운 엑세스 토큰과 리프레시 토큰을 발급합니다.")
+    public ResponseEntity<ApiResponse<TokenRefreshResponse>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        // 1. 쿠키에서 refreshToken 추출
+        String refreshToken = jwtTokenProvider.resolveToken(request, AuthToken.REFRESH_TOKEN);
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "리프레시 토큰이 필요합니다.", null));
@@ -1274,11 +1275,7 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(resp));
     }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class TokenRefreshRequest {
-        @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-        private String refreshToken;
-    }
+
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class TokenRefreshResponse {

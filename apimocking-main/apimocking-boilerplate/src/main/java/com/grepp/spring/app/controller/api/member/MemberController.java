@@ -1208,9 +1208,10 @@ public class MemberController {
     }
 
     // 회원 탈퇴 관련 DTO
-    @Getter @Setter @NoArgsConstructor
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class WithdrawResponse {
-        // 응답 데이터 없음 (성공 메시지만 반환)
+        @Schema(description = "회원 탈퇴 성공 메시지", example = "회원 탈퇴가 완료되었습니다.")
+        private String message = "회원 탈퇴가 완료되었습니다.";
     }
 
     // 챌린지 대시보드 관련 DTO

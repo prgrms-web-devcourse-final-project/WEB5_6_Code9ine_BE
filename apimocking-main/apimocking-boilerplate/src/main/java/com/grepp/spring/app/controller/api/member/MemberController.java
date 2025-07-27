@@ -1142,10 +1142,10 @@ public class MemberController {
     // 대표 칭호 변경 응답 DTO
     @Getter @Setter @NoArgsConstructor
     public static class RepresentativeTitleResponse {
-        private Long titleId;
+        private Long aTId;
         
-        public RepresentativeTitleResponse(Long titleId) {
-            this.titleId = titleId;
+        public RepresentativeTitleResponse(Long aTId) {
+            this.aTId = aTId;
         }
     }
 
@@ -1164,15 +1164,15 @@ public class MemberController {
     // 칭호 목록 조회 응답 DTO
     @Getter @Setter @NoArgsConstructor
     public static class TitleResponse {
-        private Long titleId;
+        private Long aTId;
         private String name;
         private Boolean achieved;
         private Integer minCount;
         private Long challengeId;
         private String challengeName;
         
-        public TitleResponse(Long titleId, String name, Boolean achieved, Integer minCount, Long challengeId, String challengeName) {
-            this.titleId = titleId;
+        public TitleResponse(Long aTId, String name, Boolean achieved, Integer minCount, Long challengeId, String challengeName) {
+            this.aTId = aTId;
             this.name = name;
             this.achieved = achieved;
             this.minCount = minCount;

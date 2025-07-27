@@ -430,7 +430,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getMyPosts(Long memberId) {
-        List<CommunityPost> posts = communityRepository.findByMember_MemberIdAndActivatedIsTrueAndMember_ActivatedTrue(memberId);
+        List<CommunityPost> posts = communityRepository.findByMember_MemberIdAndActivatedIsTrueAndMember_ActivatedTrueOrderByCreatedAtDesc(memberId);
         
         return posts.stream()
             .map(post -> {

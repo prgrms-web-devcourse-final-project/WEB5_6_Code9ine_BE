@@ -754,7 +754,10 @@ public class MemberController {
         
         // 회원 탈퇴 처리
         memberService.withdrawMember(member.getMemberId());
-        
+
+        // SecurityContext 클리어
+        SecurityContextHolder.clearContext();
+
         WithdrawResponse response = new WithdrawResponse();
         return ResponseEntity.ok(ApiResponse.success(response));
     }

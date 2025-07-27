@@ -84,12 +84,12 @@ public class PlaceBookmarkService {
         Map<String, Object> result = new HashMap<>();
 
         // placeId는 pBookmarkId 사용
-        result.put("placeId", bookmark.getPBookmarkId().toString());
+        result.put("placeId", bookmark.getPBookmarkId());
         result.put("bookmarkedAt", bookmark.getCreatedAt());
 
         if (bookmark.getStore() != null) {
             Store store = bookmark.getStore();
-            result.put("storeId", store.getStoreId().toString());
+            result.put("storeId", store.getStoreId());
             result.put("name", store.getName());
             result.put("address", store.getAddress());
             result.put("category", store.getCategory());
@@ -103,7 +103,7 @@ public class PlaceBookmarkService {
             result.put("thirdprice", store.getThirdPrice());
         } else if (bookmark.getFestival() != null) {
             Festival festival = bookmark.getFestival();
-            result.put("festivalId", festival.getFestivalId().toString());
+            result.put("festivalId", festival.getFestivalId());
             result.put("name", festival.getName());
             result.put("category", festival.getCategory());
             result.put("type", "festival");
@@ -114,7 +114,7 @@ public class PlaceBookmarkService {
             result.put("endAt", festival.getEndAt());
         } else if (bookmark.getLibrary() != null) {
             Library library = bookmark.getLibrary();
-            result.put("libraryId", library.getLibraryId().toString());
+            result.put("libraryId", library.getLibraryId());
             result.put("name", library.getName());
             result.put("type", "library");
             result.put("address", library.getAddress());

@@ -562,12 +562,10 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    // 대표 칭호 변경
-    @PatchMapping("/mypage/equipped-title")
-    @Operation(summary = "대표 칭호 변경", description = "사용자의 대표 칭호를 변경합니다.")
-    public ResponseEntity<ApiResponse<RepresentativeTitleResponse>> changeRepresentativeTitle(
-            @RequestBody @Valid RepresentativeTitleRequest request) {
-        
+    // 칭호 장착
+    @PatchMapping("/titles/equip")
+    @Operation(summary = "칭호 장착", description = "획득한 칭호 중 atId로 지정한 칭호를 장착합니다.")
+    public ResponseEntity<ApiResponse<EquipTitleResponse>> equipTitle(@RequestBody @Valid EquipTitleRequest request) {
         // JWT에서 현재 사용자 ID 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -582,55 +580,21 @@ public class MemberController {
                 .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
         
         // 해당 칭호가 회원이 획득한 칭호인지 확인
-        AchievedTitle achievedTitle = achievedTitleRepository.findById(request.getTitleId())
+        AchievedTitle achievedTitle = achievedTitleRepository.findById(request.getATId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 칭호입니다."));
         if (!achievedTitle.getMember().getMemberId().equals(member.getMemberId())) {
             throw new IllegalArgumentException("획득하지 않은 칭호입니다.");
         }
         
-        // 대표 칭호로 설정
+        // 칭호 장착
         member.setEquippedTitle(achievedTitle);
         memberRepository.save(member);
         
-        RepresentativeTitleResponse response = new RepresentativeTitleResponse();
-        response.setTitleId(request.getTitleId());
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    // 칭호 즉시 장착
-    @PatchMapping("/titles/{challengeId}/equip")
-    @Operation(summary = "칭호 즉시 장착", description = "특정 챌린지의 칭호를 즉시 장착합니다.")
-    public ResponseEntity<ApiResponse<EquipTitleResponse>> equipTitleImmediately(@PathVariable Long challengeId) {
-        // JWT에서 현재 사용자 ID 추출
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = auth != null ? auth.getName() : null;
-        
-        if (currentEmail == null || currentEmail.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
-        }
-        
-        // 이메일로 멤버 조회
-        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
-                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
-        
-        // 해당 챌린지의 칭호가 회원이 획득한 칭호인지 확인
-        List<AchievedTitle> allTitles = achievedTitleRepository.findAll();
-        AchievedTitle targetTitle = allTitles.stream()
-                .filter(title -> title.getMember().getMemberId().equals(member.getMemberId()) 
-                        && title.getChallenge().getChallengeId().equals(challengeId)
-                        && title.getAchieved())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("해당 챌린지의 칭호를 획득하지 않았습니다."));
-        
-        // 칭호 장착
-        member.setEquippedTitle(targetTitle);
-        memberRepository.save(member);
-        
         // 응답 데이터 구성
-        String equippedTitleName = targetTitle.getName();
+        String equippedTitleName = achievedTitle.getName();
         
         // 획득한 칭호 목록 조회
+        List<AchievedTitle> allTitles = achievedTitleRepository.findAll();
         List<AchievedTitle> achievedTitles = allTitles.stream()
                 .filter(title -> title.getMember().getMemberId().equals(member.getMemberId()) && title.getAchieved())
                 .collect(java.util.stream.Collectors.toList());
@@ -644,9 +608,9 @@ public class MemberController {
     }
 
     // 칭호 해제
-    @DeleteMapping("/titles/{challengeId}/unequip")
-    @Operation(summary = "칭호 해제", description = "특정 챌린지의 칭호를 해제합니다.")
-    public ResponseEntity<ApiResponse<Object>> unequipTitle(@PathVariable Long challengeId) {
+    @DeleteMapping("/titles/unequip")
+    @Operation(summary = "칭호 해제", description = "현재 장착된 칭호를 해제합니다.")
+    public ResponseEntity<ApiResponse<Object>> unequipTitle() {
         // JWT에서 현재 사용자 ID 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -660,10 +624,10 @@ public class MemberController {
         Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
                 .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
         
-        // 현재 장착된 칭호가 해당 챌린지의 칭호인지 확인
+        // 현재 장착된 칭호 확인
         AchievedTitle equippedTitle = member.getEquippedTitle();
-        if (equippedTitle == null || !equippedTitle.getChallenge().getChallengeId().equals(challengeId)) {
-            throw new IllegalArgumentException("해당 챌린지의 칭호가 장착되어 있지 않습니다.");
+        if (equippedTitle == null) {
+            throw new IllegalArgumentException("장착된 칭호가 없습니다.");
         }
         
         // 칭호 해제
@@ -1166,12 +1130,12 @@ public class MemberController {
         private String goalStuff;
     }
 
-    // 대표 칭호 변경 요청 DTO
+    // 칭호 장착 요청 DTO
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class RepresentativeTitleRequest {
-        @Schema(description = "칭호 ID", example = "10001")
-        @NotNull(message = "칭호 ID는 필수입니다.")
-        private Long titleId;
+    public static class EquipTitleRequest {
+        @Schema(description = "획득한 칭호의 aTId", example = "10001")
+        @NotNull(message = "aTId는 필수입니다.")
+        private Long aTId;
     }
 
     // 대표 칭호 변경 응답 DTO

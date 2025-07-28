@@ -80,6 +80,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
                 .queryParam("access_token", tokenDto.getAccessToken())
                 .queryParam("refresh_token", tokenDto.getRefreshToken())
                 .queryParam("expires_in", tokenDto.getExpiresIn())
+                .queryParam("role", member.getRole())
                 .build()
                 .encode()
                 .toUriString();

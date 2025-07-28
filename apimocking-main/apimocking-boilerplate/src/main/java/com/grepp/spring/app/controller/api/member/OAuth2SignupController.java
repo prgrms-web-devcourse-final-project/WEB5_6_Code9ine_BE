@@ -84,7 +84,8 @@ public class OAuth2SignupController {
                         tokenDto.getRefreshToken(),
                         tokenDto.getGrantType(),
                         tokenDto.getExpiresIn(),
-                        28800L
+                        28800L,
+                        savedMember.getRole()
                 )
         );
         
@@ -137,6 +138,7 @@ public class OAuth2SignupController {
             private final String grantType;
             private final Long expiresIn;
             private final Long refreshExpiresIn;
+            private final String role;
         }
     }
 } 

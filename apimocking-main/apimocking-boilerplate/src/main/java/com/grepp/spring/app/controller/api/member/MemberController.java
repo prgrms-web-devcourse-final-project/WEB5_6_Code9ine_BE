@@ -170,6 +170,10 @@ public class MemberController {
         try {
             TokenDto tokenDto = authService.signin(authRequest);
 
+            // 사용자 정보 조회 (role 포함)
+            Member member = memberRepository.findByEmailIgnoreCase(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
             // accessToken 쿠키 생성
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenDto.getAccessToken())
                 .httpOnly(true)
@@ -194,7 +198,8 @@ public class MemberController {
                 tokenDto.getRefreshToken(),
                 tokenDto.getGrantType(),
                 tokenDto.getExpiresIn(),
-                tokenDto.getRefreshExpiresIn()
+                tokenDto.getRefreshExpiresIn(),
+                member.getRole()
             );
             return ResponseEntity.ok(ApiResponse.success(new LoginResponse(data)));
         } catch (Exception e) {
@@ -1056,6 +1061,7 @@ public class MemberController {
             private String grantType;
             private Long expiresIn;
             private Long refreshExpiresIn;
+            private String role; // 추가된 필드
         }
     }
 

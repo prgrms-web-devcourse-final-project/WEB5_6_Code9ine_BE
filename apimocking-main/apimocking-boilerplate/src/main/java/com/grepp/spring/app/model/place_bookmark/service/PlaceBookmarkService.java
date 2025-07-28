@@ -245,5 +245,34 @@ public class PlaceBookmarkService {
             default -> throw new IllegalArgumentException("잘못된 장소 타입입니다.");
         }
     }
+    
+    // 특정 사용자가 특정 장소를 북마크했는지 확인
+    @Transactional(readOnly = true)
+    public boolean isPlaceBookmarkedByUser(String placeId, String placeType, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException("멤버를 찾을 수 없습니다."));
+        
+        switch (placeType.toLowerCase()) {
+            case "store" -> {
+                Store store = storeRepository.findById(Long.valueOf(placeId))
+                        .orElse(null);
+                if (store == null) return false;
+                return placeBookmarkRepository.existsByMemberAndStore(member, store);
+            }
+            case "festival" -> {
+                Festival festival = festivalRepository.findById(Long.valueOf(placeId))
+                        .orElse(null);
+                if (festival == null) return false;
+                return placeBookmarkRepository.existsByMemberAndFestival(member, festival);
+            }
+            case "library" -> {
+                Library library = libraryRepository.findById(Long.valueOf(placeId))
+                        .orElse(null);
+                if (library == null) return false;
+                return placeBookmarkRepository.existsByMemberAndLibrary(member, library);
+            }
+            default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다: " + placeType);
+        }
+    }
 
 }

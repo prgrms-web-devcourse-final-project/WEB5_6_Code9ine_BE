@@ -530,4 +530,18 @@ public class CommunityServiceImpl implements CommunityService {
             })
             .toList();
     }
+
+    // 특정 사용자가 특정 게시글을 북마크했는지 확인
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isPostBookmarkedByUser(Long postId, Long memberId) {
+        return bookmarkRepository.existsByPost_PostIdAndMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(postId, memberId);
+    }
+
+    // 특정 사용자가 특정 게시글을 좋아요했는지 확인
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isPostLikedByUser(Long postId, Long memberId) {
+        return likeRepository.existsByPost_PostIdAndMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(postId, memberId);
+    }
 }

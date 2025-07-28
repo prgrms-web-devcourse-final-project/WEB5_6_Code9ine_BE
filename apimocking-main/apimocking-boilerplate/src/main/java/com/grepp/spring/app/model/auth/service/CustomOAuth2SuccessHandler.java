@@ -8,17 +8,20 @@ import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
+import com.grepp.spring.infra.config.security.UserDetailsServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -29,6 +32,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final MemberRepository memberRepository;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -47,20 +51,22 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
             log.info("OAuth2 신규 회원: {} - 추가 정보 입력 페이지로 리다이렉트", email);
             
             // OAuth2User attribute를 안전하게 가져오기
-            String name = String.valueOf(oAuth2User.getAttribute("name"));
-            String picture = String.valueOf(oAuth2User.getAttribute("picture"));
+            String name = getAttributeSafely(oAuth2User, "name");
+            String picture = getAttributeSafely(oAuth2User, "picture");
             
             String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/login/google")
                     .queryParam("email", email)
                     .queryParam("name", name)
                     .queryParam("profileImage", picture)
                     .queryParam("provider", "google")
-                    .build().toUriString();
+                    .build()
+                    .encode()
+                    .toUriString();
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
             return;
         }
         
-        // 기존 회원인 경우 - JWT 토큰 발급 후 메인 페이지로 리다이렉트
+        // 기존 회원인 경우 - JWT 토큰 발급 후 /login/googleauth로 리다이렉트
         Member member = memberOpt.get();
         log.info("OAuth2 기존 회원 로그인: {}", email);
         
@@ -73,19 +79,29 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         response.addHeader("Set-Cookie", 
             TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getExpiresIn()).toString());
         
-        // 프론트엔드 메인 페이지로 리다이렉트 (토큰 정보 포함)
-        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000")
+        // /login/googleauth로 리다이렉트 (토큰 정보를 URL 파라미터로 전달)
+        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/login/googleauth")
                 .queryParam("access_token", tokenDto.getAccessToken())
                 .queryParam("refresh_token", tokenDto.getRefreshToken())
                 .queryParam("expires_in", tokenDto.getExpiresIn())
-                .build().toUriString();
+                .queryParam("role", member.getRole())
+                .build()
+                .encode()
+                .toUriString();
         
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
     
     private TokenDto generateTokenDto(Member member) {
+        // Spring Security 권한 형식으로 권한 생성
+        List<SimpleGrantedAuthority> authorities = userDetailsService.findUserAuthorities(member.getEmail());
+        String roles = authorities.stream()
+                .map(authority -> authority.getAuthority())
+                .findFirst()
+                .orElse("ROLE_USER");
+        
         // Access Token 생성
-        var accessTokenDto = jwtTokenProvider.generateAccessToken(member.getEmail(), member.getRole());
+        var accessTokenDto = jwtTokenProvider.generateAccessToken(member.getEmail(), roles);
         
         // Refresh Token 생성 및 저장
         RefreshToken refreshToken = refreshTokenService.saveWithAtId(accessTokenDto.getJti());
@@ -96,5 +112,14 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
                 .grantType("Bearer")
                 .expiresIn(3600L)
                 .build();
+    }
+    
+    // OAuth2User attribute를 안전하게 가져오는 헬퍼 메서드
+    private String getAttributeSafely(OAuth2User oAuth2User, String attributeName) {
+        Object attribute = oAuth2User.getAttribute(attributeName);
+        if (attribute == null) {
+            return "";
+        }
+        return attribute.toString();
     }
 } 

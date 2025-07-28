@@ -20,4 +20,15 @@ public interface GeminiChatbotBudgetDetailRepository extends JpaRepository<Budge
         @Param("start") LocalDate start,
         @Param("end") LocalDate end
     );
+
+    @Query("""
+        SELECT d FROM BudgetDetail d
+        WHERE d.date BETWEEN :start AND :end
+          AND d.type = '지출'
+        ORDER BY d.date
+    """)
+    List<BudgetDetail> findAllExpenseDetailsByDateBetween(
+        @Param("start") LocalDate start,
+        @Param("end") LocalDate end
+    );
 } 

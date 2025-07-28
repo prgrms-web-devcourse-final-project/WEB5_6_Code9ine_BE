@@ -70,7 +70,12 @@ public class OAuth2SignupController {
         // JWT 토큰 생성
         TokenDto tokenDto = generateTokenDto(savedMember);
         
-        // 토큰 정보를 응답에 포함 (프론트엔드에서 /login/googleauth로 리다이렉트할 때 사용)
+        // 쿠키 설정
+        response.addHeader("Set-Cookie", 
+            TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(), tokenDto.getAccessToken(), tokenDto.getExpiresIn()).toString());
+        response.addHeader("Set-Cookie", 
+            TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getExpiresIn()).toString());
+        
         OAuth2SignupResponse signupResponse = new OAuth2SignupResponse(
                 2000, 
                 "OAuth2 회원가입이 완료되었습니다.",

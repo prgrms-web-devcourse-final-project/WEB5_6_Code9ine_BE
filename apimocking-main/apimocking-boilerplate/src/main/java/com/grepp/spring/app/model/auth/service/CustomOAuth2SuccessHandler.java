@@ -69,6 +69,12 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         // JWT 토큰 생성
         TokenDto tokenDto = generateTokenDto(member);
         
+        // 쿠키 설정
+        response.addHeader("Set-Cookie", 
+            TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(), tokenDto.getAccessToken(), tokenDto.getExpiresIn()).toString());
+        response.addHeader("Set-Cookie", 
+            TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getExpiresIn()).toString());
+        
         // /login/googleauth로 리다이렉트 (토큰 정보를 URL 파라미터로 전달)
         String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/login/googleauth")
                 .queryParam("access_token", tokenDto.getAccessToken())

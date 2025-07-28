@@ -472,6 +472,8 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+
+
     // 목표 금액/항목 설정
     @PatchMapping("/mypage/goal")
     @Operation(summary = "목표 금액/항목 설정", description = "사용자의 목표 금액과 항목을 설정합니다.")
@@ -776,6 +778,24 @@ public class MemberController {
                 .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
         // 실제 챌린지 서비스에서 데이터 조회
         List<com.grepp.spring.app.model.challenge.model.ChallengeStatusDto> challengeStatuses = challengeService.getChallengeStatuses(member.getMemberId());
+        List<ChallengeDashboardResponse.ChallengeData> challenges = challengeStatuses.stream()
+            .map(dto -> new ChallengeDashboardResponse.ChallengeData(
+                dto.getChallengeId(),
+                dto.getName(), // title -> name
+                dto.getType(),
+                dto.getDescription(),
+                dto.getTotal(),
+                dto.getProgress(),
+                dto.getIcon()
+            )).toList();
+        ChallengeDashboardResponse response = new ChallengeDashboardResponse(challenges);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/{memberId}/challenges/dashboard")
+    @Operation(summary = "다른 유저 챌린지 대시보드 조회", description = "다른 유저의 챌린지 대시보드 정보를 조회합니다.")
+    public ResponseEntity<ApiResponse<ChallengeDashboardResponse>> getmemberChallengeDashboard(@PathVariable Long memberId) {
+        List<com.grepp.spring.app.model.challenge.model.ChallengeStatusDto> challengeStatuses = challengeService.getChallengeStatuses(memberId);
         List<ChallengeDashboardResponse.ChallengeData> challenges = challengeStatuses.stream()
             .map(dto -> new ChallengeDashboardResponse.ChallengeData(
                 dto.getChallengeId(),

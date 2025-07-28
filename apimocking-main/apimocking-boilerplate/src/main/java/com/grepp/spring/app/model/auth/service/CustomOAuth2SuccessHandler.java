@@ -62,21 +62,15 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
             return;
         }
         
-        // 기존 회원인 경우 - JWT 토큰 발급 후 메인 페이지로 리다이렉트
+        // 기존 회원인 경우 - JWT 토큰 발급 후 /login/googleauth로 리다이렉트
         Member member = memberOpt.get();
         log.info("OAuth2 기존 회원 로그인: {}", email);
         
         // JWT 토큰 생성
         TokenDto tokenDto = generateTokenDto(member);
         
-        // 쿠키 설정
-        response.addHeader("Set-Cookie", 
-            TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(), tokenDto.getAccessToken(), tokenDto.getExpiresIn()).toString());
-        response.addHeader("Set-Cookie", 
-            TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getExpiresIn()).toString());
-        
-        // 프론트엔드 메인 페이지로 리다이렉트 (토큰 정보 포함)
-        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000")
+        // /login/googleauth로 리다이렉트 (토큰 정보를 URL 파라미터로 전달)
+        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/login/googleauth")
                 .queryParam("access_token", tokenDto.getAccessToken())
                 .queryParam("refresh_token", tokenDto.getRefreshToken())
                 .queryParam("expires_in", tokenDto.getExpiresIn())

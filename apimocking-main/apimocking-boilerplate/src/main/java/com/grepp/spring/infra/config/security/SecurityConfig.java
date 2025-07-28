@@ -6,12 +6,12 @@ import com.grepp.spring.infra.auth.jwt.filter.JwtExceptionFilter;
 import com.grepp.spring.app.model.auth.service.CustomOAuth2UserService;
 import com.grepp.spring.app.model.auth.service.CustomOAuth2SuccessHandler;
 import com.grepp.spring.app.model.auth.service.CustomOAuth2FailureHandler;
+import com.grepp.spring.infra.config.CorsConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -39,6 +40,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
     private final CustomOAuth2FailureHandler customOAuth2FailureHandler;
+    private final CorsConfig corsConfig;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -46,7 +48,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .logout(AbstractHttpConfigurer::disable)
@@ -81,6 +83,11 @@ public class SecurityConfig {
                 )
         ;
         return http.build();
+    }
+    
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        return corsConfig.corsConfigurationSource();
     }
     
     @Bean

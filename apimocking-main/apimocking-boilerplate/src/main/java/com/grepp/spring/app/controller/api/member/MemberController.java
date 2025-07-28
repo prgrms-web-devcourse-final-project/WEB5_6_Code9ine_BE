@@ -810,37 +810,9 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PostMapping("/social/extra")
-    @Operation(summary = "소셜 회원 추가 정보 입력", description = "구글 로그인 후 추가 정보(닉네임, 휴대폰번호 등)를 입력받아 회원 정보를 완성합니다. JWT 인증 필요, email 등은 자동 추출.")
-    public ResponseEntity<ApiResponse<Object>> completeSocialSignup(@RequestBody @Valid ExtraInfoRequest request) {
-        // JWT에서 본인 email 추출
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = auth != null ? auth.getName() : null;
-        if (currentEmail == null || currentEmail.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
-        }
-        // 회원 조회
-        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
-                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
-        // 닉네임/휴대폰번호 등만 업데이트
-        if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
-            member.setNickname(request.getNickname());
-        }
-        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
-            member.setPhoneNumber(request.getPhoneNumber());
-        }
-        memberRepository.save(member);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class ExtraInfoRequest {
-        @Schema(description = "닉네임", example = "소셜유저")
-        private String nickname;
-        @Schema(description = "휴대폰번호", example = "01012345678")
-        private String phoneNumber;
-    }
+
+
 
     @GetMapping("/profile/{memberId}")
     @Operation(summary = "다른 유저 프로필 조회", description = "memberId로 다른 유저의 프로필 정보를 조회합니다. 마이페이지와 동일한 데이터 구조를 반환합니다.")
@@ -1258,57 +1230,5 @@ public class MemberController {
         }
     }
 
-    @PostMapping("/token/refresh")
-    @Operation(summary = "엑세스 토큰 재발급", description = "쿠키의 리프레시 토큰을 이용해 새로운 엑세스 토큰과 리프레시 토큰을 발급합니다.")
-    public ResponseEntity<ApiResponse<TokenRefreshResponse>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        // 1. 쿠키에서 refreshToken 추출
-        String refreshToken = jwtTokenProvider.resolveToken(request, AuthToken.REFRESH_TOKEN);
-        if (refreshToken == null || refreshToken.isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "리프레시 토큰이 필요합니다.", null));
-        }
-        // 2. refreshToken에서 accessToken jti 추출
-        String atId;
-        try {
-            atId = jwtTokenProvider.getJtiFromToken(refreshToken);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "유효하지 않은 리프레시 토큰입니다.", null));
-        }
-        // 3. Redis에서 refreshToken 정보 조회 및 검증
-        var stored = refreshTokenService.findByAccessTokenId(atId);
-        if (stored == null || !stored.getToken().equals(refreshToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "리프레시 토큰이 일치하지 않습니다.", null));
-        }
-        // 4. 새 accessToken/refreshToken 발급
-        String email = jwtTokenProvider.getUsername(refreshToken);
-        String roles = jwtTokenProvider.getRoles(refreshToken);
-        var accessTokenDto = jwtTokenProvider.generateAccessToken(email, roles);
-        var newRefreshToken = refreshTokenService.renewingToken(atId, accessTokenDto.getJti());
-        // 5. 쿠키로도 내려줌(선택)
-        ResponseCookie accessTokenCookie = TokenCookieFactory.create("accessToken", accessTokenDto.getToken(), accessTokenDto.getExpires());
-        ResponseCookie refreshTokenCookie = TokenCookieFactory.create("refreshToken", newRefreshToken.getToken(), newRefreshToken.getTtl());
-        response.addHeader("Set-Cookie", accessTokenCookie.toString());
-        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
-        // 6. 응답
-        TokenRefreshResponse resp = new TokenRefreshResponse(accessTokenDto.getToken(), newRefreshToken.getToken(), "Bearer", accessTokenDto.getExpires(), newRefreshToken.getTtl());
-        return ResponseEntity.ok(ApiResponse.success(resp));
-    }
 
-
-
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class TokenRefreshResponse {
-        @Schema(description = "새 엑세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-        private String accessToken;
-        @Schema(description = "새 리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-        private String refreshToken;
-        @Schema(description = "토큰 타입", example = "Bearer")
-        private String grantType;
-        @Schema(description = "엑세스 토큰 만료(ms)", example = "3600000")
-        private Long expiresIn;
-        @Schema(description = "리프레시 토큰 만료(ms)", example = "604800000")
-        private Long refreshExpiresIn;
-    }
 } 

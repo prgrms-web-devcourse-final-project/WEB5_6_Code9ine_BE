@@ -135,4 +135,14 @@ public class NotificationController {
         notificationService.markNotificationAsRead(notificationId, principal.getMemberId());
         return ResponseEntity.ok(new ApiResponse<>("2000", "성공적으로 처리되었습니다.", null));
     }
+
+    // 특정 타입의 모든 알림 읽음 처리
+    @PatchMapping("/{type}/read-all")
+    @Operation(summary = "전체 알림 읽음 처리", description = "특정 타입의 모든 알림을 읽음 처리합니다.")
+    public ResponseEntity<ApiResponse<Void>> markAllNotificationsAsReadByType(
+            @PathVariable String type, 
+            @AuthenticationPrincipal Principal principal) {
+        notificationService.markAllNotificationsAsReadByType(principal.getMemberId(), type);
+        return ResponseEntity.ok(new ApiResponse<>("2000", "성공적으로 처리되었습니다.", null));
+    }
 } 

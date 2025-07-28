@@ -4,6 +4,8 @@ package com.grepp.spring.infra.ocr.service;
 import com.grepp.spring.app.model.challenge.service.ChallengeService;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
+import com.grepp.spring.infra.error.exceptions.BadRequestException;
+import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import com.grepp.spring.infra.ocr.NaverOcrClient;
 import com.grepp.spring.infra.ocr.dto.ReceiptDataDto;
 import lombok.RequiredArgsConstructor;
@@ -48,13 +50,13 @@ public class ReceiptOcrService {
             long secondsUntilMidnight = Duration.between(now, nextMidnight).getSeconds();
             customStringRedisTemplate.expire(key, secondsUntilMidnight, TimeUnit.SECONDS);
             Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("해당 멤버가 없습니다."));
+                .orElseThrow(() -> new NotFoundException("해당 멤버가 없습니다."));
             challengeService.handle_receiptChallenge(member);
         }
 
         if (count != null && count > DAILY_LIMIT) {
             log.warn("[extractReceiptData] OCR 호출 제한 초과: memberId={}, count={}", memberId, count);
-            throw new RuntimeException("오늘의 OCR 사용 가능 횟수를 초과했습니다.");
+            throw new BadRequestException("오늘의 OCR 사용 가능 횟수를 초과했습니다.");
         }
 
         return naverOcrClient.requestOcr(file);

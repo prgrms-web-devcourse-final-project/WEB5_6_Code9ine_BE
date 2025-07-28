@@ -5,6 +5,7 @@ import com.grepp.spring.app.model.library.repos.LibraryRepository;
 import com.grepp.spring.app.model.store.domain.Store;
 import com.grepp.spring.app.model.store.dto.*;
 import com.grepp.spring.app.model.store.repos.StoreRepository;
+import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -63,7 +64,7 @@ public class StoreSearchService {
         } else if (type.equalsIgnoreCase("library")) {
             return libraryRepository.getDetailLibrarySearch(id);
         } else {
-            throw new IllegalArgumentException("해당하는 type이 없습니다.");
+            throw new NotFoundException("해당하는 type이 없습니다.");
         }
     }
 

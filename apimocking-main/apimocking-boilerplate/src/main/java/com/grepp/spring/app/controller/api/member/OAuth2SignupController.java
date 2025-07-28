@@ -41,7 +41,7 @@ public class OAuth2SignupController {
         
         log.info("OAuth2 회원가입 요청: {}", request.getEmail());
         
-        // 이메일 중복 체크 (OAuth2에서 이미 확인했지만 한번 더 체크)
+        // 이메일 중복 체크
         if (memberRepository.existsByEmailIgnoreCase(request.getEmail())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiResponse<>("4000", "이미 가입된 이메일입니다.", null));

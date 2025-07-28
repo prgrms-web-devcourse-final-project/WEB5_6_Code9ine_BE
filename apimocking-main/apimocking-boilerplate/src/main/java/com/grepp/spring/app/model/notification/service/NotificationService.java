@@ -121,7 +121,8 @@ public class NotificationService {
                         notification.getNotificationId(),
                         notification.getMessage(),
                         notification.getIsRead(),
-                        notification.getType()
+                        notification.getType(),
+                        notification.getSenderId() // senderId를 aTId로 활용
                 ))
                 .toList();
     }
@@ -156,6 +157,10 @@ public class NotificationService {
 
         public static NotificationCreateRequest of(Long receiverId, Long senderId, String type, String customMessage, String senderName) {
             return new NotificationCreateRequest(receiverId, senderId, type, customMessage, senderName, null);
+        }
+
+        public static NotificationCreateRequest of(Long receiverId, Long senderId, String type, String customMessage, String senderName, String title) {
+            return new NotificationCreateRequest(receiverId, senderId, type, customMessage, senderName, title);
         }
 
         // Getter 메서드들

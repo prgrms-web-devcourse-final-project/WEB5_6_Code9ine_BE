@@ -140,22 +140,7 @@ public class MemberMockController {
     }
 
 
-    @PostMapping("/token/refresh")
-    public ResponseEntity<ApiResponse<MemberLoginResponse>> refreshToken(@RequestBody MemberTokenRefreshRequest request) {
-        // JWT 토큰 갱신 Mock 응답
-        String newAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJqdGkiOiJuZXctYWNjZXNzLXRva2VuLWlkIiwiaWF0IjoxNzMxOTIwMDAwLCJleHAiOjE3MzE5MjM2MDB9.new-mock-signature";
-        String newRefreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwianRpIjoibmV3LXJlZnJlc2gtdG9rZW4taWQiLCJpYXQiOjE3MzE5MjAwMDAsImV4cCI6MTczMTkyODgwMH0.new-mock-refresh-signature";
-        
-        MemberLoginResponse.Data data = new MemberLoginResponse.Data(
-                newAccessToken,
-                newRefreshToken,
-                "Bearer",
-                3600L,
-                28800L
-        );
-        MemberLoginResponse response = new MemberLoginResponse(2000, "토큰이 갱신되었습니다.", data);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
+
 
     @GetMapping("/mypage")
     public ResponseEntity<ApiResponse<MemberMypageResponse>> getMypage() {
@@ -397,13 +382,7 @@ public class MemberMockController {
         }
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MemberTokenRefreshRequest {
-        private String refreshToken;
-    }
+
 
     @Getter
     @Setter

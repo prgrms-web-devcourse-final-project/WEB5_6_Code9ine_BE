@@ -453,15 +453,9 @@ public class CommunityServiceImpl implements CommunityService {
                 postMap.put("commentCount", post.getCommentCount());
                 postMap.put("likeCount", post.getLikeCount());
                 
-                // 현재 사용자가 좋아요를 눌렀는지 확인
-                boolean isLiked = post.getLiked().stream()
-                    .anyMatch(like -> like.getMember().getMemberId().equals(memberId) && like.getActivated());
-                postMap.put("isLiked", isLiked);
-                
-                // 현재 사용자가 북마크했는지 확인
-                boolean isBookmarked = post.getBookmarks().stream()
-                    .anyMatch(bookmark -> bookmark.getMember().getMemberId().equals(memberId) && bookmark.getActivated());
-                postMap.put("isBookmarked", isBookmarked);
+                // 좋아요/북마크 상태는 별도로 처리하므로 여기서는 기본값 설정
+                postMap.put("isLiked", false);
+                postMap.put("isBookmarked", false);
                 
                 // 챌린지 달성 여부
                 postMap.put("challengeAchieved", post.getChallenge() != null);
@@ -506,15 +500,9 @@ public class CommunityServiceImpl implements CommunityService {
                 postMap.put("commentCount", post.getCommentCount());
                 postMap.put("likeCount", post.getLikeCount());
                 
-                // 현재 사용자가 좋아요를 눌렀는지 확인
-                boolean isLiked = post.getLiked().stream()
-                    .anyMatch(like -> like.getMember().getMemberId().equals(memberId) && like.getActivated());
-                postMap.put("isLiked", isLiked);
-                
-                // 북마크 여부 (명세서에 맞게 실제 북마크 상태 반영)
-                boolean isBookmarked = post.getBookmarks().stream()
-                    .anyMatch(b -> b.getMember().getMemberId().equals(memberId) && b.getActivated());
-                postMap.put("isBookmarked", isBookmarked);
+                // 좋아요/북마크 상태는 별도로 처리하므로 여기서는 기본값 설정
+                postMap.put("isLiked", false);
+                postMap.put("isBookmarked", true); // 북마크한 게시글이므로 true
                 
                 // 챌린지 달성 여부
                 postMap.put("challengeAchieved", post.getChallenge() != null);

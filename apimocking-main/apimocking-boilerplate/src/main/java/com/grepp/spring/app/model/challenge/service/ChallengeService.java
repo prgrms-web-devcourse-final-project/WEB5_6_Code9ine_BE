@@ -655,7 +655,16 @@ public class ChallengeService {
     // achieved_title 테이블 데이터 삽입
     private AchievedTitle createAchievedTitle(Member member, Challenge challenge) {
         boolean alreadyExists = achievedTitleRepository.existsByMemberAndChallenge(member, challenge);
-        if (alreadyExists) return null;
+        if (alreadyExists) {
+            // 이미 존재하는 경우 해당 칭호의 aTId를 사용하여 임시 객체 생성
+            Long existingATId = achievedTitleRepository.findATIdByChallengeId(challenge.getChallengeId(), member.getMemberId());
+            if (existingATId != null) {
+                AchievedTitle existingTitle = new AchievedTitle();
+                existingTitle.setATId(existingATId);
+                return existingTitle;
+            }
+            return null;
+        }
 
         AchievedTitle achievedTitle = new AchievedTitle();
         achievedTitle.setName(challenge.getName()); // 칭호 이름

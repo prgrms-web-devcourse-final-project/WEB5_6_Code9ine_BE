@@ -24,6 +24,8 @@ import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.notification.repos.NotificationRepository;
 import com.grepp.spring.app.model.notification.service.NotificationService;
 import com.grepp.spring.app.model.notification.service.NotificationService.NotificationCreateRequest;
+import com.grepp.spring.infra.error.exceptions.CommonException;
+import com.grepp.spring.infra.response.ResponseCode;
 import com.grepp.spring.util.NotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -68,7 +70,7 @@ public class ChallengeService {
         LocalDate today = LocalDate.now();
 
         Challenge challenge = challengeRepository.findByname("개근왕")
-            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_CHALLENGE));
 
         Optional<ChallengeCount> existingCount = getChallengeCount(
             member, challenge, today);
@@ -111,7 +113,7 @@ public class ChallengeService {
         LocalDate today = LocalDate.now();
 
         Challenge challenge = challengeRepository.findByname("머니 매니저")
-            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_CHALLENGE));
 
         Optional<ChallengeCount> existingCount = getChallengeCount(
             member, challenge, today);
@@ -162,7 +164,7 @@ public class ChallengeService {
         LocalDate yesterday = today.minusDays(1);
 
         Challenge challenge = challengeRepository.findByname("기록 장인")
-            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_CHALLENGE));
 
         // 어제 출석 여부 체크
         boolean attendedYesterday = attendanceRepository.existsByMemberAndDate(member, yesterday);
@@ -212,7 +214,7 @@ public class ChallengeService {
         LocalDate today = LocalDate.now();
 
         Challenge challenge = challengeRepository.findByname("절약왕")
-            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_CHALLENGE));
 
         Optional<ChallengeCount> existingCount = getChallengeCount(
             member, challenge, today);
@@ -264,7 +266,7 @@ public class ChallengeService {
         LocalDate today = LocalDate.now();
 
         Challenge challenge = challengeRepository.findByname("소통왕")
-            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_CHALLENGE));
 
         Optional<ChallengeCount> existingCount = getChallengeCount(
             member, challenge, today);
@@ -320,7 +322,7 @@ public class ChallengeService {
         LocalDate today = LocalDate.now();
 
         Challenge challenge = challengeRepository.findByname("인싸왕")
-            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_CHALLENGE));
 
         Optional<ChallengeCount> existingCount = getChallengeCount(
             member, challenge, today);
@@ -347,7 +349,7 @@ public class ChallengeService {
         LocalDate today = LocalDate.now();
 
         Challenge challenge = challengeRepository.findByname("찐 기록러")
-            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_CHALLENGE));
 
         Optional<ChallengeCount> existingCount = getChallengeCount(
             member, challenge, today);

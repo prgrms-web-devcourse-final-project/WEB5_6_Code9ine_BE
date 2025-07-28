@@ -12,7 +12,12 @@ public enum ResponseCode {
     NOT_FOUND("4040", HttpStatus.NOT_FOUND, "NOT FOUND"),
     NOT_EXIST_PRE_AUTH_CREDENTIAL("4012", HttpStatus.OK, "사전 인증 정보가 요청에서 발견되지 않았습니다."),
     INTERNAL_SERVER_ERROR("5000", HttpStatus.INTERNAL_SERVER_ERROR, "서버에러 입니다."),
-    SECURITY_INCIDENT("6000", HttpStatus.OK, "비정상적인 로그인 시도가 감지되었습니다.");
+    SECURITY_INCIDENT("6000", HttpStatus.OK, "비정상적인 로그인 시도가 감지되었습니다."),
+    NOT_FOUND_MEMBER("MEMBER_001",HttpStatus.NOT_FOUND,"해당 사용자를 찾을 수 없습니다"),
+    NOT_FOUND_DETAIL("DETAIL_001", HttpStatus.NOT_FOUND,"해당 지출내역을 찾을 수 없습니다"),
+    NOT_FOUND_CHALLENGE("CHALLENGE_001",HttpStatus.NOT_FOUND,"해당 챌린지를 찾을 수 없습니다"),
+    ALREADY_REGISTERED_NO_EXPENSE("NO_EXPENSE_001", HttpStatus.CONFLICT,"오늘은 이미 지출 없음 등록이 되어있습니다."),
+    ALREADY_REGISTERED_EXPENSE("EXPENSE_001", HttpStatus.CONFLICT, "오늘은 지출이 등록되어있습니다. 확인해주세요.");
     
     private final String code;
     private final HttpStatus status;

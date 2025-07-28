@@ -810,37 +810,9 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PostMapping("/social/extra")
-    @Operation(summary = "소셜 회원 추가 정보 입력", description = "구글 로그인 후 추가 정보(닉네임, 휴대폰번호 등)를 입력받아 회원 정보를 완성합니다. JWT 인증 필요, email 등은 자동 추출.")
-    public ResponseEntity<ApiResponse<Object>> completeSocialSignup(@RequestBody @Valid ExtraInfoRequest request) {
-        // JWT에서 본인 email 추출
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = auth != null ? auth.getName() : null;
-        if (currentEmail == null || currentEmail.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
-        }
-        // 회원 조회
-        Member member = memberRepository.findByEmailIgnoreCase(currentEmail)
-                .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
-        // 닉네임/휴대폰번호 등만 업데이트
-        if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
-            member.setNickname(request.getNickname());
-        }
-        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
-            member.setPhoneNumber(request.getPhoneNumber());
-        }
-        memberRepository.save(member);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class ExtraInfoRequest {
-        @Schema(description = "닉네임", example = "소셜유저")
-        private String nickname;
-        @Schema(description = "휴대폰번호", example = "01012345678")
-        private String phoneNumber;
-    }
+
+
 
     @GetMapping("/profile/{memberId}")
     @Operation(summary = "다른 유저 프로필 조회", description = "memberId로 다른 유저의 프로필 정보를 조회합니다. 마이페이지와 동일한 데이터 구조를 반환합니다.")

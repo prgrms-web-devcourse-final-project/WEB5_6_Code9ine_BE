@@ -21,16 +21,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String name = oAuth2User.getAttribute("name");
         String picture = oAuth2User.getAttribute("picture");
 
-        // 기존 회원 찾기 or 신규 회원 생성
-        memberRepository.findByEmailIgnoreCase(email)
-            .orElseGet(() -> {
-                Member m = new Member();
-                m.setEmail(email);
-                m.setName(name);
-                m.setProfileImage(picture);
-                m.setRole("ROLE_USER");
-                return memberRepository.save(m);
-            });
+        // 기존 회원만 찾기 (신규 회원은 자동 생성하지 않음)
+        // 신규 회원 여부는 CustomOAuth2SuccessHandler에서 처리
+        memberRepository.findByEmailIgnoreCase(email);
+        
         return oAuth2User;
     }
 } 

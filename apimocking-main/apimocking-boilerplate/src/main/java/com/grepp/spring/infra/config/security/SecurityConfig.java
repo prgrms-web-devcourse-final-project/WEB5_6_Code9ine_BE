@@ -4,6 +4,8 @@ import com.grepp.spring.infra.auth.jwt.JwtAuthenticationEntryPoint;
 import com.grepp.spring.infra.auth.jwt.filter.JwtAuthenticationFilter;
 import com.grepp.spring.infra.auth.jwt.filter.JwtExceptionFilter;
 import com.grepp.spring.app.model.auth.service.CustomOAuth2UserService;
+import com.grepp.spring.app.model.auth.service.CustomOAuth2SuccessHandler;
+import com.grepp.spring.app.model.auth.service.CustomOAuth2FailureHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +37,8 @@ public class SecurityConfig {
     private final JwtExceptionFilter jwtExceptionFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+    private final CustomOAuth2FailureHandler customOAuth2FailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -44,13 +48,18 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(
-                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         (requests) -> requests
                                 .requestMatchers("/favicon.ico", "/img/**", "/js/**", "/css/**").permitAll()
                                 .requestMatchers("/", "/error", "/auth/login", "/auth/signup").permitAll()
+                                .requestMatchers("/login/oauth2/code/**").permitAll()
+                                .requestMatchers("/oauth2/authorization/**").permitAll()
+                                .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers("/oauth-signup").permitAll()
                                 .requestMatchers("/api/members/login", "/api/members/signup", "/api/members/email/**").permitAll()
+                                .requestMatchers("/api/members/oauth-signup").permitAll()
                                 .requestMatchers("/api/members/email/find", "/api/members/password/find").permitAll()
                                 .requestMatchers("/api/members/nickname/check").permitAll()
                                 .requestMatchers("/api/users/top-savers", "/api/users/top-challenges", "/api/users/average-saving", "/api/users/all-saving").permitAll()
@@ -67,7 +76,8 @@ public class SecurityConfig {
                     .userInfoEndpoint(userInfo -> userInfo
                         .userService(customOAuth2UserService)
                     )
-                    // .successHandler(customOAuth2SuccessHandler()) // 필요시 JWT 발급 등 후처리 연결
+                    .successHandler(customOAuth2SuccessHandler)
+                    .failureHandler(customOAuth2FailureHandler)
                 )
         ;
         return http.build();

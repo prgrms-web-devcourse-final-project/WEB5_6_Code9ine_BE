@@ -1,19 +1,16 @@
 package com.grepp.spring.app.model.store.service;
 
-import com.grepp.spring.app.model.festival.model.DetailFestivalPlaceResponse;
 import com.grepp.spring.app.model.festival.repos.FestivalRepository;
-import com.grepp.spring.app.model.library.model.DetailLibraryPlaceResponse;
 import com.grepp.spring.app.model.library.repos.LibraryRepository;
-import com.grepp.spring.app.model.store.dto.DetailPlaceResponse;
-import com.grepp.spring.app.model.store.dto.DetailStorePlaceResponse;
-import com.grepp.spring.app.model.store.dto.PlaceResponse;
-import com.grepp.spring.app.model.store.dto.RegionResponse;
+import com.grepp.spring.app.model.store.domain.Store;
+import com.grepp.spring.app.model.store.dto.*;
 import com.grepp.spring.app.model.store.repos.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -68,5 +65,22 @@ public class StoreSearchService {
         } else {
             throw new IllegalArgumentException("해당하는 type이 없습니다.");
         }
+    }
+
+
+    public List<RandomStroeResponse> getRandomStore() {
+        List<Store> stores = storeRepository.findByRandomStore(); // 여러 Store 반환
+
+        return stores.stream()
+                .map(store -> new RandomStroeResponse(
+                        store.getName(),
+                        store.getLocation(),
+                        store.getAddress(),
+                        store.getCategory(),
+                        store.getContact(),
+                        store.getFirstMenu(),
+                        store.getFirstPrice()
+                ))
+                .collect(Collectors.toList());
     }
 }

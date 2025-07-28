@@ -11,30 +11,31 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SwaggerConfig {
-    
+
     @Bean
     public OpenAPI openApiSpec() {
         return new OpenAPI()
-                   .info(new Info()
-                             .title("API 문서")
-                             .description("API 명세입니다.")
-                             .version("v1.0.0"))
-                   .addServersItem(new Server().url("https://titae.cedartodo.uk"))
-                   .components(
-                       new Components()
-                           .addSecuritySchemes("bearerAuth"
-                               , new SecurityScheme()
-                                     .name("bearerAuth")
-                                     .type(
-                                         SecurityScheme.Type.HTTP)
-                                     .scheme(
-                                         "bearer")
-                                     .bearerFormat(
-                                         "JWT")
-                                     .description(
-                                         "JWT 토큰을 입력하세요. Bearer 는 생략하세요")
-                           ))
-                   .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
-        
+                .info(new Info()
+                        .title("API 문서")
+                        .description("API 명세입니다.")
+                        .version("v1.0.0"))
+                .addServersItem(new Server().url("https://titae.cedartodo.uk"))
+                .addServersItem(new Server().url("http://localhost:8083"))
+                .components(
+                        new Components()
+                                .addSecuritySchemes("bearerAuth"
+                                        , new SecurityScheme()
+                                                .name("bearerAuth")
+                                                .type(
+                                                        SecurityScheme.Type.HTTP)
+                                                .scheme(
+                                                        "bearer")
+                                                .bearerFormat(
+                                                        "JWT")
+                                                .description(
+                                                        "JWT 토큰을 입력하세요. Bearer 는 생략하세요")
+                                ))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+
     }
 }

@@ -45,10 +45,15 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         if (memberOpt.isEmpty()) {
             // 신규 회원인 경우 - 추가 정보 입력 페이지로 리다이렉트
             log.info("OAuth2 신규 회원: {} - 추가 정보 입력 페이지로 리다이렉트", email);
-            String targetUrl = UriComponentsBuilder.fromUriString("https://titae.cedartodo.uk/oauth-signup")
+            
+            // OAuth2User attribute를 안전하게 가져오기
+            String name = String.valueOf(oAuth2User.getAttribute("name"));
+            String picture = String.valueOf(oAuth2User.getAttribute("picture"));
+            
+            String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/login/google")
                     .queryParam("email", email)
-                    .queryParam("name", String.valueOf(oAuth2User.getAttribute("name")))
-                    .queryParam("picture", String.valueOf(oAuth2User.getAttribute("picture")))
+                    .queryParam("name", name)
+                    .queryParam("profileImage", picture)
                     .queryParam("provider", "google")
                     .build().toUriString();
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
@@ -69,7 +74,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
             TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getExpiresIn()).toString());
         
         // 프론트엔드 메인 페이지로 리다이렉트 (토큰 정보 포함)
-        String targetUrl = UriComponentsBuilder.fromUriString("https://titae.cedartodo.uk")
+        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000")
                 .queryParam("access_token", tokenDto.getAccessToken())
                 .queryParam("refresh_token", tokenDto.getRefreshToken())
                 .queryParam("expires_in", tokenDto.getExpiresIn())

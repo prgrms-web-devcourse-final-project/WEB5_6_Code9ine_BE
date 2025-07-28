@@ -919,7 +919,7 @@ public class MemberController {
     private List<Map<String, Object>> addBookmarkAndLikeStatusToPosts(List<Map<String, Object>> posts, Long currentUserId) {
         return posts.stream().map(post -> {
             Map<String, Object> postWithBookmarkStatus = new HashMap<>(post);
-            Long postId = Long.valueOf(post.get("postid").toString());
+            Long postId = Long.valueOf(post.get("postId").toString()); // postid → postId로 수정
             
             // 현재 사용자가 해당 게시글을 북마크했는지 확인
             boolean isBookmarkedByCurrentUser = communityService.isPostBookmarkedByUser(postId, currentUserId);

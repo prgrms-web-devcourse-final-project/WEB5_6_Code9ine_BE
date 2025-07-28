@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -34,6 +35,9 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     private final MemberRepository memberRepository;
     private final UserDetailsServiceImpl userDetailsService;
 
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                       Authentication authentication) throws IOException {
@@ -54,7 +58,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
             String name = getAttributeSafely(oAuth2User, "name");
             String picture = getAttributeSafely(oAuth2User, "picture");
             
-            String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/login/google")
+            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/login/google")
                     .queryParam("email", email)
                     .queryParam("name", name)
                     .queryParam("profileImage", picture)
@@ -80,7 +84,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
             TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getExpiresIn()).toString());
         
         // /login/googleauth로 리다이렉트 (토큰 정보를 URL 파라미터로 전달)
-        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/login/googleauth")
+        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/login/googleauth")
                 .queryParam("access_token", tokenDto.getAccessToken())
                 .queryParam("refresh_token", tokenDto.getRefreshToken())
                 .queryParam("expires_in", tokenDto.getExpiresIn())

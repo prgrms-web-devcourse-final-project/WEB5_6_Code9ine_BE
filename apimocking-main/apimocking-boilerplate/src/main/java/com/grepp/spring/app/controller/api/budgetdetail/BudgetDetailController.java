@@ -57,18 +57,18 @@ public class BudgetDetailController {
 
     @Operation(summary = "날짜별 내역 조회")
     @GetMapping("/detail")
-    public ApiResponse<BudgetDetailResponseDto> getBudgetDetail(@AuthenticationPrincipal UserDetails userDetails, @RequestParam("date") String date) {
+    public ApiResponse<BudgetDetailResponseDto> getBudgetDetail(@AuthenticationPrincipal Principal principal, @RequestParam("date") String date) {
 
-        BudgetDetailResponseDto response = budgetDetailService.findBudgetDetailByDate(userDetails.getUsername(),date);
+        BudgetDetailResponseDto response = budgetDetailService.findBudgetDetailByDate(principal.getUsername(),date);
         return ApiResponse.success(response);
     }
 
 
     @Operation(summary = "날짜별 내역 추가")
     @PostMapping("/detail")
-    public ApiResponse<Void> addBudgetDetail(@AuthenticationPrincipal UserDetails userDetails, @RequestBody BudgetDetailRequestDTO dto) {
+    public ApiResponse<Void> addBudgetDetail(@AuthenticationPrincipal Principal principal, @RequestBody BudgetDetailRequestDTO dto) {
 
-        budgetDetailService.registerBudgetDetail(userDetails.getUsername(),dto);
+        budgetDetailService.registerBudgetDetail(principal.getUsername(),dto);
         return ApiResponse.noContent();
     }
 

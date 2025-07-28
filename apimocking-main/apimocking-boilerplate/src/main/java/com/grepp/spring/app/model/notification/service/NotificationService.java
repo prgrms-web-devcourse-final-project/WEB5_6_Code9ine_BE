@@ -82,9 +82,9 @@ public class NotificationService {
         return notification;
     }
 
-    // 좋아요 알림 조회
+    // 좋아요 알림 조회 (읽지 않은 알림만)
     public List<LikeNotificationResponse> getLikeNotifications(Long memberId) {
-        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberId, "LIKE");
+        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndIsReadFalseAndActivatedTrue(memberId, "LIKE");
         
         return notifications.stream()
                 .map(notification -> new LikeNotificationResponse(
@@ -97,9 +97,9 @@ public class NotificationService {
                 .toList();
     }
 
-    // 댓글 알림 조회
+    // 댓글 알림 조회 (읽지 않은 알림만)
     public List<CommentNotificationResponse> getCommentNotifications(Long memberId) {
-        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberId, "COMMENT");
+        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndIsReadFalseAndActivatedTrue(memberId, "COMMENT");
         
         return notifications.stream()
                 .map(notification -> new CommentNotificationResponse(
@@ -112,9 +112,9 @@ public class NotificationService {
                 .toList();
     }
 
-    // 칭호 획득 알림 조회
+    // 칭호 획득 알림 조회 (읽지 않은 알림만)
     public List<TitleNotificationResponse> getTitleNotifications(Long memberId) {
-        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndActivatedTrue(memberId, "TITLE");
+        List<Notification> notifications = notificationRepository.findByMemberMemberIdAndTypeAndIsReadFalseAndActivatedTrue(memberId, "TITLE");
         
         return notifications.stream()
                 .map(notification -> new TitleNotificationResponse(
@@ -232,6 +232,16 @@ public class NotificationService {
         notification.setIsRead(true);
         notification.setModifiedAt(LocalDateTime.now());
         notificationRepository.save(notification);
+    }
+
+    // 특정 타입의 모든 알림 읽음 처리
+    public void markAllNotificationsAsReadByType(Long memberId, String type) {
+        int updatedCount = notificationRepository.markAllNotificationsAsReadByType(
+            memberId, type, LocalDateTime.now());
+        
+        if (updatedCount == 0) {
+            throw new NotFoundException("해당 타입의 읽지 않은 알림이 없습니다.");
+        }
     }
 
 }

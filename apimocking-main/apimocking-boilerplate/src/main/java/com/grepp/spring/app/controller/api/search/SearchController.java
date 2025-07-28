@@ -3,6 +3,7 @@ package com.grepp.spring.app.controller.api.search;
 import com.grepp.spring.app.model.festival.model.DetailFestivalPlaceResponse;
 import com.grepp.spring.app.model.store.dto.DetailPlaceResponse;
 import com.grepp.spring.app.model.store.dto.PlaceResponse;
+import com.grepp.spring.app.model.store.dto.RandomStroeResponse;
 import com.grepp.spring.app.model.store.dto.RegionResponse;
 import com.grepp.spring.app.model.store.service.StoreSearchService;
 import com.grepp.spring.infra.response.ApiResponse;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -85,5 +87,11 @@ public class SearchController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.error(ResponseCode.NOT_FOUND));
         }
+    }
+
+    @GetMapping("/places/random")
+    public ResponseEntity<List<RandomStroeResponse>> getRandomPlace() {
+        List<RandomStroeResponse> result = storeSearchService.getRandomStore();
+        return ResponseEntity.ok(result);
     }
 }

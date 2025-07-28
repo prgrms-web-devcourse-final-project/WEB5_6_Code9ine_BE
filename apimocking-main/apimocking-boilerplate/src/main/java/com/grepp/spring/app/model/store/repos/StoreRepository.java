@@ -34,4 +34,7 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
 
     // 관리자 지정 카테고리로 활성화된 모든 가게 조회
     Page<Store> findAllByCategoryAndActivatedTrue(String category, Pageable pageable);
+
+    @Query(value = "SELECT * FROM store ORDER BY RANDOM() LIMIT 5", nativeQuery = true)
+    List<Store> findByRandomStore();
 }

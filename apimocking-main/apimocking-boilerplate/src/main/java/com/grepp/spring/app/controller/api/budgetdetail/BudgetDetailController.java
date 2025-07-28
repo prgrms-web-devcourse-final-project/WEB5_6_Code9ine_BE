@@ -1,5 +1,6 @@
 package com.grepp.spring.app.controller.api.budgetdetail;
 
+import com.google.protobuf.Api;
 import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailDto;
 import com.grepp.spring.app.model.budget_detail.model.BudgetDetailRequestDTO;
@@ -8,6 +9,7 @@ import com.grepp.spring.app.model.budget_detail.model.TotalBudgetDetailResponseD
 import com.grepp.spring.app.model.budget_detail.model.UpdatedBudgetDetailResponseDto;
 import com.grepp.spring.app.model.budget_detail.service.BudgetDetailService;
 import com.grepp.spring.infra.response.ApiResponse;
+import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -64,35 +66,36 @@ public class BudgetDetailController {
 
     @Operation(summary = "날짜별 내역 추가")
     @PostMapping("/detail")
-    public ApiResponse<?> addBudgetDetail(@AuthenticationPrincipal UserDetails userDetails, @RequestBody BudgetDetailRequestDTO dto) {
+    public ApiResponse<Void> addBudgetDetail(@AuthenticationPrincipal UserDetails userDetails, @RequestBody BudgetDetailRequestDTO dto) {
 
         budgetDetailService.registerBudgetDetail(userDetails.getUsername(),dto);
-        return new ApiResponse<>("2000", "내역추가되었습니다", null);
+        return ApiResponse.noContent();
     }
 
     @Operation(summary = "날짜별 내역 수정")
     @PatchMapping("/detail/{detail_id}")
-    public ApiResponse<?> updateBudgetDetail(@AuthenticationPrincipal Principal principal,
+    public ApiResponse<UpdatedBudgetDetailResponseDto> updateBudgetDetail(@AuthenticationPrincipal Principal principal,
                                              @PathVariable("detail_id") Long id,
                                              @RequestBody BudgetDetailRequestDTO dto) {
 
         UpdatedBudgetDetailResponseDto updatedExpenseResponseDto = budgetDetailService.updateBudgetDetail(principal.getMemberId(), id, dto);
-        return new ApiResponse<>("2000", "내역이 수정되었습니다.", updatedExpenseResponseDto);
+        return ApiResponse.success(updatedExpenseResponseDto);
     }
 
     @Operation(summary = "날짜별 내역 삭제")
     @DeleteMapping("/detail/{detail_id}")
-    public ApiResponse<?> deleteBudgetDetail(@AuthenticationPrincipal Principal principal, @PathVariable("detail_id") Long id) {
+    public ApiResponse<Void> deleteBudgetDetail(@AuthenticationPrincipal Principal principal, @PathVariable("detail_id") Long id) {
 
         budgetDetailService.deleteBudgetDetail(principal.getMemberId(),id);
-        return new ApiResponse<>("2000", "내역삭제되었습니다", null);
+        return ApiResponse.noContent();
     }
 
     @Operation(summary = "날짜별 지출 없음 등록")
     @PostMapping("/noexpenses")
-    public ApiResponse<?> noExpense(@AuthenticationPrincipal Principal principal) {
+    public ApiResponse<Void> noExpense(@AuthenticationPrincipal Principal principal) {
 
-        return budgetDetailService.registerNoExpense(principal.getMemberId());
+        budgetDetailService.registerNoExpense(principal.getMemberId());
+        return ApiResponse.noContent();
     }
 
 }

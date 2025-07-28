@@ -15,7 +15,9 @@ import com.grepp.spring.app.model.challenge_count.domain.ChallengeCount;
 import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
+import com.grepp.spring.infra.error.exceptions.CommonException;
 import com.grepp.spring.infra.response.ApiResponse;
+import com.grepp.spring.infra.response.ResponseCode;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -44,7 +46,7 @@ public class BudgetDetailService {
     public BudgetDetailResponseDto findBudgetDetailByDate(String username, String date) {
 
         Member member = memberRepository.findByEmail(username)
-            .orElseThrow(() -> new RuntimeException("해당 ID의 회원이 존재하지 않습니다."));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_MEMBER));
 
         // 해당 날짜의 Budget이 없을 경우 빈 리스트 반환
         Optional<Budget> optionalBudget = budgetRepository.findByDateWithDetails(LocalDate.parse(date), member);
@@ -67,7 +69,7 @@ public class BudgetDetailService {
     public void registerBudgetDetail(String username, BudgetDetailRequestDTO dto) {
 
         Member member = memberRepository.findByEmail(username)
-            .orElseThrow(() -> new RuntimeException("해당 ID의 회원이 존재하지 않습니다."));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_MEMBER));
 
         // 1. 해당 날짜의 가계부(Budget) 조회
         Budget budget = budgetRepository.findByDateAndMember(LocalDate.parse(dto.getDate()), member)
@@ -116,7 +118,7 @@ public class BudgetDetailService {
 
         // 1. 수정할 BudgetDetail 엔티티 조회
         BudgetDetail budgetDetail = budgetDetailRepository.findById(detailId)
-            .orElseThrow(() -> new RuntimeException("해당 지출 내역이 존재하지 않습니다."));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_DETAIL));
 
         Budget oldBudget = budgetDetail.getBudget();
         Member member = oldBudget.getMember();
@@ -190,10 +192,10 @@ public class BudgetDetailService {
     public void deleteBudgetDetail(Long memberId, Long detailId) {
 
         Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_MEMBER));
 
         BudgetDetail detail = budgetDetailRepository.findById(detailId)
-            .orElseThrow(() -> new RuntimeException("해당 지출 내역이 존재하지 않습니다."));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_DETAIL));
 
         Budget budget = detail.getBudget();
         budget.minusBudgetTotal(detail.getType(), detail.getPrice());
@@ -235,9 +237,9 @@ public class BudgetDetailService {
     }
 
     @Transactional
-    public ApiResponse<String> registerNoExpense(Long memberId) {
+    public void registerNoExpense(Long memberId) {
         Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_MEMBER));
 
         LocalDate today = LocalDate.now();
 
@@ -246,11 +248,11 @@ public class BudgetDetailService {
 
         if (budget != null) {
             if (budget.getTotalExpense().compareTo(BigDecimal.ZERO) == 0) {
-                return new ApiResponse<>("4040", "오늘은 이미 지출 없음 등록이 되어있습니다.", null);
+                throw new CommonException(ResponseCode.ALREADY_REGISTERED_NO_EXPENSE);
             }
 
             if (budget.getTotalExpense().compareTo(BigDecimal.ZERO) > 0) {
-                return new ApiResponse<>("4040", "오늘은 지출이 등록되어있습니다. 확인해주세요.", null);
+                throw new CommonException(ResponseCode.ALREADY_REGISTERED_EXPENSE);
             }
 
             handle_under10000Challenge(member, budget, false, true);
@@ -274,9 +276,6 @@ public class BudgetDetailService {
             challengeService.handle_oneMonthAccountChallenge(member);
             challengeService.handle_saveMoneyChallenge(member);
 
-            return new ApiResponse<>("2000", "지출 없음으로 등록되었습니다.", null);
-
-
     }
 
 
@@ -285,7 +284,7 @@ public class BudgetDetailService {
 
         LocalDate today = LocalDate.now();
         Challenge challenge = challengeRepository.findByname("만원의 행복")
-            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_CHALLENGE));
 
         // 이미 오늘 생성된 ChallengeCount가 있는지 확인
         Optional<ChallengeCount> existingCount = getChallengeCount(
@@ -320,7 +319,7 @@ public class BudgetDetailService {
 
         LocalDate today = LocalDate.now();
         Challenge challenge = challengeRepository.findByname("소비 단식러")
-            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_CHALLENGE));
 
         Optional<ChallengeCount> existingCount = getChallengeCount(
             member, challenge, today);
@@ -355,7 +354,7 @@ public class BudgetDetailService {
 
         LocalDate today = LocalDate.now();
         Challenge challenge = challengeRepository.findByname("강철 다리")
-            .orElseThrow(() -> new RuntimeException("챌린지 정보 없음"));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_CHALLENGE));
 
         Optional<ChallengeCount> existingCount = getChallengeCount(
             member, challenge, today);

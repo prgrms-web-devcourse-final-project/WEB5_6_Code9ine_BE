@@ -7,6 +7,8 @@ import com.grepp.spring.app.model.budget.repos.BudgetRepository;
 import com.grepp.spring.app.model.budget_detail.repos.BudgetDetailRepository;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
+import com.grepp.spring.infra.error.exceptions.CommonException;
+import com.grepp.spring.infra.response.ResponseCode;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -27,7 +29,7 @@ public class BudgetAnalyzeService {
 
     public List<BudgetMonthlyExpense> getMonthlyExpense(String username) {
         Member member = memberRepository.findByEmail(username)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_MEMBER));
 
         LocalDate now = LocalDate.now();
         LocalDate start = now.minusMonths(5).withDayOfMonth(1);  // 6개월 전 첫날
@@ -77,7 +79,7 @@ public class BudgetAnalyzeService {
 
     public BudgetGoal getMemberGoal(Long memberId) {
         Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new RuntimeException("해당 회원을 찾을 수 없습니다."));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND_MEMBER));
 
         return new BudgetGoal(
             member.getGoalStuff(),

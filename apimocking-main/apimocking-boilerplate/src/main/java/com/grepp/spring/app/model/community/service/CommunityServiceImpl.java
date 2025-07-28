@@ -430,7 +430,7 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getMyPosts(Long memberId) {
-        List<CommunityPost> posts = communityRepository.findByMember_MemberIdAndActivatedIsTrueAndMember_ActivatedTrue(memberId);
+        List<CommunityPost> posts = communityRepository.findByMember_MemberIdAndActivatedIsTrueAndMember_ActivatedTrueOrderByCreatedAtDesc(memberId);
         
         return posts.stream()
             .map(post -> {
@@ -482,13 +482,13 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getBookmarkedPosts(Long memberId) {
-        List<CommunityBookmark> bookmarks = bookmarkRepository.findByMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(memberId);
+        List<CommunityBookmark> bookmarks = bookmarkRepository.findByMember_MemberIdAndActivatedTrueAndMember_ActivatedTrueOrderByCreatedAtDesc(memberId);
         
         return bookmarks.stream()
             .map(bookmark -> {
                 CommunityPost post = bookmark.getPost();
                 Map<String, Object> postMap = new HashMap<>();
-                postMap.put("postid", post.getPostId());
+                postMap.put("postId", post.getPostId());
                 postMap.put("memberId", post.getMember().getMemberId());
                 postMap.put("category", post.getCategory().toString());
                 postMap.put("challengeCategory", post.getChallenge() != null ? post.getChallenge().toString() : null);

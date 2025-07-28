@@ -13,6 +13,6 @@ public interface CommunityBookmarkRepository extends JpaRepository<CommunityBook
     // 커뮤니티 북마크 활성화 여부
     boolean existsByPost_PostIdAndMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(Long postId, Long memberId);
 
-    // 내가 북마크한 게시글 목록 조회
-    List<CommunityBookmark> findByMember_MemberIdAndActivatedTrueAndMember_ActivatedTrue(Long memberId);
+    // 내가 북마크한 게시글 목록 조회 (최신순 정렬)
+    List<CommunityBookmark> findByMember_MemberIdAndActivatedTrueAndMember_ActivatedTrueOrderByCreatedAtDesc(Long memberId);
 }

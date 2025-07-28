@@ -571,18 +571,18 @@ public class ChallengeService {
         // 경험치 추가
         postWriter.setTotalExp(postWriter.getTotalExp() + 100);
 
+        // 획득한 칭호 저장
+        AchievedTitle achievedTitle = createAchievedTitle(postWriter, challenge);
+
         // 알림 전송
         notificationService.createNotification(new NotificationService.NotificationCreateRequest(
             postWriter.getMemberId(),
-            0L,
+            achievedTitle.getATId(),
             "TITLE",
             null,
             null,
             challenge.getName()
         ));
-
-        // 획득한 칭호 저장
-        createAchievedTitle(postWriter, challenge);
     }
 
     // 숨은 맛집 탐방 챌린지 달성 여부 확인 메서드
@@ -634,25 +634,26 @@ public class ChallengeService {
             // 경험치 추가
             postWriter.setTotalExp(postWriter.getTotalExp() + 100);
 
+            // 획득한 칭호 저장
+            AchievedTitle achievedTitle = createAchievedTitle(postWriter, challenge);
+
             // 알림 전송
             notificationService.createNotification(new NotificationService.NotificationCreateRequest(
                 postWriter.getMemberId(),
-                0L,
+                achievedTitle.getATId(),
                 "TITLE",
                 null,
                 null,
                 challenge.getName()
             ));
 
-            // 획득한 칭호 저장
-            createAchievedTitle(postWriter, challenge);
         }
     }
 
     // achieved_title 테이블 데이터 삽입
-    private void createAchievedTitle(Member member, Challenge challenge) {
+    private AchievedTitle createAchievedTitle(Member member, Challenge challenge) {
         boolean alreadyExists = achievedTitleRepository.existsByMemberAndChallenge(member, challenge);
-        if (alreadyExists) return;
+        if (alreadyExists) return null;
 
         AchievedTitle achievedTitle = new AchievedTitle();
         achievedTitle.setName(challenge.getName()); // 칭호 이름
@@ -662,7 +663,7 @@ public class ChallengeService {
         achievedTitle.setMember(member);
         achievedTitle.setIcon(challenge.getIcon());
 
-        achievedTitleRepository.save(achievedTitle);
+        return achievedTitleRepository.save(achievedTitle);
     }
 
     // 챌린지 카테고리 이름 맵핑

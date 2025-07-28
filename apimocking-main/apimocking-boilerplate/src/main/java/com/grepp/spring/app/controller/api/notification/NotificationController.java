@@ -59,11 +59,13 @@ public class NotificationController {
         public String message;
         public boolean read;
         public String type;
-        public TitleNotificationResponse(Long notificationId, String message, boolean read, String type) {
+        public Long aTId; // 획득한 칭호의 aTId 추가
+        public TitleNotificationResponse(Long notificationId, String message, boolean read, String type, Long aTId) {
             this.notificationId = notificationId;
             this.message = message;
             this.read = read;
             this.type = type;
+            this.aTId = aTId;
         }
     }
     public static class CreateNotificationRequest {

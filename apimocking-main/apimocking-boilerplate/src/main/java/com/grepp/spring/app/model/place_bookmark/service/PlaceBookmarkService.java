@@ -252,10 +252,27 @@ public class PlaceBookmarkService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException("멤버를 찾을 수 없습니다."));
         
-        Optional<PlaceBookmark> bookmark = placeBookmarkRepository.findByMemberAndPlaceIdAndPlaceTypeAndActivatedTrue(
-                member, placeId, placeType);
-        
-        return bookmark.isPresent();
+        switch (placeType.toLowerCase()) {
+            case "store" -> {
+                Store store = storeRepository.findById(Long.valueOf(placeId))
+                        .orElse(null);
+                if (store == null) return false;
+                return placeBookmarkRepository.existsByMemberAndStore(member, store);
+            }
+            case "festival" -> {
+                Festival festival = festivalRepository.findById(Long.valueOf(placeId))
+                        .orElse(null);
+                if (festival == null) return false;
+                return placeBookmarkRepository.existsByMemberAndFestival(member, festival);
+            }
+            case "library" -> {
+                Library library = libraryRepository.findById(Long.valueOf(placeId))
+                        .orElse(null);
+                if (library == null) return false;
+                return placeBookmarkRepository.existsByMemberAndLibrary(member, library);
+            }
+            default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다: " + placeType);
+        }
     }
 
 }

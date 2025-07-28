@@ -45,11 +45,4 @@ public interface PlaceBookmarkRepository extends JpaRepository<PlaceBookmark, Lo
 
     // 특정 멤버의 특정 도서관 북마크 존재 여부 확인
     boolean existsByMemberAndLibrary(Member member, Library library);
-    
-    // 특정 사용자가 특정 장소를 북마크했는지 확인 (placeId와 placeType으로 조회)
-    @Query("SELECT pb FROM PlaceBookmark pb WHERE pb.member = :member AND pb.placeId = :placeId AND pb.placeType = :placeType AND pb.activated = true")
-    Optional<PlaceBookmark> findByMemberAndPlaceIdAndPlaceTypeAndActivatedTrue(
-            @Param("member") Member member, 
-            @Param("placeId") String placeId, 
-            @Param("placeType") String placeType);
 }

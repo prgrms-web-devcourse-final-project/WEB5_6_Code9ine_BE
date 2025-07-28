@@ -58,4 +58,7 @@ public interface CommunityService {
     
     // 특정 사용자가 특정 게시글을 북마크했는지 확인
     boolean isPostBookmarkedByUser(Long postId, Long memberId);
+    
+    // 특정 사용자가 특정 게시글을 좋아요했는지 확인
+    boolean isPostLikedByUser(Long postId, Long memberId);
 }

@@ -813,7 +813,7 @@ public class MemberController {
 
 
 
-
+    //다른 유저 프로필 조회
     @GetMapping("/profile/{memberId}")
     @Operation(summary = "다른 유저 프로필 조회", description = "memberId로 다른 유저의 프로필 정보를 조회합니다. 마이페이지와 동일한 데이터 구조를 반환합니다.")
     public ResponseEntity<ApiResponse<MypageResponse>> getOtherMemberProfile(@PathVariable Long memberId) {
@@ -845,8 +845,8 @@ public class MemberController {
         List<Map<String, Object>> bookmarkedPlaces = placeBookmarkService.getMemberPlaceBookmarks(member.getMemberId());
         
         // 현재 로그인한 사용자의 북마크 상태를 각 게시글에 추가
-        List<Map<String, Object>> myPostsWithBookmarkStatus = addBookmarkStatusToPosts(myPosts, currentUser.getMemberId());
-        List<Map<String, Object>> bookmarkedPostsWithBookmarkStatus = addBookmarkStatusToPosts(bookmarkedPosts, currentUser.getMemberId());
+        List<Map<String, Object>> myPostsWithBookmarkStatus = addBookmarkAndLikeStatusToPosts(myPosts, currentUser.getMemberId());
+        List<Map<String, Object>> bookmarkedPostsWithBookmarkStatus = addBookmarkAndLikeStatusToPosts(bookmarkedPosts, currentUser.getMemberId());
         List<Map<String, Object>> bookmarkedPlacesWithBookmarkStatus = addBookmarkStatusToPlaces(bookmarkedPlaces, currentUser.getMemberId());
         
         String goalStuff = member.getGoalStuff();
@@ -911,14 +911,18 @@ public class MemberController {
     }
     
     // 게시글에 현재 사용자의 북마크 상태 추가
-    private List<Map<String, Object>> addBookmarkStatusToPosts(List<Map<String, Object>> posts, Long currentUserId) {
+    private List<Map<String, Object>> addBookmarkAndLikeStatusToPosts(List<Map<String, Object>> posts, Long currentUserId) {
         return posts.stream().map(post -> {
             Map<String, Object> postWithBookmarkStatus = new HashMap<>(post);
             Long postId = Long.valueOf(post.get("postid").toString());
             
             // 현재 사용자가 해당 게시글을 북마크했는지 확인
             boolean isBookmarkedByCurrentUser = communityService.isPostBookmarkedByUser(postId, currentUserId);
-            postWithBookmarkStatus.put("isBookmarkedByCurrentUser", isBookmarkedByCurrentUser);
+            postWithBookmarkStatus.put("isBookmarked", isBookmarkedByCurrentUser);
+            
+            // 현재 사용자가 해당 게시글을 좋아요했는지 확인
+            boolean isLikedByCurrentUser = communityService.isPostLikedByUser(postId, currentUserId);
+            postWithBookmarkStatus.put("isLiked", isLikedByCurrentUser);
             
             return postWithBookmarkStatus;
         }).toList();
@@ -936,7 +940,7 @@ public class MemberController {
             if (placeId != null) {
                 // 현재 사용자가 해당 장소를 북마크했는지 확인
                 boolean isBookmarkedByCurrentUser = placeBookmarkService.isPlaceBookmarkedByUser(placeId, placeType, currentUserId);
-                placeWithBookmarkStatus.put("isBookmarkedByCurrentUser", isBookmarkedByCurrentUser);
+                placeWithBookmarkStatus.put("isBookmarked", isBookmarkedByCurrentUser);
             }
             
             return placeWithBookmarkStatus;

@@ -245,5 +245,17 @@ public class PlaceBookmarkService {
             default -> throw new IllegalArgumentException("잘못된 장소 타입입니다.");
         }
     }
+    
+    // 특정 사용자가 특정 장소를 북마크했는지 확인
+    @Transactional(readOnly = true)
+    public boolean isPlaceBookmarkedByUser(String placeId, String placeType, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException("멤버를 찾을 수 없습니다."));
+        
+        Optional<PlaceBookmark> bookmark = placeBookmarkRepository.findByMemberAndPlaceIdAndPlaceTypeAndActivatedTrue(
+                member, placeId, placeType);
+        
+        return bookmark.isPresent();
+    }
 
 }

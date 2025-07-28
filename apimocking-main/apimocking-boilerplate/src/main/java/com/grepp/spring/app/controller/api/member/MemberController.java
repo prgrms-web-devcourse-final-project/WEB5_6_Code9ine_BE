@@ -823,17 +823,32 @@ public class MemberController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
         }
+        
+        // 현재 로그인한 사용자 정보 가져오기
+        String currentUserEmail = auth.getName();
+        Member currentUser = memberRepository.findByEmailIgnoreCase(currentUserEmail)
+                .orElseThrow(() -> new RuntimeException("현재 로그인한 사용자를 찾을 수 없습니다."));
+        
         // memberId로 멤버 조회
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
+        
         // 마이페이지와 동일한 데이터 구성
         int level = member.getLevel();
         int currentExp = member.getTotalExp() % 100;
         int nextLevelExp = 100;
         int expProgress = (int) ((double) currentExp / nextLevelExp * 100);
+        
+        // 다른 유저의 게시글과 북마크 정보 조회
         List<Map<String, Object>> myPosts = communityService.getMyPosts(member.getMemberId());
         List<Map<String, Object>> bookmarkedPosts = communityService.getBookmarkedPosts(member.getMemberId());
         List<Map<String, Object>> bookmarkedPlaces = placeBookmarkService.getMemberPlaceBookmarks(member.getMemberId());
+        
+        // 현재 로그인한 사용자의 북마크 상태를 각 게시글에 추가
+        List<Map<String, Object>> myPostsWithBookmarkStatus = addBookmarkStatusToPosts(myPosts, currentUser.getMemberId());
+        List<Map<String, Object>> bookmarkedPostsWithBookmarkStatus = addBookmarkStatusToPosts(bookmarkedPosts, currentUser.getMemberId());
+        List<Map<String, Object>> bookmarkedPlacesWithBookmarkStatus = addBookmarkStatusToPlaces(bookmarkedPlaces, currentUser.getMemberId());
+        
         String goalStuff = member.getGoalStuff();
         BigDecimal remainPrice = null;
         if (member.getGoalAmount() != null && member.getGoalStuff() != null) {
@@ -883,16 +898,49 @@ public class MemberController {
             currentExp,
             nextLevelExp,
             expProgress,
-            myPosts,
+            myPostsWithBookmarkStatus,
             goalStuff,
             remainPrice,
-            bookmarkedPosts,
-            bookmarkedPlaces,
+            bookmarkedPostsWithBookmarkStatus,
+            bookmarkedPlacesWithBookmarkStatus,
             equippedTitleDto,
             achievedTitles
         );
         MypageResponse response = new MypageResponse(data);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+    
+    // 게시글에 현재 사용자의 북마크 상태 추가
+    private List<Map<String, Object>> addBookmarkStatusToPosts(List<Map<String, Object>> posts, Long currentUserId) {
+        return posts.stream().map(post -> {
+            Map<String, Object> postWithBookmarkStatus = new HashMap<>(post);
+            Long postId = Long.valueOf(post.get("postid").toString());
+            
+            // 현재 사용자가 해당 게시글을 북마크했는지 확인
+            boolean isBookmarkedByCurrentUser = communityService.isPostBookmarkedByUser(postId, currentUserId);
+            postWithBookmarkStatus.put("isBookmarkedByCurrentUser", isBookmarkedByCurrentUser);
+            
+            return postWithBookmarkStatus;
+        }).toList();
+    }
+    
+    // 장소에 현재 사용자의 북마크 상태 추가
+    private List<Map<String, Object>> addBookmarkStatusToPlaces(List<Map<String, Object>> places, Long currentUserId) {
+        return places.stream().map(place -> {
+            Map<String, Object> placeWithBookmarkStatus = new HashMap<>(place);
+            String placeId = place.get("storeId") != null ? place.get("storeId").toString() : 
+                           place.get("festivalId") != null ? place.get("festivalId").toString() : 
+                           place.get("libraryId") != null ? place.get("libraryId").toString() : null;
+            String placeType = place.get("type").toString();
+            
+            if (placeId != null) {
+                // 현재 사용자가 해당 장소를 북마크했는지 확인
+                boolean isBookmarkedByCurrentUser = placeBookmarkService.isPlaceBookmarkedByUser(placeId, placeType, currentUserId);
+                placeWithBookmarkStatus.put("isBookmarkedByCurrentUser", isBookmarkedByCurrentUser);
+            }
+            
+            return placeWithBookmarkStatus;
+        }).toList();
     }
 
     // ===== 유틸리티 메서드 =====

@@ -55,7 +55,9 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
                     .queryParam("name", name)
                     .queryParam("profileImage", picture)
                     .queryParam("provider", "google")
-                    .build().toUriString();
+                    .build()
+                    .encode()
+                    .toUriString();
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
             return;
         }
@@ -78,7 +80,9 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
                 .queryParam("access_token", tokenDto.getAccessToken())
                 .queryParam("refresh_token", tokenDto.getRefreshToken())
                 .queryParam("expires_in", tokenDto.getExpiresIn())
-                .build().toUriString();
+                .build()
+                .encode()
+                .toUriString();
         
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }

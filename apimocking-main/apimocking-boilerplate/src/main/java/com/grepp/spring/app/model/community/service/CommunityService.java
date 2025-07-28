@@ -55,4 +55,7 @@ public interface CommunityService {
 
     // 내가 북마크한 게시글 목록 조회 (마이페이지용)
     List<Map<String, Object>> getBookmarkedPosts(Long memberId);
+    
+    // 특정 사용자가 특정 게시글을 북마크했는지 확인
+    boolean isPostBookmarkedByUser(Long postId, Long memberId);
 }

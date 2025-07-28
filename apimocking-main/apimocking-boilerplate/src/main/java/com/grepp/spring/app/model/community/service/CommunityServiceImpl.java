@@ -488,7 +488,7 @@ public class CommunityServiceImpl implements CommunityService {
             .map(bookmark -> {
                 CommunityPost post = bookmark.getPost();
                 Map<String, Object> postMap = new HashMap<>();
-                postMap.put("postid", post.getPostId());
+                postMap.put("postId", post.getPostId());
                 postMap.put("memberId", post.getMember().getMemberId());
                 postMap.put("category", post.getCategory().toString());
                 postMap.put("challengeCategory", post.getChallenge() != null ? post.getChallenge().toString() : null);

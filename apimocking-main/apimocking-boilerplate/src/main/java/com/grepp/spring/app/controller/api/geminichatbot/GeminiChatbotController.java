@@ -44,24 +44,31 @@ public class GeminiChatbotController {
         // 요청 횟수 체크
         if (!checkAndIncrementRequestCount(memberId)) {
             return ResponseEntity.ok(Map.of(
-                "spendingPattern", "하루에 최대 3번까지만 요청할 수 있습니다.",
-                "savingFeedback", "하루에 최대 3번까지만 요청할 수 있습니다.",
-                "spendingTips", "하루에 최대 3번까지만 요청할 수 있습니다."
+                "highestSpendingCategory", "하루에 최대 3번까지만 요청할 수 있습니다.",
+                "overIncomeSpending", "하루에 최대 3번까지만 요청할 수 있습니다.",
+                "aboveAverageSpending", "하루에 최대 3번까지만 요청할 수 있습니다.",
+                "savingTips", "하루에 최대 3번까지만 요청할 수 있습니다.",
+                "savableCategories", "하루에 최대 3번까지만 요청할 수 있습니다.",
+                "moneySavingAreas", "하루에 최대 3번까지만 요청할 수 있습니다."
             ));
         }
         
         try {
             String spendingData = geminiChatbotService.getSpendingDataForLastMonth(memberId);
-            String prompt = buildGeminiPrompt(spendingData);
+            String averageData = geminiChatbotService.getAverageSpendingByCategory();
+            String prompt = buildGeminiPrompt(spendingData, averageData);
             String geminiResponse = callGemini(prompt, geminiApiKey);
             String message = extractGeminiText(geminiResponse);
             Map<String, String> messages = splitGeminiMessages(message);
             return ResponseEntity.ok(messages);
         } catch (Exception e) {
             return ResponseEntity.ok(Map.of(
-                "spendingPattern", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.",
-                "savingFeedback", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.",
-                "spendingTips", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요."
+                "highestSpendingCategory", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.",
+                "overIncomeSpending", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.",
+                "aboveAverageSpending", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.",
+                "savingTips", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.",
+                "savableCategories", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.",
+                "moneySavingAreas", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요."
             ));
         }
     }
@@ -83,13 +90,19 @@ public class GeminiChatbotController {
         return true; // 요청 가능
     }
 
-    private static String buildGeminiPrompt(String spendingData) {
+    private static String buildGeminiPrompt(String spendingData, String averageData) {
         return "아래는 사용자의 최근 한 달 지출 내역입니다.\n" +
                 spendingData +
-                "\n1. 전체 소비 패턴을 한 문단으로 요약해줘.\n" +
-                "2. 절약 정도에 대한 피드백을 한 문단으로 줘.\n" +
-                "3. 지출이 많은 부분을 줄일 수 있는 구체적인 팁을 한 문단으로 알려줘.\n" +
-                "각 답변은 반드시 '1.', '2.', '3.'으로 시작하는 줄로 구분해서 출력해줘.";
+                "\n\n전체 사용자 카테고리별 평균 지출:\n" +
+                averageData +
+                "\n\n다음 질문에 답변해주세요:\n" +
+                "1. 어떤 분야에서 가장 많은 돈을 쓰고 있나요?\n" +
+                "2. 어떤 분야에서 수입보다 더 많은 돈을 쓰고 있나요?\n" +
+                "3. 어떤 분야에서 다른 사람들보다 더 많은 돈을 쓰고 있나요? (예: '평균 사용자 식비는 10만원이고, 당신의 식비는 15만원으로 평균보다 5만원 더 많이 씁니다')\n" +
+                "4. 절약 팁을 알려주세요.\n" +
+                "5. 어떤 카테고리에서 절약할 수 있을까요?\n" +
+                "6. 어디서 돈을 절약할 수 있을까요?\n" +
+                "각 답변은 반드시 '1.', '2.', '3.', '4.', '5.', '6.'으로 시작하는 줄로 구분해서 출력해주세요.";
     }
 
     private static String callGemini(String prompt, String apiKey) throws IOException, InterruptedException {
@@ -120,17 +133,23 @@ public class GeminiChatbotController {
 
     private static Map<String, String> splitGeminiMessages(String geminiText) {
         Map<String, String> result = new java.util.HashMap<>();
-        String[] parts = geminiText.split("(?=\\n?\\d\\.)"); // "1.", "2.", "3." 앞에서 분리
+        String[] parts = geminiText.split("(?=\\n?\\d\\.)"); // "1.", "2.", "3.", "4.", "5.", "6." 앞에서 분리
         for (String part : parts) {
             String trimmed = part.trim();
-            if (trimmed.startsWith("1.")) result.put("spendingPattern", trimmed.substring(2).trim());
-            else if (trimmed.startsWith("2.")) result.put("savingFeedback", trimmed.substring(2).trim());
-            else if (trimmed.startsWith("3.")) result.put("spendingTips", trimmed.substring(2).trim());
+            if (trimmed.startsWith("1.")) result.put("highestSpendingCategory", trimmed.substring(2).trim());
+            else if (trimmed.startsWith("2.")) result.put("overIncomeSpending", trimmed.substring(2).trim());
+            else if (trimmed.startsWith("3.")) result.put("aboveAverageSpending", trimmed.substring(2).trim());
+            else if (trimmed.startsWith("4.")) result.put("savingTips", trimmed.substring(2).trim());
+            else if (trimmed.startsWith("5.")) result.put("savableCategories", trimmed.substring(2).trim());
+            else if (trimmed.startsWith("6.")) result.put("moneySavingAreas", trimmed.substring(2).trim());
         }
         // 혹시 누락된 항목이 있으면 기본 메시지로 채움
-        if (!result.containsKey("spendingPattern")) result.put("spendingPattern", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.");
-        if (!result.containsKey("savingFeedback")) result.put("savingFeedback", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.");
-        if (!result.containsKey("spendingTips")) result.put("spendingTips", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.");
+        if (!result.containsKey("highestSpendingCategory")) result.put("highestSpendingCategory", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.");
+        if (!result.containsKey("overIncomeSpending")) result.put("overIncomeSpending", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.");
+        if (!result.containsKey("aboveAverageSpending")) result.put("aboveAverageSpending", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.");
+        if (!result.containsKey("savingTips")) result.put("savingTips", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.");
+        if (!result.containsKey("savableCategories")) result.put("savableCategories", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.");
+        if (!result.containsKey("moneySavingAreas")) result.put("moneySavingAreas", "Gemini 응답 생성에 실패했습니다. 다시 시도해주세요.");
         return result;
     }
 } 

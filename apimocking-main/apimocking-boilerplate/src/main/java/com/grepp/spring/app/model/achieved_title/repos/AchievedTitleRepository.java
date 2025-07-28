@@ -23,4 +23,8 @@ public interface AchievedTitleRepository extends JpaRepository<AchievedTitle, Lo
     @Query("SELECT new com.grepp.spring.app.model.achieved_title.model.AchievedTitleDTO(a.challenge.challengeId, a.name, a.minCount,a.icon) " +
         "FROM AchievedTitle a WHERE a.member.memberId = :memberId")
     List<AchievedTitleDTO> findDtoByMemberId(@Param("memberId") Long memberId);
+
+
+    @Query("SELECT a.aTId FROM AchievedTitle a WHERE a.challenge.challengeId = :challengeId AND a.member.memberId = :memberId")
+    Long findATIdByChallengeId(@Param("challengeId") Long challengeId, @Param("memberId") Long memberId);
 }

@@ -506,9 +506,11 @@ public class ChallengeService {
     }
 
     private void createNotification(Member member, ChallengeCount cc) {
+        Long atIdByChallengeId = achievedTitleRepository.findATIdByChallengeId(
+            cc.getChallenge().getChallengeId(),member.getMemberId());
         NotificationCreateRequest request = new NotificationCreateRequest(
             member.getMemberId(),
-            0L,
+            atIdByChallengeId,
             "TITLE",
             "",
             "운영자",

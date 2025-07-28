@@ -8,17 +8,20 @@ import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
+import com.grepp.spring.infra.config.security.UserDetailsServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -29,6 +32,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final MemberRepository memberRepository;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -89,8 +93,15 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     }
     
     private TokenDto generateTokenDto(Member member) {
+        // Spring Security 권한 형식으로 권한 생성
+        List<SimpleGrantedAuthority> authorities = userDetailsService.findUserAuthorities(member.getEmail());
+        String roles = authorities.stream()
+                .map(authority -> authority.getAuthority())
+                .findFirst()
+                .orElse("ROLE_USER");
+        
         // Access Token 생성
-        var accessTokenDto = jwtTokenProvider.generateAccessToken(member.getEmail(), member.getRole());
+        var accessTokenDto = jwtTokenProvider.generateAccessToken(member.getEmail(), roles);
         
         // Refresh Token 생성 및 저장
         RefreshToken refreshToken = refreshTokenService.saveWithAtId(accessTokenDto.getJti());

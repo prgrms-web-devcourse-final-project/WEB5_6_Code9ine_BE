@@ -281,7 +281,7 @@ public class MemberController {
 
     // 로그아웃
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<MemberLogoutResponse>> logout(HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<MemberLogoutResponse>> logout(HttpServletRequest request, HttpServletResponse response) {
         // JWT에서 현재 사용자 이메일 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -291,18 +291,33 @@ public class MemberController {
                     .body(new ApiResponse<>(ResponseCode.UNAUTHORIZED.code(), "인증 정보가 유효하지 않습니다.", null));
         }
         
+        // RefreshToken 삭제
+        String accessToken = jwtTokenProvider.resolveToken(request, AuthToken.ACCESS_TOKEN);
+        if (accessToken != null) {
+            try {
+                io.jsonwebtoken.Claims claims = jwtTokenProvider.getClaims(accessToken);
+                refreshTokenService.deleteByAccessTokenId(claims.getId());
+            } catch (Exception e) {
+                // 토큰 파싱 실패 시 무시
+            }
+        }
+        
         // 사용자를 블랙리스트에 추가
         userBlackListRepository.save(new UserBlackList(currentEmail));
         
         // SecurityContext 클리어
         SecurityContextHolder.clearContext();
         
-        // 쿠키 만료 처리
-        ResponseCookie expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
-        ResponseCookie expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
+        // Cross-Origin 환경에서 쿠키 삭제를 보장하기 위한 설정
+        String expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name()).toString();
+        String expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name()).toString();
         
-        response.addHeader("Set-Cookie", expiredAccessToken.toString());
-        response.addHeader("Set-Cookie", expiredRefreshToken.toString());
+        // SameSite=None, Secure=true 설정 추가로 Cross-Origin 쿠키 삭제 보장
+        expiredAccessToken += "; SameSite=None; Secure";
+        expiredRefreshToken += "; SameSite=None; Secure";
+        
+        response.addHeader("Set-Cookie", expiredAccessToken);
+        response.addHeader("Set-Cookie", expiredRefreshToken);
         
         MemberLogoutResponse logoutResponse = new MemberLogoutResponse();
         return ResponseEntity.ok(ApiResponse.success(logoutResponse));

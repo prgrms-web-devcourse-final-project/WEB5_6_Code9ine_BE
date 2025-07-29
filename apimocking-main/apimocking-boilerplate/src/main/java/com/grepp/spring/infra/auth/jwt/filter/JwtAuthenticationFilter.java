@@ -69,6 +69,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         System.out.println("[JwtAuthFilter] accessToken 추출: " + accessToken.substring(0, Math.min(20, accessToken.length())) + "...");
+        System.out.println("[JwtAuthFilter] accessToken 전체 길이: " + accessToken.length());
         try {
             if (jwtTokenProvider.validateToken(accessToken, request)) {
                 System.out.println("[JwtAuthFilter] accessToken 유효함");

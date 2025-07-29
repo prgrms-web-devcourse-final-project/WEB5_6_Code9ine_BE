@@ -111,12 +111,17 @@ public class OAuth2SignupController {
                 tokenDto.getAccessToken().substring(0, 20) + "...", 
                 tokenDto.getRefreshToken().substring(0, 20) + "...");
         
-        // 쿠키 설정
-        response.addHeader("Set-Cookie",
-            TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(), tokenDto.getAccessToken(), tokenDto.getExpiresIn()).toString());
-        response.addHeader("Set-Cookie",
-            TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getExpiresIn()).toString());
-        log.info("쿠키 설정 완료");
+        // 쿠키 설정 - CORS 및 보안 설정 추가
+        String accessTokenCookie = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(), tokenDto.getAccessToken(), tokenDto.getExpiresIn()).toString();
+        String refreshTokenCookie = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getExpiresIn()).toString();
+        
+        // SameSite=None, Secure=true 설정으로 Cross-Origin 쿠키 전송 보장
+        accessTokenCookie += "; SameSite=None; Secure";
+        refreshTokenCookie += "; SameSite=None; Secure";
+        
+        response.addHeader("Set-Cookie", accessTokenCookie);
+        response.addHeader("Set-Cookie", refreshTokenCookie);
+        log.info("쿠키 설정 완료: SameSite=None, Secure=true");
         
         OAuth2SignupResponse signupResponse = new OAuth2SignupResponse(
                 2000, 

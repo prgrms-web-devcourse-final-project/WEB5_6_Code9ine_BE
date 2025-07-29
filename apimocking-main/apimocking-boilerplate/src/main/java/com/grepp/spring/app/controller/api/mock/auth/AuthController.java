@@ -32,13 +32,18 @@ public class AuthController {
     ) {
         TokenDto tokenDto = authService.signin(loginRequest);
         
-        ResponseCookie accessToken = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(),
-            tokenDto.getAccessToken(), tokenDto.getExpiresIn());
-        ResponseCookie refreshToken = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(),
-            tokenDto.getRefreshToken(), tokenDto.getExpiresIn());
+        // 쿠키 설정 - CORS 및 보안 설정 추가
+        String accessTokenCookie = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(),
+            tokenDto.getAccessToken(), tokenDto.getExpiresIn()).toString();
+        String refreshTokenCookie = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(),
+            tokenDto.getRefreshToken(), tokenDto.getExpiresIn()).toString();
         
-        response.addHeader("Set-Cookie", accessToken.toString());
-        response.addHeader("Set-Cookie", refreshToken.toString());
+        // SameSite=None, Secure=true 설정으로 Cross-Origin 쿠키 전송 보장
+        accessTokenCookie += "; SameSite=None; Secure";
+        refreshTokenCookie += "; SameSite=None; Secure";
+        
+        response.addHeader("Set-Cookie", accessTokenCookie);
+        response.addHeader("Set-Cookie", refreshTokenCookie);
         
         return ResponseEntity.ok(ApiResponse.success(TokenResponse.builder().
                                                          accessToken(tokenDto.getAccessToken())

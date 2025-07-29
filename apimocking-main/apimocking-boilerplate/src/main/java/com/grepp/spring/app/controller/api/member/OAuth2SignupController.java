@@ -6,6 +6,8 @@ import com.grepp.spring.app.model.auth.token.RefreshTokenService;
 import com.grepp.spring.app.model.auth.token.entity.RefreshToken;
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
+import com.grepp.spring.app.model.member.dto.OAuth2SignupRequest;
+import com.grepp.spring.app.model.member.dto.OAuth2SignupResponse;
 import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.spring.infra.config.security.UserDetailsServiceImpl;
@@ -115,29 +117,5 @@ public class OAuth2SignupController {
                 .build();
     }
 
-    // Request/Response DTOs
-    @lombok.Data
-    public static class OAuth2SignupRequest {
-        private String email;
-        private String name;
-        private String nickname;
-        private String profileImage;
-    }
 
-    @lombok.Data
-    public static class OAuth2SignupResponse {
-        private final int code;
-        private final String message;
-        private final Data data;
-        
-        @lombok.Data
-        public static class Data {
-            private final String accessToken;
-            private final String refreshToken;
-            private final String grantType;
-            private final Long expiresIn;
-            private final Long refreshExpiresIn;
-            private final String role;
-        }
-    }
 } 

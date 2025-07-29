@@ -9,6 +9,7 @@ import com.grepp.spring.app.model.challenge_count.repos.ChallengeCountRepository
 import com.grepp.spring.app.model.member.domain.Member;
 import com.grepp.spring.app.model.member.model.MemberDTO;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
+import com.grepp.spring.app.model.member.dto.MemberProfileUpdateRequest;
 import com.grepp.spring.app.model.notification.domain.Notification;
 import com.grepp.spring.app.model.notification.repos.NotificationRepository;
 import com.grepp.spring.app.model.place_bookmark.domain.PlaceBookmark;
@@ -208,7 +209,7 @@ public class MemberService {
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
     }
 
-    public void updateProfile(Long memberId, com.grepp.spring.app.controller.api.member.MemberController.ProfileUpdateRequest request) {
+    public void updateProfile(Long memberId, MemberProfileUpdateRequest request) {
         Member member = getMemberById(memberId);
         
         // 닉네임 업데이트 (입력된 경우)

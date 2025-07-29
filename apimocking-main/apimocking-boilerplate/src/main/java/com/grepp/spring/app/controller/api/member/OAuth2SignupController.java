@@ -13,6 +13,7 @@ import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.spring.infra.config.security.UserDetailsServiceImpl;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
+import com.grepp.spring.infra.error.exceptions.CommonException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,14 +48,12 @@ public class OAuth2SignupController {
         
         // 이메일 중복 체크
         if (memberRepository.existsByEmailIgnoreCase(request.getEmail())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이미 가입된 이메일입니다.", null));
+            throw new CommonException(ResponseCode.EMAIL_ALREADY_EXISTS);
         }
         
         // 닉네임 중복 체크
         if (memberRepository.findAll().stream().anyMatch(m -> m.getNickname().equalsIgnoreCase(request.getNickname()))) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이미 사용중인 닉네임입니다.", null));
+            throw new CommonException(ResponseCode.NICKNAME_ALREADY_EXISTS);
         }
         
         // 회원 생성

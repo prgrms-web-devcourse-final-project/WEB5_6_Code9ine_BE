@@ -21,12 +21,21 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     // 특정 타입의 모든 알림을 읽음 처리
     @Query("UPDATE Notification n SET n.isRead = true, n.modifiedAt = :modifiedAt " +
-           "WHERE n.member.memberId = :memberId AND n.type = :type AND n.activated = true")
+           "WHERE n.member.memberId = :memberId AND n.type = :type AND n.isRead = false AND n.activated = true")
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.transaction.annotation.Transactional
     int markAllNotificationsAsReadByType(
         @Param("memberId") Long memberId,
         @Param("type") String type,
+        @Param("modifiedAt") LocalDateTime modifiedAt);
+    
+    // 모든 알림을 읽음 처리
+    @Query("UPDATE Notification n SET n.isRead = true, n.modifiedAt = :modifiedAt " +
+           "WHERE n.member.memberId = :memberId AND n.isRead = false AND n.activated = true")
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    int markAllNotificationsAsRead(
+        @Param("memberId") Long memberId,
         @Param("modifiedAt") LocalDateTime modifiedAt);
 
     @Query("SELECT COUNT(n) > 0 FROM Notification n " +

@@ -8,6 +8,7 @@ import com.grepp.spring.app.model.member.dto.EmailVerificationVerifyResponse;
 import com.grepp.spring.app.model.member.dto.EmailVerificationStatusResponse;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
+import com.grepp.spring.infra.error.exceptions.CommonException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,8 +46,7 @@ public class EmailVerificationController {
         if (isValid) {
             return ResponseEntity.ok(ApiResponse.success(new EmailVerificationVerifyResponse("이메일 인증이 완료되었습니다.")));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "인증 코드가 올바르지 않거나 만료되었습니다.", null));
+            throw new CommonException(ResponseCode.INVALID_EMAIL_CODE);
         }
     }
     

@@ -4,6 +4,7 @@ import com.grepp.spring.app.model.achieved_title.model.AchievedTitleDTO;
 import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.app.model.member.repos.MemberRepository;
 import com.grepp.spring.app.model.member.domain.Member;
+import com.grepp.spring.app.model.member.dto.*;
 import com.grepp.spring.app.model.place_bookmark.service.PlaceBookmarkService;
 import com.grepp.spring.app.model.community.service.CommunityService;
 import com.grepp.spring.app.model.budget.service.BudgetService;
@@ -99,7 +100,7 @@ public class MemberController {
 
     // 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<SignupResponse>> signup(@RequestBody @Valid SignupRequest request) {
+    public ResponseEntity<ApiResponse<MemberSignupResponse>> signup(@RequestBody @Valid MemberSignupRequest request) {
         // 이메일, 닉네임 중복 체크
         if (memberRepository.existsByEmailIgnoreCase(request.getEmail())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -144,26 +145,26 @@ public class MemberController {
         }
         
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.successToCreate(new SignupResponse(userId)));
+                .body(ApiResponse.successToCreate(new MemberSignupResponse(userId)));
     }
 
     // 이메일 중복확인
     @PostMapping("/email/check")
-    public ResponseEntity<ApiResponse<CheckResponse>> checkEmail(@RequestBody CheckEmailRequest request) {
+    public ResponseEntity<ApiResponse<MemberCheckResponse>> checkEmail(@RequestBody MemberCheckEmailRequest request) {
         boolean exists = memberRepository.existsByEmailIgnoreCase(request.getEmail());
-        return ResponseEntity.ok(ApiResponse.success(new CheckResponse(!exists)));
+        return ResponseEntity.ok(ApiResponse.success(new MemberCheckResponse(!exists)));
     }
 
     // 닉네임 중복확인
     @PostMapping("/nickname/check")
-    public ResponseEntity<ApiResponse<CheckResponse>> checkNickname(@RequestBody CheckNicknameRequest request) {
+    public ResponseEntity<ApiResponse<MemberCheckResponse>> checkNickname(@RequestBody MemberCheckNicknameRequest request) {
         boolean exists = memberRepository.findAll().stream().anyMatch(m -> m.getNickname().equalsIgnoreCase(request.getNickname()));
-        return ResponseEntity.ok(ApiResponse.success(new CheckResponse(!exists)));
+        return ResponseEntity.ok(ApiResponse.success(new MemberCheckResponse(!exists)));
     }
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<MemberLoginResponse>> login(@RequestBody @Valid MemberLoginRequest request, HttpServletResponse response) {
         System.out.println("로그인 시도: email=" + request.getEmail() + ", password=" + request.getPassword());
         com.grepp.spring.app.controller.api.mock.auth.payload.LoginRequest authRequest = new com.grepp.spring.app.controller.api.mock.auth.payload.LoginRequest();
         authRequest.setUsername(request.getEmail());
@@ -194,7 +195,7 @@ public class MemberController {
             response.addHeader("Set-Cookie", accessTokenCookie.toString());
             response.addHeader("Set-Cookie", refreshTokenCookie.toString());
 
-            LoginResponse.Data data = new LoginResponse.Data(
+            MemberLoginResponse.Data data = new MemberLoginResponse.Data(
                 tokenDto.getAccessToken(),
                 tokenDto.getRefreshToken(),
                 tokenDto.getGrantType(),
@@ -202,7 +203,7 @@ public class MemberController {
                 tokenDto.getRefreshExpiresIn(),
                 member.getRole()
             );
-            return ResponseEntity.ok(ApiResponse.success(new LoginResponse(data)));
+            return ResponseEntity.ok(ApiResponse.success(new MemberLoginResponse(data)));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(ResponseCode.BAD_CREDENTIAL.code(), "이메일 또는 비밀번호가 올바르지 않습니다.", null));
@@ -211,7 +212,7 @@ public class MemberController {
 
     // 아이디(이메일) 찾기
     @PostMapping("/email/find")
-    public ResponseEntity<ApiResponse<FindEmailResponse>> findEmail(@RequestBody @Valid FindEmailRequest request) {
+    public ResponseEntity<ApiResponse<MemberFindEmailResponse>> findEmail(@RequestBody @Valid MemberFindEmailRequest request) {
         // 이름과 휴대폰번호로 이메일 찾기 (여러 개 가능)
         java.util.List<Member> members = memberRepository.findByNameAndPhoneNumber(request.getName(), request.getPhoneNumber());
         
@@ -225,13 +226,13 @@ public class MemberController {
                 .map(member -> maskEmail(member.getEmail()))
                 .toList();
         
-        FindEmailResponse response = new FindEmailResponse(maskedEmails);
+        MemberFindEmailResponse response = new MemberFindEmailResponse(maskedEmails);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 비밀번호 찾기 (임시 비밀번호 발송)
     @PostMapping("/password/find")
-    public ResponseEntity<ApiResponse<PasswordFindResponse>> findPassword(@RequestBody @Valid PasswordFindRequest request) {
+    public ResponseEntity<ApiResponse<MemberPasswordFindResponse>> findPassword(@RequestBody @Valid MemberPasswordFindRequest request) {
         // 이메일로 회원 조회
         Member member = memberRepository.findByEmailIgnoreCase(request.getEmail())
                 .orElse(null);
@@ -257,13 +258,13 @@ public class MemberController {
                     .body(new ApiResponse<>(ResponseCode.INTERNAL_SERVER_ERROR.code(), "이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.", null));
         }
         
-        PasswordFindResponse response = new PasswordFindResponse();
+        MemberPasswordFindResponse response = new MemberPasswordFindResponse();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 로그아웃
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<LogoutResponse>> logout(HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<MemberLogoutResponse>> logout(HttpServletResponse response) {
         // JWT에서 현재 사용자 이메일 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -286,7 +287,7 @@ public class MemberController {
         response.addHeader("Set-Cookie", expiredAccessToken.toString());
         response.addHeader("Set-Cookie", expiredRefreshToken.toString());
         
-        LogoutResponse logoutResponse = new LogoutResponse();
+        MemberLogoutResponse logoutResponse = new MemberLogoutResponse();
         return ResponseEntity.ok(ApiResponse.success(logoutResponse));
     }
 
@@ -359,9 +360,9 @@ public class MemberController {
     // 장소 북마크 해제
     @PatchMapping("/bookmarks/places/{place-id}")
     @Operation(summary = "장소 북마크 해제", description = "특정 장소의 북마크를 해제합니다.")
-    public ResponseEntity<ApiResponse<UnbookmarkResponse>> unbookmarkPlace(
+    public ResponseEntity<ApiResponse<MemberUnbookmarkResponse>> unbookmarkPlace(
             @PathVariable("place-id") Long placeId,
-            @RequestBody UnbookmarkRequest request) {
+            @RequestBody MemberUnbookmarkRequest request) {
         // JWT에서 현재 사용자 ID 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -377,14 +378,14 @@ public class MemberController {
         
         placeBookmarkService.unbookmarkPlace(member.getMemberId(), placeId, request.getPlaceType());
         
-        UnbookmarkResponse response = new UnbookmarkResponse();
+        MemberUnbookmarkResponse response = new MemberUnbookmarkResponse();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 마이페이지 조회
     @GetMapping("/mypage")
     @Operation(summary = "마이페이지 조회", description = "현재 로그인한 사용자의 마이페이지 정보를 조회합니다.")
-    public ResponseEntity<ApiResponse<MypageResponse>> getMypage() {
+    public ResponseEntity<ApiResponse<MemberMypageResponse>> getMypage() {
         // JWT에서 현재 사용자 ID 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -455,7 +456,7 @@ public class MemberController {
             ))
             .orElse(null);
 
-        MypageResponse.Data data = new MypageResponse.Data(
+        MemberMypageResponse.Data data = new MemberMypageResponse.Data(
             member.getMemberId(),
             member.getEmail(),
             member.getName(),
@@ -474,7 +475,7 @@ public class MemberController {
             achievedTitles
         );
         
-        MypageResponse response = new MypageResponse(data);
+        MemberMypageResponse response = new MemberMypageResponse(data);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -483,7 +484,7 @@ public class MemberController {
     // 목표 금액/항목 설정
     @PatchMapping("/mypage/goal")
     @Operation(summary = "목표 금액/항목 설정", description = "사용자의 목표 금액과 항목을 설정합니다.")
-    public ResponseEntity<ApiResponse<GoalResponse>> setGoal(@RequestBody @Valid GoalRequest request) {
+    public ResponseEntity<ApiResponse<MemberGoalResponse>> setGoal(@RequestBody @Valid MemberGoalRequest request) {
         // JWT에서 현재 사용자 ID 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -506,14 +507,14 @@ public class MemberController {
         member.setGoalStuff(request.getGoalStuff());
         memberRepository.save(member);
         
-        GoalResponse response = new GoalResponse(request.getGoalAmount(), request.getGoalStuff());
+        MemberGoalResponse response = new MemberGoalResponse(request.getGoalAmount(), request.getGoalStuff());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 목표 금액/항목 조회
     @GetMapping("/mypage/goal")
     @Operation(summary = "목표 금액/항목 조회", description = "사용자의 목표 금액과 항목을 조회합니다.")
-    public ResponseEntity<ApiResponse<GoalResponse>> getGoal() {
+    public ResponseEntity<ApiResponse<MemberGoalResponse>> getGoal() {
         // JWT에서 현재 사용자 ID 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -528,14 +529,14 @@ public class MemberController {
                 .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
         
         BigDecimal goalAmount = member.getGoalAmount();
-        GoalResponse response = new GoalResponse(goalAmount, member.getGoalStuff());
+        MemberGoalResponse response = new MemberGoalResponse(goalAmount, member.getGoalStuff());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 프로필 수정
     @PatchMapping("/mypage/profile")
     @Operation(summary = "프로필 수정", description = "사용자의 프로필 정보(닉네임, 프로필 이미지, 비밀번호)를 수정합니다.")
-    public ResponseEntity<ApiResponse<Object>> updateProfile(@RequestBody @Valid ProfileUpdateRequest request) {
+    public ResponseEntity<ApiResponse<Object>> updateProfile(@RequestBody @Valid MemberProfileUpdateRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
         if (currentEmail == null || currentEmail.isBlank()) {
@@ -574,7 +575,7 @@ public class MemberController {
     // 칭호 장착
     @PatchMapping("/titles/equip")
     @Operation(summary = "칭호 장착", description = "획득한 칭호 중 atId로 지정한 칭호를 장착합니다.")
-    public ResponseEntity<ApiResponse<EquipTitleResponse>> equipTitle(@RequestBody @Valid EquipTitleRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<MemberEquipTitleResponse>> equipTitle(@RequestBody @Valid MemberEquipTitleRequest request, HttpServletRequest httpRequest) {
         // 디버깅: 요청 데이터 로그
         System.out.println("[EquipTitle] 요청 받은 aTId: " + request.getATId());
         System.out.println("[EquipTitle] 요청 객체 전체: " + request);
@@ -624,7 +625,7 @@ public class MemberController {
                 .map(AchievedTitle::getName)
                 .collect(java.util.stream.Collectors.toList());
         
-        EquipTitleResponse response = new EquipTitleResponse(equippedTitleName, achievedTitleNames);
+        MemberEquipTitleResponse response = new MemberEquipTitleResponse(equippedTitleName, achievedTitleNames);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -661,7 +662,7 @@ public class MemberController {
     // 획득한 칭호 조회
     @GetMapping("/titles/achieved")
     @Operation(summary = "획득한 칭호 조회", description = "현재 로그인한 사용자가 획득한 칭호 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<TitleResponse>>> getAchievedTitles() {
+    public ResponseEntity<ApiResponse<List<MemberTitleResponse>>> getAchievedTitles() {
         // JWT에서 현재 사용자 ID 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -681,8 +682,8 @@ public class MemberController {
                 .filter(title -> title.getMember().getMemberId().equals(member.getMemberId()) && title.getAchieved())
                 .collect(java.util.stream.Collectors.toList());
         
-        List<TitleResponse> titleResponses = achievedTitles.stream()
-                .map(title -> new TitleResponse(
+        List<MemberTitleResponse> titleResponses = achievedTitles.stream()
+                .map(title -> new MemberTitleResponse(
                         title.getATId(),
                         title.getName(),
                         title.getAchieved(),
@@ -698,7 +699,7 @@ public class MemberController {
     // 장착된 칭호 조회
     @GetMapping("/titles/equipped")
     @Operation(summary = "장착된 칭호 조회", description = "현재 로그인한 사용자가 장착한 칭호를 조회합니다.")
-    public ResponseEntity<ApiResponse<TitleResponse>> getEquippedTitle() {
+    public ResponseEntity<ApiResponse<MemberTitleResponse>> getEquippedTitle() {
         // JWT에서 현재 사용자 ID 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -719,7 +720,7 @@ public class MemberController {
             return ResponseEntity.ok(ApiResponse.success(null));
         }
         
-        TitleResponse titleResponse = new TitleResponse(
+        MemberTitleResponse titleResponse = new MemberTitleResponse(
                 equippedTitle.getATId(),
                 equippedTitle.getName(),
                 equippedTitle.getAchieved(),
@@ -734,7 +735,7 @@ public class MemberController {
     // 내 초대 코드 복사
     @GetMapping("/invite-code")
     @Operation(summary = "내 초대 코드 복사", description = "현재 로그인한 사용자의 초대 코드를 조회합니다.")
-    public ResponseEntity<ApiResponse<InviteCodeResponse>> getInviteCode() {
+    public ResponseEntity<ApiResponse<MemberInviteCodeResponse>> getInviteCode() {
         // JWT에서 현재 사용자 이메일 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -751,14 +752,14 @@ public class MemberController {
         // 초대 코드 생성 (멤버 ID 기반)
         String inviteCode = inviteCodeService.generateInviteCode(member.getMemberId());
         
-        InviteCodeResponse response = new InviteCodeResponse(inviteCode);
+        MemberInviteCodeResponse response = new MemberInviteCodeResponse(inviteCode);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 회원 탈퇴
     @PatchMapping("/withdraw")
     @Operation(summary = "회원 탈퇴", description = "현재 로그인한 사용자의 회원 탈퇴를 처리합니다.")
-    public ResponseEntity<ApiResponse<WithdrawResponse>> withdrawMember() {
+    public ResponseEntity<ApiResponse<MemberWithdrawResponse>> withdrawMember() {
         // JWT에서 현재 사용자 이메일 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -778,14 +779,14 @@ public class MemberController {
         // SecurityContext 클리어
         SecurityContextHolder.clearContext();
 
-        WithdrawResponse response = new WithdrawResponse();
+        MemberWithdrawResponse response = new MemberWithdrawResponse();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 챌린지 대시보드 조회
     @GetMapping("/mypage/challenges/dashboard")
     @Operation(summary = "챌린지 대시보드 조회", description = "현재 로그인한 사용자의 챌린지 대시보드 정보를 조회합니다.")
-    public ResponseEntity<ApiResponse<ChallengeDashboardResponse>> getChallengeDashboard() {
+    public ResponseEntity<ApiResponse<MemberChallengeDashboardResponse>> getChallengeDashboard() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
         if (currentEmail == null || currentEmail.isBlank()) {
@@ -796,8 +797,8 @@ public class MemberController {
                 .orElseThrow(() -> new RuntimeException("멤버를 찾을 수 없습니다."));
         // 실제 챌린지 서비스에서 데이터 조회
         List<com.grepp.spring.app.model.challenge.model.ChallengeStatusDto> challengeStatuses = challengeService.getChallengeStatuses(member.getMemberId());
-        List<ChallengeDashboardResponse.ChallengeData> challenges = challengeStatuses.stream()
-            .map(dto -> new ChallengeDashboardResponse.ChallengeData(
+        List<MemberChallengeDashboardResponse.ChallengeData> challenges = challengeStatuses.stream()
+            .map(dto -> new MemberChallengeDashboardResponse.ChallengeData(
                 dto.getChallengeId(),
                 dto.getName(), // title -> name
                 dto.getType(),
@@ -806,16 +807,16 @@ public class MemberController {
                 dto.getProgress(),
                 dto.getIcon()
             )).toList();
-        ChallengeDashboardResponse response = new ChallengeDashboardResponse(challenges);
+        MemberChallengeDashboardResponse response = new MemberChallengeDashboardResponse(challenges);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/{memberId}/challenges/dashboard")
     @Operation(summary = "다른 유저 챌린지 대시보드 조회", description = "다른 유저의 챌린지 대시보드 정보를 조회합니다.")
-    public ResponseEntity<ApiResponse<ChallengeDashboardResponse>> getmemberChallengeDashboard(@PathVariable Long memberId) {
+    public ResponseEntity<ApiResponse<MemberChallengeDashboardResponse>> getmemberChallengeDashboard(@PathVariable Long memberId) {
         List<com.grepp.spring.app.model.challenge.model.ChallengeStatusDto> challengeStatuses = challengeService.getChallengeStatuses(memberId);
-        List<ChallengeDashboardResponse.ChallengeData> challenges = challengeStatuses.stream()
-            .map(dto -> new ChallengeDashboardResponse.ChallengeData(
+        List<MemberChallengeDashboardResponse.ChallengeData> challenges = challengeStatuses.stream()
+            .map(dto -> new MemberChallengeDashboardResponse.ChallengeData(
                 dto.getChallengeId(),
                 dto.getName(), // title -> name
                 dto.getType(),
@@ -824,7 +825,7 @@ public class MemberController {
                 dto.getProgress(),
                 dto.getIcon()
             )).toList();
-        ChallengeDashboardResponse response = new ChallengeDashboardResponse(challenges);
+        MemberChallengeDashboardResponse response = new MemberChallengeDashboardResponse(challenges);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -834,7 +835,7 @@ public class MemberController {
     //다른 유저 프로필 조회
     @GetMapping("/profile/{memberId}")
     @Operation(summary = "다른 유저 프로필 조회", description = "memberId로 다른 유저의 프로필 정보를 조회합니다. 마이페이지와 동일한 데이터 구조를 반환합니다.")
-    public ResponseEntity<ApiResponse<MypageResponse>> getOtherMemberProfile(@PathVariable Long memberId) {
+    public ResponseEntity<ApiResponse<MemberMypageResponse>> getOtherMemberProfile(@PathVariable Long memberId) {
         // JWT 인증 필요(로그인 사용자만 조회 가능)
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName() == null || auth.getName().isBlank()) {
@@ -906,7 +907,7 @@ public class MemberController {
             ))
             .orElse(null);
 
-        MypageResponse.Data data = new MypageResponse.Data(
+        MemberMypageResponse.Data data = new MemberMypageResponse.Data(
             member.getMemberId(),
             member.getEmail(),
             member.getName(),
@@ -924,7 +925,7 @@ public class MemberController {
             equippedTitleDto,
             achievedTitles
         );
-        MypageResponse response = new MypageResponse(data);
+        MemberMypageResponse response = new MemberMypageResponse(data);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
     
@@ -1009,303 +1010,7 @@ public class MemberController {
         return password.matches("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,}$");
     }
 
-    // ===== 내부 DTO 클래스들 =====
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class SignupRequest {
-        @Schema(description = "이메일", example = "test@test.com")
-        @NotBlank(message = "이메일은 필수입니다.")
-        @Email(message = "이메일 형식이 올바르지 않습니다.")
-        private String email;
-        
-        @Schema(description = "비밀번호", example = "password123!")
-        @NotBlank(message = "비밀번호는 필수입니다.")
-        private String password;
-        
-        @Schema(description = "비밀번호 확인", example = "password123!")
-        @NotBlank(message = "비밀번호 확인은 필수입니다.")
-        private String passwordCheck;
-        
-        @Schema(description = "이름", example = "홍길동")
-        @NotBlank(message = "이름은 필수입니다.")
-        private String name;
-        
-        @Schema(description = "닉네임", example = "길동이")
-        @NotBlank(message = "닉네임은 필수입니다.")
-        private String nickname;
-        
-        @Schema(description = "휴대폰번호", example = "01012345678")
-        @NotBlank(message = "휴대폰번호는 필수입니다.")
-        @Pattern(regexp = "^01[016789]\\d{7,8}$", message = "휴대폰번호 형식이 올바르지 않습니다.")
-        private String phoneNumber;
-        
-        @Schema(description = "초대코드 (선택사항)", example = "ABC123")
-        private String inviteCode;
-    }
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class SignupResponse {
-        private Long userId;
-    }
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class CheckEmailRequest {
-        private String email;
-    }
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class CheckNicknameRequest {
-        private String nickname;
-    }
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class CheckResponse {
-        private boolean available;
-    }
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class LoginRequest {
-        @Schema(description = "이메일", example = "test3@test.com")
-        private String email;
-        @Schema(description = "비밀번호", example = "string")
-        private String password;
-    }
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class LoginResponse {
-        private Data data;
-        @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-        public static class Data {
-            private String accessToken;
-            private String refreshToken;
-            private String grantType;
-            private Long expiresIn;
-            private Long refreshExpiresIn;
-            private String role; // 추가된 필드
-        }
-    }
 
-    // 아이디(이메일) 찾기 관련 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class FindEmailRequest {
-        @Schema(description = "이름", example = "안재호")
-        @NotBlank(message = "이름은 필수입니다.")
-        private String name;
-        @Schema(description = "휴대폰번호", example = "01012345678")
-        @NotBlank(message = "휴대폰번호는 필수입니다.")
-        @Pattern(regexp = "^01[016789]\\d{7,8}$", message = "휴대폰번호 형식이 올바르지 않습니다.")
-        private String phoneNumber;
-    }
-
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class FindEmailResponse {
-        @Schema(description = "마스킹된 이메일 목록", example = "[\"te****@test.com\", \"an****@test.com\"]")
-        private java.util.List<String> emails;
-    }
-
-    // 비밀번호 찾기 관련 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class PasswordFindRequest {
-        @Schema(description = "이메일", example = "test@test.com")
-        @NotBlank(message = "이메일은 필수입니다.")
-        @Email(message = "이메일 형식이 올바르지 않습니다.")
-        private String email;
-    }
-
-    @Getter @Setter @NoArgsConstructor
-    public static class PasswordFindResponse {
-        private String message = "임시 비밀번호가 이메일로 발송되었습니다.";
-    }
-
-    // 비밀번호 변경 관련 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class PasswordChangeRequest {
-        @Schema(description = "기존 비밀번호", example = "1234")
-        @NotBlank(message = "기존 비밀번호는 필수입니다.")
-        private String oldPassword;
-        @Schema(description = "새 비밀번호", example = "5678")
-        @NotBlank(message = "새 비밀번호는 필수입니다.")
-        private String newPassword;
-    }
-
-    @Getter @Setter @NoArgsConstructor
-    public static class PasswordChangeResponse {
-        // 응답 데이터 없음 (성공 메시지만 반환)
-    }
-
-    // 로그아웃 관련 DTO
-    @Getter @Setter
-    public static class LogoutResponse {
-        private String message = "로그아웃 성공";
-        public LogoutResponse() {}
-        public LogoutResponse(String message) { this.message = message; }
-    }
-
-    // 장소 북마크 해제 요청 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class UnbookmarkRequest {
-        @Schema(description = "장소 타입", example = "store|festival|library")
-        private String placeType;
-    }
-
-    // 장소 북마크 해제 응답 DTO
-    @Getter @Setter @NoArgsConstructor
-    public static class UnbookmarkResponse {
-        // 응답 데이터 없음 (성공 메시지만 반환)
-    }
-
-    // 마이페이지 조회 응답 DTO
-    @Getter @Setter @NoArgsConstructor
-    public static class MypageResponse {
-        private Data data;
-        
-        public MypageResponse(Data data) {
-            this.data = data;
-        }
-        
-        @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-        public static class Data {
-            private Long memberId;
-            private String email;
-            private String name;
-            private String nickname;
-            private String profileImage;
-            private int level;
-            private int currentExp;
-            private int nextLevelExp;
-            private int expProgress;
-            private List<Map<String, Object>> myPosts;
-            private String goalStuff;
-            private BigDecimal remainPrice;
-            private List<Map<String, Object>> bookmarkedPosts;
-            private List<Map<String, Object>> bookmarkedPlaces;
-            private AchievedTitleDTO equippedTitle;
-            private List<Map<String, Object>> achievedTitles;
-        }
-    }
-
-    // 목표 설정 요청 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class GoalRequest {
-        @Schema(description = "목표 금액", example = "200000")
-        private BigDecimal goalAmount;
-        
-        @Schema(description = "목표 항목", example = "자동차")
-        private String goalStuff;
-    }
-
-    // 목표 설정/조회 응답 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class GoalResponse {
-        private BigDecimal goalAmount;
-        private String goalStuff;
-    }
-
-    // 칭호 장착 요청 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class EquipTitleRequest {
-        @Schema(description = "획득한 칭호의 aTId", example = "10001")
-        @NotNull(message = "aTId는 필수입니다.")
-        @JsonProperty("aTId")
-        private Long aTId;
-        
-        // aTId가 0인 경우 검증
-        public boolean isValidATId() {
-            return aTId != null && aTId > 0;
-        }
-    }
-
-    // 대표 칭호 변경 응답 DTO
-    @Getter @Setter @NoArgsConstructor
-    public static class RepresentativeTitleResponse {
-        private Long aTId;
-        
-        public RepresentativeTitleResponse(Long aTId) {
-            this.aTId = aTId;
-        }
-    }
-
-    // 칭호 즉시 장착 응답 DTO
-    @Getter @Setter @NoArgsConstructor
-    public static class EquipTitleResponse {
-        private String equippedTitle;
-        private List<String> achievedTitles;
-        
-        public EquipTitleResponse(String equippedTitle, List<String> achievedTitles) {
-            this.equippedTitle = equippedTitle;
-            this.achievedTitles = achievedTitles;
-        }
-    }
-
-    // 칭호 목록 조회 응답 DTO
-    @Getter @Setter @NoArgsConstructor
-    public static class TitleResponse {
-        private Long aTId;
-        private String name;
-        private Boolean achieved;
-        private Integer minCount;
-        private Long challengeId;
-        private String challengeName;
-        
-        public TitleResponse(Long aTId, String name, Boolean achieved, Integer minCount, Long challengeId, String challengeName) {
-            this.aTId = aTId;
-            this.name = name;
-            this.achieved = achieved;
-            this.minCount = minCount;
-            this.challengeId = challengeId;
-            this.challengeName = challengeName;
-        }
-    }
-
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class ProfileUpdateRequest {
-        
-        @Schema(description = "닉네임", example = "새로운닉네임")
-        private String nickname;
-        
-        @Schema(description = "프로필 이미지 URL", example = "https://example.com/image.jpg")
-        private String profileImage;
-        
-        @Schema(description = "기존 비밀번호", example = "1234")
-        private String oldPassword; // 기존 비밀번호(비밀번호 변경 시 필요)
-        
-        @Schema(description = "새 비밀번호", example = "newpassword123!")
-        private String newPassword;
-        
-        @Schema(description = "새 비밀번호 확인", example = "newpassword123!")
-        private String newPasswordCheck;
-    }
-
-    // 초대 코드 관련 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class InviteCodeResponse {
-        @Schema(description = "초대 코드", example = "ABC123")
-        private String inviteCode;
-    }
-
-    // 회원 탈퇴 관련 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class WithdrawResponse {
-        @Schema(description = "회원 탈퇴 성공 메시지", example = "회원 탈퇴가 완료되었습니다.")
-        private String message = "회원 탈퇴가 완료되었습니다.";
-    }
-
-    // 챌린지 대시보드 관련 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class ChallengeDashboardResponse {
-        @Schema(description = "챌린지 목록")
-        private List<ChallengeData> challenges;
-        @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-        public static class ChallengeData {
-            @Schema(description = "챌린지 ID", example = "1")
-            private Long challengeId;
-            @Schema(description = "챌린지 이름", example = "만원의 행복")
-            private String name;
-            @Schema(description = "챌린지 타입", example = "일일")
-            private String type;
-            @Schema(description = "챌린지 설명", example = "만원으로 하루 살아보기")
-            private String description;
-            @Schema(description = "총 목표", example = "1")
-            private Integer total;
-            @Schema(description = "진행률", example = "0")
-            private Integer progress;
-            @Schema(description = "아이콘", example = "moneyIcon")
-            private String icon;
-        }
-    }
 
 
 } 

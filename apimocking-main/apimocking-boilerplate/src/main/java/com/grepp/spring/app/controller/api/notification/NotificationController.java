@@ -1,6 +1,11 @@
 package com.grepp.spring.app.controller.api.notification;
 
 import com.grepp.spring.app.model.notification.service.NotificationService;
+import com.grepp.spring.app.controller.api.notification.dto.CreateNotificationRequest;
+import com.grepp.spring.app.controller.api.notification.dto.LikeNotificationResponse;
+import com.grepp.spring.app.controller.api.notification.dto.CommentNotificationResponse;
+import com.grepp.spring.app.controller.api.notification.dto.TitleNotificationResponse;
+import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,67 +30,7 @@ public class NotificationController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    // DTO 정의
-    public static class LikeNotificationResponse {
-        public Long notificationId;
-        public String message;
-        public boolean read;
-        public Long senderId;
-        public String type;
-        public LikeNotificationResponse(Long notificationId, String message, boolean read, Long senderId, String type) {
-            this.notificationId = notificationId;
-            this.message = message;
-            this.read = read;
-            this.senderId = senderId;
-            this.type = type;
-        }
-    }
-    public static class CommentNotificationResponse {
-        public Long notificationId;
-        public String message;
-        public boolean read;
-        public Long senderId;
-        public String type;
-        public CommentNotificationResponse(Long notificationId, String message, boolean read, Long senderId, String type) {
-            this.notificationId = notificationId;
-            this.message = message;
-            this.read = read;
-            this.senderId = senderId;
-            this.type = type;
-        }
-    }
-    public static class TitleNotificationResponse {
-        public Long notificationId;
-        public String message;
-        public boolean read;
-        public String type;
-        public Long aTId; // 획득한 칭호의 aTId 추가
-        public TitleNotificationResponse(Long notificationId, String message, boolean read, String type, Long aTId) {
-            this.notificationId = notificationId;
-            this.message = message;
-            this.read = read;
-            this.type = type;
-            this.aTId = aTId;
-        }
-    }
-    public static class CreateNotificationRequest {
-        @NotNull public Long receiverId;
-        public String message;
-        @NotNull public Long senderId;
-        @NotNull public String type;
-        public String senderName; // 동적 메시지 생성을 위한 필드
-        public String title;      // 칭호명 등 동적 메시지 생성을 위한 필드
-    }
-    public static class ApiResponse<T> {
-        public String code;
-        public String message;
-        public T data;
-        public ApiResponse(String code, String message, T data) {
-            this.code = code;
-            this.message = message;
-            this.data = data;
-        }
-    }
+
 
     // 알림 생성
     @PostMapping
@@ -93,12 +38,12 @@ public class NotificationController {
     public ResponseEntity<ApiResponse<Long>> createNotification(@RequestBody CreateNotificationRequest request) {
         NotificationService.NotificationCreateRequest serviceRequest = 
             new NotificationService.NotificationCreateRequest(
-                request.receiverId, 
-                request.senderId, 
-                request.type, 
-                request.message, 
-                request.senderName, 
-                request.title
+                request.getReceiverId(), 
+                request.getSenderId(), 
+                request.getType(), 
+                request.getMessage(), 
+                request.getSenderName(), 
+                request.getTitle()
             );
         Long id = notificationService.createNotification(serviceRequest);
         return ResponseEntity.status(201).body(new ApiResponse<>("2001", "성공적으로 생성되었습니다.", id));

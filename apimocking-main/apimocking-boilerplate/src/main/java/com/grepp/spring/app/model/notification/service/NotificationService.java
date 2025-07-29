@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import com.grepp.spring.app.controller.api.notification.NotificationController.LikeNotificationResponse;
-import com.grepp.spring.app.controller.api.notification.NotificationController.CommentNotificationResponse;
-import com.grepp.spring.app.controller.api.notification.NotificationController.TitleNotificationResponse;
+import com.grepp.spring.app.controller.api.notification.dto.LikeNotificationResponse;
+import com.grepp.spring.app.controller.api.notification.dto.CommentNotificationResponse;
+import com.grepp.spring.app.controller.api.notification.dto.TitleNotificationResponse;
 
 
 @Service

@@ -1,5 +1,10 @@
 package com.grepp.spring.app.controller.api.mock.notification;
 
+import com.grepp.spring.app.controller.api.mock.notification.dto.CreateNotificationRequest;
+import com.grepp.spring.app.controller.api.mock.notification.dto.LikeNotificationResponse;
+import com.grepp.spring.app.controller.api.mock.notification.dto.CommentNotificationResponse;
+import com.grepp.spring.app.controller.api.mock.notification.dto.TitleNotificationResponse;
+import com.grepp.spring.infra.response.ApiResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,63 +56,5 @@ public class NotificationMockController {
         return ResponseEntity.ok(new ApiResponse<>("2000", "성공적으로 처리되었습니다.", null));
     }
 
-    // === 내부 static DTO들 ===
-    public static class LikeNotificationResponse {
-        public Long notificationId;
-        public String message;
-        public boolean read;
-        public int senderId;
-        public String type;
-        public LikeNotificationResponse(Long notificationId, String message, boolean read, int senderId, String type) {
-            this.notificationId = notificationId;
-            this.message = message;
-            this.read = read;
-            this.senderId = senderId;
-            this.type = type;
-        }
-    }
-    public static class CommentNotificationResponse {
-        public Long notificationId;
-        public String message;
-        public boolean read;
-        public int senderId;
-        public String type;
-        public CommentNotificationResponse(Long notificationId, String message, boolean read, int senderId, String type) {
-            this.notificationId = notificationId;
-            this.message = message;
-            this.read = read;
-            this.senderId = senderId;
-            this.type = type;
-        }
-    }
-    public static class TitleNotificationResponse {
-        public Long notificationId;
-        public String message;
-        public boolean read;
-        public String type;
-        public TitleNotificationResponse(Long notificationId, String message, boolean read, String type) {
-            this.notificationId = notificationId;
-            this.message = message;
-            this.read = read;
-            this.type = type;
-        }
-    }
-    public static class CreateNotificationRequest {
-        public Long receiverId;
-        public String message;
-        public Integer senderId;
-        public String type;
-        public String senderName;
-        public String title;
-    }
-    public static class ApiResponse<T> {
-        public String code;
-        public String message;
-        public T data;
-        public ApiResponse(String code, String message, T data) {
-            this.code = code;
-            this.message = message;
-            this.data = data;
-        }
-    }
+
 } 

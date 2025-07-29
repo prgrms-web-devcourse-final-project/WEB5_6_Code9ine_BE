@@ -1,5 +1,7 @@
 package com.grepp.spring.app.controller.api.mock.chatbot;
 
+import com.grepp.spring.app.controller.api.mock.chatbot.dto.ChatbotRequest;
+import com.grepp.spring.app.controller.api.mock.chatbot.dto.ChatbotResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,20 +19,5 @@ public class ChatbotMockController {
         return ResponseEntity.ok(new ChatbotResponse(2000, "자산 관리 답변을 조회했습니다.", data));
     }
 
-    // 내부 static DTO들
-    public static class ChatbotRequest {
-        public String question;
-        public ChatbotRequest() {}
-        public ChatbotRequest(String question) { this.question = question; }
-    }
-    public static class ChatbotResponse {
-        public int code;
-        public String message;
-        public Data data;
-        public ChatbotResponse(int code, String message, Data data) { this.code = code; this.message = message; this.data = data; }
-        public static class Data {
-            public String answer;
-            public Data(String answer) { this.answer = answer; }
-        }
-    }
+
 } 

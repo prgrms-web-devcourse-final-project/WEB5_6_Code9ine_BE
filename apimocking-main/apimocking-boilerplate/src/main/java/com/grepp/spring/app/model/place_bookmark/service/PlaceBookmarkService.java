@@ -72,7 +72,7 @@ public class PlaceBookmarkService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException("멤버를 찾을 수 없습니다."));
 
-        List<PlaceBookmark> bookmarks = placeBookmarkRepository.findByMemberAndActivatedTrue(member);
+        List<PlaceBookmark> bookmarks = placeBookmarkRepository.findByMemberAndActivatedTrueOrderByCreatedAtDesc(member);
 
         return bookmarks.stream()
                 .map(this::convertToResponseMap)

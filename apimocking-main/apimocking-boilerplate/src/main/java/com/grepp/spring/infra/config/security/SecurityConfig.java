@@ -65,6 +65,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/members/nickname/check").permitAll()
                                 .requestMatchers("/api/users/top-savers", "/api/users/top-challenges", "/api/users/average-saving", "/api/users/all-saving").permitAll()
                                 .requestMatchers("/api/searches/top","/api/places/search","/api/places/detail").permitAll()
+                                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                                 .requestMatchers("/api/members/logout").authenticated()
                                 .requestMatchers("/api/**").authenticated()
                                 .anyRequest().permitAll()

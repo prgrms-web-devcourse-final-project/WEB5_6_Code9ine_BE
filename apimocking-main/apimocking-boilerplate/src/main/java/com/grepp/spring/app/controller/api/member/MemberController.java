@@ -55,6 +55,7 @@ import com.grepp.spring.app.model.challenge.service.ChallengeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @RestController
 @RequestMapping("/api/members")
@@ -573,7 +574,19 @@ public class MemberController {
     // 칭호 장착
     @PatchMapping("/titles/equip")
     @Operation(summary = "칭호 장착", description = "획득한 칭호 중 atId로 지정한 칭호를 장착합니다.")
-    public ResponseEntity<ApiResponse<EquipTitleResponse>> equipTitle(@RequestBody @Valid EquipTitleRequest request) {
+    public ResponseEntity<ApiResponse<EquipTitleResponse>> equipTitle(@RequestBody @Valid EquipTitleRequest request, HttpServletRequest httpRequest) {
+        // 디버깅: 요청 데이터 로그
+        System.out.println("[EquipTitle] 요청 받은 aTId: " + request.getATId());
+        System.out.println("[EquipTitle] 요청 객체 전체: " + request);
+        System.out.println("[EquipTitle] Content-Type: " + httpRequest.getContentType());
+        System.out.println("[EquipTitle] 요청 메서드: " + httpRequest.getMethod());
+        
+        // aTId 유효성 검증
+        if (!request.isValidATId()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "유효하지 않은 칭호 ID입니다. aTId는 0보다 큰 값이어야 합니다.", null));
+        }
+        
         // JWT에서 현재 사용자 ID 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -1186,7 +1199,13 @@ public class MemberController {
     public static class EquipTitleRequest {
         @Schema(description = "획득한 칭호의 aTId", example = "10001")
         @NotNull(message = "aTId는 필수입니다.")
+        @JsonProperty("aTId")
         private Long aTId;
+        
+        // aTId가 0인 경우 검증
+        public boolean isValidATId() {
+            return aTId != null && aTId > 0;
+        }
     }
 
     // 대표 칭호 변경 응답 DTO

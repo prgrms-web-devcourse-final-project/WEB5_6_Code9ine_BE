@@ -62,9 +62,9 @@ public class OAuth2SignupController {
         }
         
         try {
-            // 이메일 중복 체크
-            if (memberRepository.existsByEmailIgnoreCase(request.getEmail())) {
-                log.warn("이메일 중복: {}", request.getEmail());
+            // 이메일 중복 체크 (활성화된 계정만 체크)
+            if (memberRepository.existsByEmailIgnoreCaseAndActivatedTrue(request.getEmail())) {
+                log.warn("활성화된 이메일 중복: {}", request.getEmail());
                 throw new CommonException(ResponseCode.EMAIL_ALREADY_EXISTS);
             }
             

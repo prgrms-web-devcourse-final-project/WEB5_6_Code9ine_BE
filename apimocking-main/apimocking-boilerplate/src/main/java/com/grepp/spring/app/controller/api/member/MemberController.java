@@ -125,25 +125,21 @@ public class MemberController {
             }
         }
         
-        // 탈퇴한 계정이 있는지 확인하고 재활용
+        // 탈퇴한 계정이 있는지 확인
         Optional<Member> existingMember = memberRepository.findByEmailIgnoreCase(request.getEmail());
         Long userId;
         
         if (existingMember.isPresent() && !existingMember.get().getActivated()) {
-            // 탈퇴한 계정이 있으면 재활용
-            Member member = existingMember.get();
-            member.setPassword(passwordEncoder.encode(request.getPassword()));
+            // 탈퇴한 계정이 있으면 기존 계정은 그대로 두고 새로운 계정 생성
+            // 이렇게 하면 기존 데이터는 그대로 보존되고 새로운 사용자는 깨끗한 상태로 시작
+            Member member = new Member();
+            member.setEmail(request.getEmail());
+            member.setPassword(passwordEncoder.encode(request.getPassword())); // 비밀번호 암호화
             member.setName(request.getName());
             member.setNickname(request.getNickname());
             member.setPhoneNumber(request.getPhoneNumber());
-            member.setActivated(true); // 계정 활성화
-            member.setLevel(1); // 레벨 초기화
-            member.setTotalExp(0); // 경험치 초기화
-            member.setGoalAmount(null); // 목표 초기화
-            member.setGoalStuff(null);
-            member.setEquippedTitle(null); // 장착된 칭호 초기화
-            memberRepository.save(member);
-            userId = member.getMemberId();
+            member.setRole("ROLE_USER");
+            userId = memberService.create(memberService.mapToDTO(member, new com.grepp.spring.app.model.member.model.MemberDTO()));
         } else {
             // 새로운 회원 생성
             Member member = new Member();

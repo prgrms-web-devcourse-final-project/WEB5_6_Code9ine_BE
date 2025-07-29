@@ -15,6 +15,7 @@ import com.grepp.spring.app.model.invite_code.service.InviteCodeService;
 import java.math.BigDecimal;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
+import com.grepp.spring.infra.error.exceptions.CommonException;
 import jakarta.validation.Valid;
 import java.util.Objects;
 import java.util.Optional;
@@ -103,29 +104,24 @@ public class MemberController {
     public ResponseEntity<ApiResponse<MemberSignupResponse>> signup(@RequestBody @Valid MemberSignupRequest request) {
         // 이메일, 닉네임 중복 체크 (활성화된 계정만 체크)
         if (memberRepository.existsByEmailIgnoreCaseAndActivatedTrue(request.getEmail())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이미 사용중인 이메일입니다.", null));
+            throw new CommonException(ResponseCode.EMAIL_ALREADY_EXISTS);
         }
         if (memberRepository.findAll().stream().anyMatch(m -> m.getNickname().equalsIgnoreCase(request.getNickname()))) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이미 사용중인 닉네임입니다.", null));
+            throw new CommonException(ResponseCode.NICKNAME_ALREADY_EXISTS);
         }
         if (!request.getPassword().equals(request.getPasswordCheck())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "비밀번호가 일치하지 않습니다.", null));
+            throw new CommonException(ResponseCode.PASSWORD_MISMATCH);
         }
         
         // 이메일 인증 확인
         if (!emailVerificationService.isEmailVerified(request.getEmail())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이메일 인증이 필요합니다.", null));
+            throw new CommonException(ResponseCode.EMAIL_NOT_VERIFIED);
         }
         
         // 초대코드 검증 (선택적)
         if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
             if (!inviteCodeService.isValidInviteCode(request.getInviteCode())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "유효하지 않은 초대코드입니다.", null));
+                throw new CommonException(ResponseCode.INVALID_INVITE_CODE);
             }
         }
         
@@ -579,13 +575,11 @@ public class MemberController {
         if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
             // 새 비밀번호 유효성 검사
             if (!isValidPassword(request.getNewPassword())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "비밀번호는 8자 이상, 영문/숫자/특수문자를 모두 포함해야 합니다.", null));
+                throw new CommonException(ResponseCode.INVALID_PASSWORD_FORMAT);
             }
             // 새 비밀번호 확인
             if (!request.getNewPassword().equals(request.getNewPasswordCheck())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "새 비밀번호와 비밀번호 확인이 일치하지 않습니다.", null));
+                throw new CommonException(ResponseCode.PASSWORD_MISMATCH);
             }
             member.setPassword(passwordEncoder.encode(request.getNewPassword()));
         }
@@ -605,8 +599,7 @@ public class MemberController {
         
         // aTId 유효성 검증
         if (!request.isValidATId()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "유효하지 않은 칭호 ID입니다. aTId는 0보다 큰 값이어야 합니다.", null));
+            throw new CommonException(ResponseCode.INVALID_TITLE_ID);
         }
         
         // JWT에서 현재 사용자 ID 추출

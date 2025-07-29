@@ -17,6 +17,9 @@ import java.util.List;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
     boolean existsByEmailIgnoreCase(String email);
+    
+    // 활성화된 계정만 체크하는 메서드 추가
+    boolean existsByEmailIgnoreCaseAndActivatedTrue(String email);
     java.util.Optional<Member> findByEmail(String email);
     
     // 아이디(이메일) 찾기용 메서드 (여러 개 반환 가능)

@@ -86,7 +86,13 @@ public class OAuth2SignupController {
         
         // OAuth2 사용자는 비밀번호가 필요 없으므로 임시 값 설정
         // 실제로는 소셜 로그인으로만 인증하므로 이 비밀번호는 사용되지 않음
-        member.setPassword("OAUTH2_USER_" + System.currentTimeMillis());
+        String tempPassword = "OAUTH2_USER_" + System.currentTimeMillis() + "_" + request.getEmail();
+        member.setPassword(tempPassword);
+        log.info("OAuth2 사용자 임시 비밀번호 설정: {}", tempPassword);
+        
+        // Member 객체 상태 확인
+        log.info("Member 객체 생성 완료: email={}, password={}, name={}, nickname={}", 
+                member.getEmail(), member.getPassword(), member.getName(), member.getNickname());
         
         // 데이터베이스 저장 시도
         Member savedMember;
@@ -101,12 +107,16 @@ public class OAuth2SignupController {
         
         // JWT 토큰 생성
         TokenDto tokenDto = generateTokenDto(savedMember);
+        log.info("JWT 토큰 생성 완료: accessToken={}, refreshToken={}", 
+                tokenDto.getAccessToken().substring(0, 20) + "...", 
+                tokenDto.getRefreshToken().substring(0, 20) + "...");
         
         // 쿠키 설정
         response.addHeader("Set-Cookie",
             TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(), tokenDto.getAccessToken(), tokenDto.getExpiresIn()).toString());
         response.addHeader("Set-Cookie",
             TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getExpiresIn()).toString());
+        log.info("쿠키 설정 완료");
         
         OAuth2SignupResponse signupResponse = new OAuth2SignupResponse(
                 2000, 

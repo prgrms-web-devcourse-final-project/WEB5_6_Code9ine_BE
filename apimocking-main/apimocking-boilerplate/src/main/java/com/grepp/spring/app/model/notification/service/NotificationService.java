@@ -236,12 +236,9 @@ public class NotificationService {
 
     // 특정 타입의 모든 알림 읽음 처리
     public void markAllNotificationsAsReadByType(Long memberId, String type) {
-        int updatedCount = notificationRepository.markAllNotificationsAsReadByType(
+        notificationRepository.markAllNotificationsAsReadByType(
             memberId, type, LocalDateTime.now());
-        
-        if (updatedCount == 0) {
-            throw new NotFoundException("해당 타입의 읽지 않은 알림이 없습니다.");
-        }
+        // 읽지 않은 알림이 없어도 성공으로 처리 (에러를 던지지 않음)
     }
 
 }

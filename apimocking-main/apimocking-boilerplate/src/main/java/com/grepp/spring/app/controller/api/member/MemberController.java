@@ -453,10 +453,12 @@ public class MemberController {
         List<Map<String, Object>> achievedTitles = new java.util.ArrayList<>();
         for (var t : allTitles) {
             Map<String, Object> map = new HashMap<>();
+            map.put("aTId", t.getATId()); // aTId 추가
             map.put("challengeId", t.getChallengeId());
             map.put("name", t.getName());
             map.put("minCount", t.getMinCount());
             map.put("icon",t.getIcon());
+            map.put("achieved", t.getAchieved()); // achieved 추가
             achievedTitles.add(map);
         }
         //Map<String, Object> equippedTitle = achievedTitles.isEmpty() ? null : achievedTitles.get(0);
@@ -465,12 +467,17 @@ public class MemberController {
         AchievedTitleDTO equippedTitleDto = withEquippedTitleAndChallenge
             .map(Member::getEquippedTitle)
             .filter(Objects::nonNull)
-            .map(equippedTitle -> new AchievedTitleDTO(
-                equippedTitle.getChallenge().getChallengeId(),
-                equippedTitle.getName(),
-                equippedTitle.getMinCount(),
-                equippedTitle.getIcon()
-            ))
+            .map(equippedTitle -> {
+                AchievedTitleDTO dto = new AchievedTitleDTO(
+                    equippedTitle.getChallenge().getChallengeId(),
+                    equippedTitle.getName(),
+                    equippedTitle.getMinCount(),
+                    equippedTitle.getIcon()
+                );
+                dto.setATId(equippedTitle.getATId()); // aTId 설정
+                dto.setAchieved(equippedTitle.getAchieved()); // achieved 설정
+                return dto;
+            })
             .orElse(null);
 
         MemberMypageResponse.Data data = new MemberMypageResponse.Data(
@@ -909,10 +916,12 @@ public class MemberController {
         List<Map<String, Object>> achievedTitles = new java.util.ArrayList<>();
             for (var t : allTitles) {
                     Map<String, Object> map = new HashMap<>();
+                    map.put("aTId", t.getATId()); // aTId 추가
                     map.put("challengeId", t.getChallengeId());
                     map.put("name", t.getName());
                     map.put("minCount", t.getMinCount());
                     map.put("icon",t.getIcon());
+                    map.put("achieved", t.getAchieved()); // achieved 추가
                     achievedTitles.add(map);
             }
 
@@ -923,12 +932,17 @@ public class MemberController {
         AchievedTitleDTO equippedTitleDto = withEquippedTitleAndChallenge
             .map(Member::getEquippedTitle)
             .filter(Objects::nonNull)
-            .map(equippedTitle -> new AchievedTitleDTO(
-                equippedTitle.getChallenge().getChallengeId(),
-                equippedTitle.getName(),
-                equippedTitle.getMinCount(),
-                equippedTitle.getIcon()
-            ))
+            .map(equippedTitle -> {
+                AchievedTitleDTO dto = new AchievedTitleDTO(
+                    equippedTitle.getChallenge().getChallengeId(),
+                    equippedTitle.getName(),
+                    equippedTitle.getMinCount(),
+                    equippedTitle.getIcon()
+                );
+                dto.setATId(equippedTitle.getATId()); // aTId 설정
+                dto.setAchieved(equippedTitle.getAchieved()); // achieved 설정
+                return dto;
+            })
             .orElse(null);
 
         MemberMypageResponse.Data data = new MemberMypageResponse.Data(

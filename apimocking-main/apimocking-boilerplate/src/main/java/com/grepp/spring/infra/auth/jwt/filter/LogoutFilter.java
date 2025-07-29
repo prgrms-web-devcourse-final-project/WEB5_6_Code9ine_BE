@@ -40,12 +40,22 @@ public class LogoutFilter extends OncePerRequestFilter {
         if(path.equals("/auth/logout")){
             refreshTokenService.deleteByAccessTokenId(claims.getId());
             SecurityContextHolder.clearContext();
-            ResponseCookie expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
-            ResponseCookie expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
-            ResponseCookie expiredSessionId = TokenCookieFactory.createExpiredToken(AuthToken.AUTH_SERVER_SESSION_ID.name());
-            response.addHeader("Set-Cookie", expiredAccessToken.toString());
-            response.addHeader("Set-Cookie", expiredRefreshToken.toString());
-            response.addHeader("Set-Cookie", expiredSessionId.toString());
+            
+            // Cross-Origin 환경에서 쿠키 삭제를 보장하기 위한 설정
+            String expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name()).toString();
+            String expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name()).toString();
+            String expiredSessionId = TokenCookieFactory.createExpiredToken(AuthToken.AUTH_SERVER_SESSION_ID.name()).toString();
+            
+            // SameSite=None, Secure=true 설정 추가로 Cross-Origin 쿠키 삭제 보장
+            expiredAccessToken += "; SameSite=None; Secure";
+            expiredRefreshToken += "; SameSite=None; Secure";
+            expiredSessionId += "; SameSite=None; Secure";
+            
+            response.addHeader("Set-Cookie", expiredAccessToken);
+            response.addHeader("Set-Cookie", expiredRefreshToken);
+            response.addHeader("Set-Cookie", expiredSessionId);
+            
+            System.out.println("[LogoutFilter] 쿠키 만료 설정 완료: " + path);
             response.sendRedirect("/");
         }
         

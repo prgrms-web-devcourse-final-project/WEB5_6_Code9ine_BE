@@ -11,4 +11,5 @@ public class OAuth2SignupRequest {
     private String name;
     private String nickname;
     private String profileImage;
+    private String phoneNumber;
 } 

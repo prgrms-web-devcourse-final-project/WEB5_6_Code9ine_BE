@@ -174,8 +174,9 @@ public class NotificationService {
 
     // 알림 생성 (팀원들이 호출할 메서드)
     public Long createNotification(NotificationCreateRequest request) {
-        if (request.getSenderId() != null && request.getSenderId().equals(request.getReceiverId())) {
-            // 자기 자신에게는 알림 생성하지 않음
+        // TITLE 타입은 자기 자신에게도 알림 생성 가능 (칭호 획득 알림)
+        if (!"TITLE".equals(request.getType()) && request.getSenderId() != null && request.getSenderId().equals(request.getReceiverId())) {
+            // 자기 자신에게는 알림 생성하지 않음 (TITLE 제외)
             return null;
         }
         Member receiver = memberRepository.findById(request.getReceiverId())

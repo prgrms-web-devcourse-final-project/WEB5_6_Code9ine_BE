@@ -95,4 +95,10 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
         @Param("start") LocalDate start,
         @Param("end") LocalDate end
     );
+
+    // 회원 탈퇴 시 해당 회원의 모든 예산 데이터 삭제
+    @Query("DELETE FROM Budget b WHERE b.member = :member")
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByMember(@Param("member") Member member);
 }

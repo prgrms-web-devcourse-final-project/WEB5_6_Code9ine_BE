@@ -41,6 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         excludePath.addAll(List.of("/auth/signup", "/auth/login",  "/favicon.ico", "/img", "/js","/css","/download"));
         excludePath.addAll(List.of("/error", "/api/member/exists", "/member/signin", "/member/signup"));
         excludePath.addAll(List.of("/api/members/email/send", "/api/members/email/verify", "/api/members/email/status"));
+        excludePath.addAll(List.of("/api/auth/refresh")); // 토큰 갱신 엔드포인트 제외
         // /api/members/logout 경로는 제외하지 않음
         String path = request.getRequestURI();
         return excludePath.stream().anyMatch(path::startsWith);
@@ -69,6 +70,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         System.out.println("[JwtAuthFilter] accessToken 추출: " + accessToken.substring(0, Math.min(20, accessToken.length())) + "...");
+        System.out.println("[JwtAuthFilter] accessToken 전체 길이: " + accessToken.length());
         try {
             if (jwtTokenProvider.validateToken(accessToken, request)) {
                 System.out.println("[JwtAuthFilter] accessToken 유효함");
@@ -85,34 +87,50 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (ExpiredJwtException e) {
             System.out.println("[JwtAuthFilter] accessToken 만료. 리프레시 처리 시도");
-            manageTokenRefresh(accessToken, request, response);
+            boolean refreshSuccess = manageTokenRefresh(accessToken, request, response);
+            if (!refreshSuccess) {
+                System.out.println("[JwtAuthFilter] 토큰 갱신 실패");
+                // 토큰 갱신 실패 시 401 응답
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("{\"code\":\"401\",\"message\":\"토큰이 만료되었습니다. 다시 로그인해주세요.\"}");
+                return;
+            }
         } catch (Exception e) {
             System.out.println("[JwtAuthFilter] 예외 발생: " + e.getMessage());
         }
         filterChain.doFilter(request, response);
     }
     
-    private void manageTokenRefresh(
+    private boolean manageTokenRefresh(
         String accessToken,
         HttpServletRequest request,
         HttpServletResponse response) throws IOException {
         
-        Claims claims  = jwtTokenProvider.getClaims(accessToken);
-        if (userBlackListRepository.existsById(claims.getSubject())) {
-            return;
+        try {
+            Claims claims  = jwtTokenProvider.getClaims(accessToken);
+            if (userBlackListRepository.existsById(claims.getSubject())) {
+                return false;
+            }
+            
+            String refreshToken = jwtTokenProvider.resolveToken(request, AuthToken.REFRESH_TOKEN);
+            if (refreshToken == null) {
+                return false;
+            }
+            
+            RefreshToken rt = refreshTokenService.findByAccessTokenId(claims.getId());
+            if(rt == null) return false;
+            
+            if (!rt.getToken().equals(refreshToken)) {
+                userBlackListRepository.save(new UserBlackList(claims.getSubject()));
+                return false;
+            }
+            
+            addToken(response, claims, rt);
+            return true;
+        } catch (Exception e) {
+            System.out.println("[JwtAuthFilter] 토큰 갱신 중 오류: " + e.getMessage());
+            return false;
         }
-        
-        String refreshToken = jwtTokenProvider.resolveToken(request, AuthToken.REFRESH_TOKEN);
-        RefreshToken rt = refreshTokenService.findByAccessTokenId(claims.getId());
-        
-        if(rt == null) return;
-        
-        if (!rt.getToken().equals(refreshToken)) {
-            userBlackListRepository.save(new UserBlackList(claims.getSubject()));
-            throw new CommonException(ResponseCode.SECURITY_INCIDENT);
-        }
-        
-        addToken(response, claims, rt);
     }
     
     private void addToken(HttpServletResponse response, Claims claims, RefreshToken refreshToken) {
@@ -131,7 +149,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         ResponseCookie refreshTokenCookie = TokenCookieFactory.create(
             AuthToken.REFRESH_TOKEN.name(),
             newRefreshToken.getToken(),
-            newRefreshToken.getTtl());
+            newRefreshToken.getTtl() * 1000); // 초를 밀리초로 변환
         
         response.addHeader("Set-Cookie", accessTokenCookie.toString());
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());

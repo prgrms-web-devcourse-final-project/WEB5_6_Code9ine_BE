@@ -110,7 +110,7 @@ public class MemberService {
     }
 
     public boolean emailExists(final String email) {
-        return memberRepository.existsByEmailIgnoreCase(email);
+        return memberRepository.existsByEmailIgnoreCaseAndActivatedTrue(email);
     }
 
     // --- 소셜 로그인 관련 메서드 추가 ---

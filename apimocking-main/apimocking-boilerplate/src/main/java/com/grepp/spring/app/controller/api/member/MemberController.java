@@ -101,8 +101,8 @@ public class MemberController {
     // 회원가입
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<MemberSignupResponse>> signup(@RequestBody @Valid MemberSignupRequest request) {
-        // 이메일, 닉네임 중복 체크
-        if (memberRepository.existsByEmailIgnoreCase(request.getEmail())) {
+        // 이메일, 닉네임 중복 체크 (활성화된 계정만 체크)
+        if (memberRepository.existsByEmailIgnoreCaseAndActivatedTrue(request.getEmail())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiResponse<>(ResponseCode.BAD_REQUEST.code(), "이미 사용중인 이메일입니다.", null));
         }
@@ -129,15 +129,36 @@ public class MemberController {
             }
         }
         
-        // 회원 생성
-        Member member = new Member();
-        member.setEmail(request.getEmail());
-        member.setPassword(passwordEncoder.encode(request.getPassword())); // 비밀번호 암호화
-        member.setName(request.getName());
-        member.setNickname(request.getNickname());
-        member.setPhoneNumber(request.getPhoneNumber());
-        member.setRole("ROLE_USER");
-        Long userId = memberService.create(memberService.mapToDTO(member, new com.grepp.spring.app.model.member.model.MemberDTO()));
+        // 탈퇴한 계정이 있는지 확인하고 재활용
+        Optional<Member> existingMember = memberRepository.findByEmailIgnoreCase(request.getEmail());
+        Long userId;
+        
+        if (existingMember.isPresent() && !existingMember.get().getActivated()) {
+            // 탈퇴한 계정이 있으면 재활용
+            Member member = existingMember.get();
+            member.setPassword(passwordEncoder.encode(request.getPassword()));
+            member.setName(request.getName());
+            member.setNickname(request.getNickname());
+            member.setPhoneNumber(request.getPhoneNumber());
+            member.setActivated(true); // 계정 활성화
+            member.setLevel(1); // 레벨 초기화
+            member.setTotalExp(0); // 경험치 초기화
+            member.setGoalAmount(null); // 목표 초기화
+            member.setGoalStuff(null);
+            member.setEquippedTitle(null); // 장착된 칭호 초기화
+            memberRepository.save(member);
+            userId = member.getMemberId();
+        } else {
+            // 새로운 회원 생성
+            Member member = new Member();
+            member.setEmail(request.getEmail());
+            member.setPassword(passwordEncoder.encode(request.getPassword())); // 비밀번호 암호화
+            member.setName(request.getName());
+            member.setNickname(request.getNickname());
+            member.setPhoneNumber(request.getPhoneNumber());
+            member.setRole("ROLE_USER");
+            userId = memberService.create(memberService.mapToDTO(member, new com.grepp.spring.app.model.member.model.MemberDTO()));
+        }
         
         // 초대코드 사용 처리 (초대코드가 있는 경우에만)
         if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
@@ -151,7 +172,7 @@ public class MemberController {
     // 이메일 중복확인
     @PostMapping("/email/check")
     public ResponseEntity<ApiResponse<MemberCheckResponse>> checkEmail(@RequestBody MemberCheckEmailRequest request) {
-        boolean exists = memberRepository.existsByEmailIgnoreCase(request.getEmail());
+        boolean exists = memberRepository.existsByEmailIgnoreCaseAndActivatedTrue(request.getEmail());
         return ResponseEntity.ok(ApiResponse.success(new MemberCheckResponse(!exists)));
     }
 
@@ -759,7 +780,7 @@ public class MemberController {
     // 회원 탈퇴
     @PatchMapping("/withdraw")
     @Operation(summary = "회원 탈퇴", description = "현재 로그인한 사용자의 회원 탈퇴를 처리합니다.")
-    public ResponseEntity<ApiResponse<MemberWithdrawResponse>> withdrawMember() {
+    public ResponseEntity<ApiResponse<MemberWithdrawResponse>> withdrawMember(HttpServletResponse response) {
         // JWT에서 현재 사용자 이메일 추출
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = auth != null ? auth.getName() : null;
@@ -776,11 +797,21 @@ public class MemberController {
         // 회원 탈퇴 처리
         memberService.withdrawMember(member.getMemberId());
 
+        // 사용자를 블랙리스트에 추가 (로그아웃과 동일한 처리)
+        userBlackListRepository.save(new UserBlackList(currentEmail));
+        
         // SecurityContext 클리어
         SecurityContextHolder.clearContext();
+        
+        // 쿠키 만료 처리 (로그아웃과 동일한 처리)
+        ResponseCookie expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
+        ResponseCookie expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
+        
+        response.addHeader("Set-Cookie", expiredAccessToken.toString());
+        response.addHeader("Set-Cookie", expiredRefreshToken.toString());
 
-        MemberWithdrawResponse response = new MemberWithdrawResponse();
-        return ResponseEntity.ok(ApiResponse.success(response));
+        MemberWithdrawResponse withdrawResponse = new MemberWithdrawResponse("회원 탈퇴가 완료되었습니다.", "/");
+        return ResponseEntity.ok(ApiResponse.success(withdrawResponse));
     }
 
     // 챌린지 대시보드 조회

@@ -240,5 +240,12 @@ public class NotificationService {
             memberId, type, LocalDateTime.now());
         // 읽지 않은 알림이 없어도 성공으로 처리 (에러를 던지지 않음)
     }
+    
+    // 모든 알림 읽음 처리
+    public void markAllNotificationsAsRead(Long memberId) {
+        notificationRepository.markAllNotificationsAsRead(
+            memberId, LocalDateTime.now());
+        // 읽지 않은 알림이 없어도 성공으로 처리 (에러를 던지지 않음)
+    }
 
 }

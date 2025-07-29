@@ -360,7 +360,7 @@ public class BudgetDetailService {
             member, challenge, today);
 
         boolean existsByBudget = budgetRepository.existsBudgetByMemberIdAndDate(member.getMemberId(), LocalDate.now());
-        boolean  existsByCategory= budgetDetailRepository.existsBudgetDetailByMemberAndDate(member.getMemberId(), "교통비", LocalDate.now());
+        boolean  existsByCategory= budgetDetailRepository.existsBudgetDetailByMemberAndDate(member.getMemberId(), "교통", LocalDate.now());
 
         if (existingCount.isEmpty()) {
             // 없으면 새로 생성

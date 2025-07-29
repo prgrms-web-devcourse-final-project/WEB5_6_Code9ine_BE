@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/members")
@@ -74,34 +75,62 @@ public class OAuth2SignupController {
                 throw new CommonException(ResponseCode.NICKNAME_ALREADY_EXISTS);
             }
         
-        // 회원 생성
-        Member member = new Member();
-        member.setEmail(request.getEmail());
-        member.setName(request.getName());
-        member.setNickname(request.getNickname());
-        member.setPhoneNumber(request.getPhoneNumber()); // 전화번호 설정
-        member.setProfileImage(request.getProfileImage());
-        member.setRole("ROLE_USER"); // 기본 역할 설정
-        member.setActivated(true);
-        
-        // OAuth2 사용자는 비밀번호가 필요 없으므로 임시 값 설정
-        // 실제로는 소셜 로그인으로만 인증하므로 이 비밀번호는 사용되지 않음
-        String tempPassword = "OAUTH2_USER_" + System.currentTimeMillis() + "_" + request.getEmail();
-        member.setPassword(tempPassword);
-        log.info("OAuth2 사용자 임시 비밀번호 설정: {}", tempPassword);
-        
-        // Member 객체 상태 확인
-        log.info("Member 객체 생성 완료: email={}, password={}, name={}, nickname={}", 
-                member.getEmail(), member.getPassword(), member.getName(), member.getNickname());
-        
-        // 데이터베이스 저장 시도
+        // 탈퇴한 계정이 있는지 확인하고 재활용
+        Optional<Member> existingMember = memberRepository.findByEmailIgnoreCase(request.getEmail());
         Member savedMember;
-        try {
+        
+        if (existingMember.isPresent() && !existingMember.get().getActivated()) {
+            // 탈퇴한 계정이 있으면 재활용
+            log.info("탈퇴한 계정 재활용: {}", request.getEmail());
+            Member member = existingMember.get();
+            member.setName(request.getName());
+            member.setNickname(request.getNickname());
+            member.setPhoneNumber(request.getPhoneNumber());
+            member.setProfileImage(request.getProfileImage());
+            member.setActivated(true);
+            member.setLevel(1);
+            member.setTotalExp(0);
+            member.setGoalAmount(null);
+            member.setGoalStuff(null);
+            member.setEquippedTitle(null);
+            member.setKakaoId(null);
+            member.setSocialEmail(null);
+            
+            // OAuth2 사용자 임시 비밀번호 설정
+            String tempPassword = "OAUTH2_USER_" + System.currentTimeMillis() + "_" + request.getEmail();
+            member.setPassword(tempPassword);
+            log.info("OAuth2 사용자 임시 비밀번호 설정: {}", tempPassword);
+            
             savedMember = memberRepository.save(member);
-            log.info("회원 저장 성공: {}", savedMember.getEmail());
-        } catch (Exception e) {
-            log.error("회원 저장 실패: {}", e.getMessage(), e);
-            throw new CommonException(ResponseCode.INTERNAL_SERVER_ERROR);
+            log.info("탈퇴 계정 재활용 성공: {}", savedMember.getEmail());
+        } else {
+            // 새로운 회원 생성
+            Member member = new Member();
+            member.setEmail(request.getEmail());
+            member.setName(request.getName());
+            member.setNickname(request.getNickname());
+            member.setPhoneNumber(request.getPhoneNumber());
+            member.setProfileImage(request.getProfileImage());
+            member.setRole("ROLE_USER");
+            member.setActivated(true);
+            
+            // OAuth2 사용자 임시 비밀번호 설정
+            String tempPassword = "OAUTH2_USER_" + System.currentTimeMillis() + "_" + request.getEmail();
+            member.setPassword(tempPassword);
+            log.info("OAuth2 사용자 임시 비밀번호 설정: {}", tempPassword);
+            
+            // Member 객체 상태 확인
+            log.info("Member 객체 생성 완료: email={}, password={}, name={}, nickname={}", 
+                    member.getEmail(), member.getPassword(), member.getName(), member.getNickname());
+            
+            // 데이터베이스 저장 시도
+            try {
+                savedMember = memberRepository.save(member);
+                log.info("새 회원 저장 성공: {}", savedMember.getEmail());
+            } catch (Exception e) {
+                log.error("회원 저장 실패: {}", e.getMessage(), e);
+                throw new CommonException(ResponseCode.INTERNAL_SERVER_ERROR);
+            }
         }
         log.info("OAuth2 회원가입 완료: {}", savedMember.getEmail());
         

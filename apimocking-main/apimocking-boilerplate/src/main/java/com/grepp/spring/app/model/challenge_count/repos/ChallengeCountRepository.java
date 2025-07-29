@@ -50,4 +50,10 @@ public interface ChallengeCountRepository extends JpaRepository<ChallengeCount, 
         @Param("startOfYesterday") LocalDateTime startOfYesterday,
         @Param("startOfToday") LocalDateTime startOfToday,
         @Param("type") String type);
+
+    // 회원 탈퇴 시 해당 회원의 모든 챌린지 카운트 삭제
+    @Query("DELETE FROM ChallengeCount cc WHERE cc.member = :member")
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByMember(@Param("member") Member member);
 }

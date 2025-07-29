@@ -45,4 +45,10 @@ public interface PlaceBookmarkRepository extends JpaRepository<PlaceBookmark, Lo
 
     // 특정 멤버의 특정 도서관 북마크 존재 여부 확인
     boolean existsByMemberAndLibrary(Member member, Library library);
+
+    // 회원 탈퇴 시 해당 회원의 모든 장소 북마크 삭제
+    @Query("DELETE FROM PlaceBookmark pb WHERE pb.member = :member")
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByMember(@Param("member") Member member);
 }

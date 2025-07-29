@@ -229,7 +229,23 @@ public class MemberService {
     public void withdrawMember(Long memberId) {
         Member member = getMemberById(memberId);
         
-        // 회원 탈퇴 처리 (activated = false)
+        // 회원 탈퇴 시 연관 데이터 삭제
+        // 1. 알림 데이터 삭제
+        notificationRepository.deleteByMember(member);
+        
+        // 2. 챌린지 카운트 데이터 삭제
+        challengeCountRepository.deleteByMember(member);
+        
+        // 3. 출석 데이터 삭제
+        attendanceRepository.deleteByMember(member);
+        
+        // 4. 예산 데이터 삭제
+        budgetRepository.deleteByMember(member);
+        
+        // 5. 장소 북마크 데이터 삭제
+        placeBookmarkRepository.deleteByMember(member);
+        
+        // 6. 회원 탈퇴 처리 (activated = false)
         member.setActivated(false);
         
         memberRepository.save(member);

@@ -49,4 +49,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
         @Param("end") LocalDateTime end,
         @Param("message") String message);
 
+    // 회원 탈퇴 시 해당 회원의 모든 알림 삭제
+    @Query("DELETE FROM Notification n WHERE n.member = :member")
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByMember(@Param("member") Member member);
+
 }

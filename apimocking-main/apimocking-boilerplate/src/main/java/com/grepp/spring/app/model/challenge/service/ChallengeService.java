@@ -512,7 +512,7 @@ public class ChallengeService {
             cc.getChallenge().getChallengeId(),member.getMemberId());
         NotificationCreateRequest request = new NotificationCreateRequest(
             member.getMemberId(),
-            atIdByChallengeId,
+            atIdByChallengeId, // aTId를 senderId로 전달 (NotificationService에서 null 체크 제거 필요)
             "TITLE",
             "",
             "운영자",
@@ -579,7 +579,7 @@ public class ChallengeService {
         // 알림 전송
         notificationService.createNotification(new NotificationService.NotificationCreateRequest(
             postWriter.getMemberId(),
-            achievedTitle.getATId(),
+            achievedTitle.getATId(), // aTId를 senderId로 전달
             "TITLE",
             null,
             null,
@@ -642,7 +642,7 @@ public class ChallengeService {
             // 알림 전송
             notificationService.createNotification(new NotificationService.NotificationCreateRequest(
                 postWriter.getMemberId(),
-                achievedTitle.getATId(),
+                achievedTitle.getATId(), // aTId를 senderId로 전달
                 "TITLE",
                 null,
                 null,

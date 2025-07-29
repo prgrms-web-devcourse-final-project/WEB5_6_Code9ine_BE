@@ -37,5 +37,15 @@ public class AchievedTitleDTO {
         this.minCount = minCount;
         this.icon = icon;
     }
+    
+    public AchievedTitleDTO(Long aTId, Long challengeId, String name, Boolean achieved, Integer minCount, String icon) {
+        this.aTId = aTId;
+        this.challengeId = challengeId;
+        this.name = name;
+        this.achieved = achieved;
+        this.minCount = minCount;
+        this.icon = icon;
+    }
+    
     public AchievedTitleDTO() {}
 }

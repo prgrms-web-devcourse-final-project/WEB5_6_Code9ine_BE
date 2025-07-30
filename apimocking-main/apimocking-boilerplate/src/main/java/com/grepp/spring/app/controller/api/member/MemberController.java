@@ -196,24 +196,16 @@ public class MemberController {
             Member member = memberRepository.findByEmailIgnoreCase(request.getEmail())
                     .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-            // accessToken 쿠키 생성
-            ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenDto.getAccessToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(tokenDto.getExpiresIn() / 1000)
-                .sameSite("None")
-                .build();
-            // refreshToken 쿠키 생성
-            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(tokenDto.getRefreshExpiresIn() / 1000)
-                .sameSite("None")
-                .build();
-            response.addHeader("Set-Cookie", accessTokenCookie.toString());
-            response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+            // 쿠키 설정 - CORS 및 보안 설정 추가
+            String accessTokenCookie = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(), tokenDto.getAccessToken(), tokenDto.getExpiresIn()).toString();
+            String refreshTokenCookie = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getRefreshExpiresIn() * 1000).toString(); // 초를 밀리초로 변환
+
+            // SameSite=None, Secure=true 설정으로 Cross-Origin 쿠키 전송 보장
+            accessTokenCookie += "; SameSite=None; Secure";
+            refreshTokenCookie += "; SameSite=None; Secure";
+
+            response.addHeader("Set-Cookie", accessTokenCookie);
+            response.addHeader("Set-Cookie", refreshTokenCookie);
 
             MemberLoginResponse.Data data = new MemberLoginResponse.Data(
                 tokenDto.getAccessToken(),

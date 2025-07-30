@@ -6,7 +6,7 @@
 
 ### Backend
 - **Framework**: Spring Boot 3.x
-- **Language**: Java 17
+- **Language**: Java 21
 - **Database**: PostgreSQL
 - **Cache**: Redis
 - **Security**: Spring Security + JWT
@@ -117,4 +117,5 @@ export FRONTEND_URL=https://web-4-5-code9ine-fe-nine.vercel.app
 
 ## 📞 문의
 
-프로젝트 관련 문의사항이 있으시면 개발팀에 연락해주세요.
+프로젝트 관련 문의사항이 있으시면 연락주세요
+dkswogh0420@gmail.com

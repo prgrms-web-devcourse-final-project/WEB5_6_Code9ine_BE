@@ -77,11 +77,16 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         // JWT 토큰 생성
         TokenDto tokenDto = generateTokenDto(member);
         
-        // 쿠키 설정
-        response.addHeader("Set-Cookie", 
-            TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(), tokenDto.getAccessToken(), tokenDto.getExpiresIn()).toString());
-        response.addHeader("Set-Cookie", 
-            TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getExpiresIn()).toString());
+        // 쿠키 설정 - CORS 및 보안 설정 추가
+        String accessTokenCookie = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(), tokenDto.getAccessToken(), tokenDto.getExpiresIn()).toString();
+        String refreshTokenCookie = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(), tokenDto.getRefreshToken(), tokenDto.getRefreshExpiresIn() * 1000).toString(); // 초를 밀리초로 변환
+
+        // SameSite=None, Secure=true 설정으로 Cross-Origin 쿠키 전송 보장
+        accessTokenCookie += "; SameSite=None; Secure";
+        refreshTokenCookie += "; SameSite=None; Secure";
+
+        response.addHeader("Set-Cookie", accessTokenCookie);
+        response.addHeader("Set-Cookie", refreshTokenCookie);
         
         // /login/googleauth로 리다이렉트 (토큰 정보를 URL 파라미터로 전달)
         String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/login/googleauth")
@@ -115,6 +120,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
                 .refreshToken(refreshToken.getToken())
                 .grantType("Bearer")
                 .expiresIn(3600L)
+                .refreshExpiresIn(28800L) // 8시간 (초 단위)
                 .build();
     }
     
